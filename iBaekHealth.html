@@ -11,12 +11,16 @@
   <link rel="icon" href="icon.png" type="image/png">
   
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
   
   <style>
     /* --- 기본 & 배경 스타일 --- */
+    html {
+        scroll-behavior: smooth;
+    }
     body {
       font-family: 'Noto Sans KR', sans-serif;
       color: #4a3f33; /* Deep brown for text */
@@ -80,6 +84,14 @@
       box-shadow: 0 0 0 2px #8a7a69;
       background-color: rgba(255, 255, 255, 0.9);
     }
+    .textarea-field::placeholder {
+        text-align: center;
+        color: #6e6052;
+        font-weight: 400;
+        opacity: 0.9;
+        font-size: 0.95rem; /* 글자 크기 약간 줄임 */
+        line-height: 1.5; /* 줄 간격 조정 */
+    }
     .divider-or {
         display: flex;
         align-items: center;
@@ -139,9 +151,6 @@
         <label for="food-text" class="block text-sm font-medium text-[#6e6052] mb-1">음식 이름 또는 재료</label>
         <div class="flex items-center gap-2">
             <input type="text" id="food-text" class="input-field w-full" placeholder="예: 닭가슴살, 브로콜리">
-            <button id="home-button-icon" class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/5 transition" title="처음으로">
-                <svg class="w-5 h-5 text-[#6e6052]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-            </button>
             <button id="clear-button-icon" class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/5 transition" title="화면 지우기">
                 <svg class="w-5 h-5 text-[#6e6052]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             </button>
@@ -164,7 +173,7 @@
       <div class="divider-or"><span>건강 Q&A</span></div>
 
       <div>
-        <textarea id="qna-text" class="textarea-field w-full h-24 resize-none" placeholder="건강에 대해 궁금한 점을 질문하세요..."></textarea>
+        <textarea id="qna-text" class="textarea-field w-full h-24 resize-none"></textarea>
       </div>
 
       <div class="space-y-3 pt-4 border-t border-gray-300/70">
@@ -197,15 +206,15 @@
       </div>
       <div id="result-section" class="mt-6 hidden">
           <!-- Q&A 결과 -->
-          <div id="result-qna-section" class="hidden p-4 rounded-lg bg-white/50">
-              <h2 class="text-xl font-bold text-[#4a3f33] mb-2">건강 답변</h2>
-              <p id="result-qna-answer" class="text-[#4a3f33] whitespace-pre-wrap"></p>
+          <div id="result-qna-section" class="hidden p-4 rounded-lg bg-white/50 space-y-4">
+              <h2 class="text-xl font-bold text-[#4a3f33] border-b border-gray-400/50 pb-2">건강 답변</h2>
+              <div id="result-qna-answer" class="text-[#4a3f33] whitespace-pre-wrap space-y-3"></div>
           </div>
           <!-- 식단 분석 결과 -->
           <div id="result-food-section" class="hidden space-y-4 p-4 rounded-lg bg-white/50">
             <div>
               <h3 class="font-semibold text-lg text-[#6e6052]">종합 의견</h3>
-              <p id="result-opinion" class="text-[#4a3f33] whitespace-pre-wrap"></p>
+              <div id="result-opinion" class="text-[#4a3f33] whitespace-pre-wrap space-y-3"></div>
             </div>
             <div>
               <h3 class="font-semibold text-lg text-[#6e6052]">예상 칼로리</h3>
@@ -215,22 +224,20 @@
               <h3 class="font-semibold text-lg text-[#6e6052]">추천</h3>
               <p id="result-recommendation" class="text-[#4a3f33]"></p>
             </div>
-             <div id="save-log-container" class="mt-4">
-                 <button id="save-log-button" class="btn-primary w-full font-bold py-2 px-4 rounded-xl">이 결과 기록하기</button>
-             </div>
           </div>
           <!-- 건강요리 추천 결과 -->
           <div id="result-recipe-section" class="hidden space-y-4 p-4 rounded-lg bg-white/50">
             <h2 id="recipe-name" class="text-2xl font-bold text-[#4a3f33]"></h2>
-            <div>
-              <h3 class="font-semibold text-lg text-[#6e6052]">재료</h3>
-              <ul id="recipe-ingredients" class="list-disc list-inside text-[#4a3f33]"></ul>
-            </div>
-            <div>
-              <h3 class="font-semibold text-lg text-[#6e6052]">만드는 법</h3>
-              <ol id="recipe-instructions" class="list-decimal list-inside text-[#4a3f33] space-y-1"></ol>
-            </div>
+            <div id="recipe-details" class="space-y-4"></div>
           </div>
+          <!-- 결과 액션 버튼 -->
+           <div id="result-actions-container" class="hidden mt-4 pt-4 border-t border-gray-400/50 space-y-2">
+               <button id="save-log-button" class="btn-primary w-full font-bold py-2 px-4 rounded-xl hidden">이 결과 기록하기</button>
+               <button id="save-image-button" class="btn-secondary w-full font-bold py-2 px-4 rounded-xl flex items-center justify-center gap-2">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                   <span>JPG로 저장</span>
+               </button>
+           </div>
       </div>
       <div id="error-section" class="mt-6 hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl" role="alert">
         <strong class="font-bold">오류: </strong>
@@ -246,6 +253,11 @@
     </footer>
   </div>
 
+  <!-- '맨 위로' 버튼 -->
+  <button id="top-button" class="hidden fixed bottom-5 right-5 z-50 btn-primary w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+  </button>
+
   <!-- Modals -->
     <div id="camera-view" class="fixed inset-0 bg-black/90 hidden flex-col items-center justify-center p-4 z-50">
         <video id="camera-stream" class="w-full max-w-md h-auto rounded-lg" autoplay playsinline></video>
@@ -260,7 +272,7 @@
             <h2 class="text-2xl font-bold text-[#4a3f33] mb-4 border-b border-gray-400/50 pb-2">오늘의 추천 식단</h2>
             <div id="diet-loading" class="text-center hidden py-8">
                 <div class="loader mx-auto"></div>
-                <p class="mt-4 text-[#6e6052]">AI가 식단을 생성 중입니다...</p>
+                <p class="mt-4 text-[#6e6052]">당신을 위한 요리가이드를 추천중입니다</p>
             </div>
             <div id="diet-content" class="space-y-4 text-[#4a3f33]"></div>
         </div>
@@ -304,15 +316,16 @@
     const saveLogButton = document.getElementById('save-log-button');
     const resultRecipeSection = document.getElementById('result-recipe-section');
     const recipeName = document.getElementById('recipe-name');
-    const recipeIngredients = document.getElementById('recipe-ingredients');
-    const recipeInstructions = document.getElementById('recipe-instructions');
+    const recipeDetails = document.getElementById('recipe-details');
     const errorSection = document.getElementById('error-section');
     const errorMessage = document.getElementById('error-message');
     const startCameraButton = document.getElementById('start-camera-button');
     const recommendDietButton = document.getElementById('recommend-diet-button');
     const viewLogButton = document.getElementById('view-log-button');
-    const homeButton = document.getElementById('home-button-icon');
     const clearButton = document.getElementById('clear-button-icon');
+    const topButton = document.getElementById('top-button');
+    const resultActionsContainer = document.getElementById('result-actions-container');
+    const saveImageButton = document.getElementById('save-image-button');
     
     // Modals and their controls
     const cameraView = document.getElementById('camera-view');
@@ -337,10 +350,26 @@
     let stream = null;
     let uploadedImages = [];
     let currentAnalysisResult = null;
+    let currentResultElement = null;
 
     function show(el, displayMode = 'flex') { if(el) { el.classList.remove('hidden'); el.style.display = displayMode; } }
     function hide(el) { if(el) { el.classList.add('hidden'); el.style.display = 'none'; } }
     
+    function setRandomGreeting() {
+        const greetings = [
+            "오늘도 건강한 하루 보내세요! 당신의 도전을 응원합니다.",
+            "작은 습관이 100세 건강을 만듭니다. 오늘도 화이팅!",
+            "건강을 향한 당신의 모든 발걸음이 빛나고 있어요.",
+            "최고의 컨디션으로 빛나는 하루 되세요!",
+            "당신의 건강한 미래, 바로 오늘부터 시작됩니다!",
+            "세상에서 가장 소중한 당신, 오늘도 건강하게 지내세요."
+        ];
+        const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+        qnaTextInput.placeholder = `백순애님!\n${randomGreeting}`;
+    }
+    setRandomGreeting();
+
+
     function setButtonsState(isLoading) {
         analyzeButton.disabled = isLoading;
         recipeButton.disabled = isLoading;
@@ -424,11 +453,26 @@
         let foodName = foodText;
         if (qnaText) {
           analysisType = 'qna';
-          systemPrompt = `당신은 췌장 및 소화기계 건강에 특화된 건강 상담 AI입니다. 사용자는 췌장에 물혹이 있고 췌장암 및 대장암 가족력이 있습니다. 이 점을 반드시 인지하고, 일반적인 건강 질문에 대해 매우 안전하고 보수적인 관점에서 답변해주세요. 답변은 반드시 "answer"라는 단일 키를 가진 JSON 형식이어야 합니다. 절대로 답변에 '**'와 같은 마크다운 문자를 사용하지 마세요.`;
+          systemPrompt = `당신은 췌장 및 소화기계 건강에 특화된 건강 상담 AI입니다. 사용자는 췌장에 물혹이 있고 췌장암 및 대장암 가족력이 있습니다. 이 점을 반드시 인지하고, 일반적인 건강 질문에 대해 매우 안전하고 보수적인 관점에서 답변해주세요. 
+          응답은 반드시 다음 키를 가진 JSON 형식이어야 합니다:
+          - "answer": 다음 3개의 키를 가진 객체:
+              - "conclusion": (문자열) 질문에 대한 핵심적인 결론을 2~3줄로 요약.
+              - "details": (문자열) 결론에 대한 상세한 이유나 설명을 제공.
+              - "tip": (문자열) 사용자가 실생활에서 실천할 수 있는 구체적인 팁이나 주의사항을 제안.
+          절대로 답변에 '**'와 같은 마크다운 문자를 사용하지 마세요.`;
           parts = [{ text: qnaText }];
         } else {
           analysisType = 'food';
-          systemPrompt = `당신은 췌장 건강 관리에 매우 특화된 임상 영양사입니다. 사용자는 췌장에 물혹이 있고, 췌장암 및 대장암 가족력이 있어 식단에 매우 민감합니다. 당신의 조언은 극도로 보수적이고 안전해야 합니다. 제공된 음식이 췌장에 미치는 영향을 최우선으로 분석하고, 조금이라도 위험 요소가 있다면 명확하게 경고해주세요. 응답은 반드시 다음 세 개의 키를 가진 JSON 형식이어야 합니다: "opinion"(상세한 조언), "calories"(예상 칼로리), "recommendation"("좋음", "주의", "나쁨" 중 하나). 절대로 답변에 '**'와 같은 마크다운 문자를 사용하지 마세요.`;
+          systemPrompt = `당신은 췌장 건강 관리에 매우 특화된 임상 영양사입니다. 사용자는 췌장에 물혹이 있고, 췌장암 및 대장암 가족력이 있어 식단에 매우 민감합니다. 당신의 조언은 극도로 보수적이고 안전해야 합니다. 제공된 음식이 췌장에 미치는 영향을 최우선으로 분석하고, 조금이라도 위험 요소가 있다면 명확하게 경고해주세요. 
+          응답은 반드시 다음 키를 가진 JSON 형식이어야 합니다:
+          - "opinion": 다음 4개의 키를 가진 객체:
+              - "summary": (문자열) 음식에 대한 핵심적인 평가를 2~3줄로 요약.
+              - "pros": (문자열 또는 null) 건강에 긍정적인 측면이 있다면 간략히 서술, 없다면 null.
+              - "cons": (문자열) 건강, 특히 췌장에 부정적인 측면이나 위험 요소를 명확하고 직설적으로 서술.
+              - "tip": (문자열 또는 null) 이 음식이 '주의' 또는 '나쁨' 등급일 경우, 부득이하게 먹어야 할 때 피해를 최소화하는 현실적인 방법(예: '껍질은 반드시 제거하고, 딱 한 조각만 드세요')을 제안. '좋음' 등급이면 null.
+          - "calories": (문자열) 예상 칼로리.
+          - "recommendation": (문자열) "좋음", "주의", "나쁨" 중 하나.
+          절대로 답변에 '**'와 같은 마크다운 문자를 사용하지 마세요.`;
           if (uploadedImages.length > 0) {
             parts = [{ text: "이 음식들이 췌장이 약한 사람에게 괜찮은지 종합적으로 분석해주세요." }];
             uploadedImages.forEach(item => parts.push({ inline_data: { mime_type: item.mime, data: item.data } }));
@@ -460,7 +504,13 @@
         hide(resultSection); hide(errorSection); show(loadingIndicator, 'block');
         setButtonsState(true);
         try {
-            const systemPrompt = `당신은 췌장 건강식 전문 셰프입니다. 사용자는 췌장 물혹과 암 가족력이 있으므로, 제공된 재료로 만들 수 있는 요리는 반드시 저지방, 저자극, 소화가 잘되는 것이어야 합니다. 췌장에 부담을 줄 수 있는 조리법이나 재료는 피해주세요. 답변은 반드시 'recipeName'(문자열), 'ingredients'(문자열 배열), 'instructions'(문자열 배열) 키를 가진 JSON 형식이어야 합니다. 절대로 답변에 '**'와 같은 마크다운 문자를 사용하지 마세요.`;
+            const systemPrompt = `당신은 췌장 건강식 전문 셰프입니다. 사용자는 췌장 물혹과 암 가족력이 있으므로, 제공된 재료로 만들 수 있는 요리는 반드시 저지방, 저자극, 소화가 잘되는 것이어야 합니다. 췌장에 부담을 줄 수 있는 조리법이나 재료는 피해주세요. 
+            응답은 반드시 다음 키를 가진 JSON 형식이어야 합니다:
+            - "recipeName": (문자열) 요리 이름.
+            - "chefTip": (문자열) 요리를 더 건강하고 맛있게 만들기 위한 셰프의 팁.
+            - "ingredients": (문자열 배열) 필요한 재료 목록.
+            - "instructions": (문자열 배열) 만드는 법을 단계별로 설명.
+            절대로 답변에 '**'와 같은 마크다운 문자를 사용하지 마세요.`;
             let parts;
             if (uploadedImages.length > 0) {
                 parts = [{ text: "이 사진 속 재료들로 만들 수 있는 건강 요리 레시피를 알려주세요." }];
@@ -483,13 +533,70 @@
         hide(resultQnaSection);
         hide(resultFoodSection);
         hide(resultRecipeSection);
+        hide(resultActionsContainer);
+        hide(saveLogButton);
+
         if (type === 'qna') {
+            currentResultElement = resultQnaSection;
             show(resultQnaSection, 'block');
-            resultQnaAnswer.textContent = data.answer || "답변을 생성하지 못했습니다.";
+            resultQnaAnswer.innerHTML = '';
+            const answerData = data.answer;
+
+            if (answerData && answerData.conclusion) {
+                const conclusionSection = document.createElement('div');
+                conclusionSection.innerHTML = `<h4 class="font-bold text-lg text-[#574a3a] mb-1">✅ 핵심 결론</h4><p class="whitespace-pre-wrap">${answerData.conclusion}</p>`;
+                resultQnaAnswer.appendChild(conclusionSection);
+            }
+            if (answerData && answerData.details) {
+                const detailsSection = document.createElement('div');
+                detailsSection.className = 'mt-4';
+                detailsSection.innerHTML = `<h4 class="font-bold text-lg text-gray-700 mb-1">🔬 상세 설명</h4><p class="whitespace-pre-wrap">${answerData.details}</p>`;
+                resultQnaAnswer.appendChild(detailsSection);
+            }
+            if (answerData && answerData.tip) {
+                const tipSection = document.createElement('div');
+                tipSection.className = 'mt-4 p-3 rounded-lg bg-blue-100/70 border border-blue-300';
+                tipSection.innerHTML = `<h4 class="font-bold text-lg text-blue-900 mb-1">💡 실천 팁</h4><p class="text-blue-900 whitespace-pre-wrap">${answerData.tip}</p>`;
+                resultQnaAnswer.appendChild(tipSection);
+            }
+
         } else if (type === 'food') {
+            currentResultElement = resultFoodSection;
             show(resultFoodSection, 'block');
-            resultOpinion.textContent = data.opinion || "정보 없음";
+            show(saveLogButton, 'block');
+            resultOpinion.innerHTML = ''; 
+
+            const opinionData = data.opinion;
+
+            if(opinionData && opinionData.summary) {
+                const summarySection = document.createElement('div');
+                summarySection.innerHTML = `<h4 class="font-bold text-lg text-[#574a3a] mb-1">✅ 핵심 요약</h4><p class="whitespace-pre-wrap">${opinionData.summary}</p>`;
+                resultOpinion.appendChild(summarySection);
+            }
+
+            const prosConsContainer = document.createElement('div');
+            prosConsContainer.className = 'mt-4 grid gap-4';
+            let prosConsHTML = '';
+            if (opinionData && opinionData.pros) {
+                prosConsHTML += `<div><h4 class="font-bold text-lg text-green-700 mb-1">👍 긍정적 측면</h4><p class="whitespace-pre-wrap">${opinionData.pros}</p></div>`;
+            }
+            if (opinionData && opinionData.cons) {
+                prosConsHTML += `<div><h4 class="font-bold text-lg text-red-700 mb-1">🚨 부정적 측면</h4><p class="whitespace-pre-wrap">${opinionData.cons}</p></div>`;
+            }
+            if(prosConsHTML) {
+                prosConsContainer.innerHTML = prosConsHTML;
+                resultOpinion.appendChild(prosConsContainer);
+            }
+            
+            if (opinionData && opinionData.tip) {
+                const tipSection = document.createElement('div');
+                tipSection.className = 'mt-4 p-3 rounded-lg bg-yellow-100/70 border border-yellow-400';
+                tipSection.innerHTML = `<h4 class="font-bold text-lg text-yellow-900 mb-1">💡 대처법 가이드</h4><p class="text-yellow-900 whitespace-pre-wrap">${opinionData.tip}</p>`;
+                resultOpinion.appendChild(tipSection);
+            }
+
             resultCalories.textContent = data.calories || "정보 없음";
+            
             const recommendation = data.recommendation || "정보 없음";
             const badge = document.createElement('span');
             badge.textContent = recommendation;
@@ -499,26 +606,45 @@
             else if (recommendation === '나쁨') badge.classList.add('recommendation-bad');
             resultRecommendation.innerHTML = '';
             resultRecommendation.appendChild(badge);
+            
             saveLogButton.textContent = "이 결과 기록하기";
             saveLogButton.disabled = false;
             saveLogButton.className = 'btn-primary w-full font-bold py-2 px-4 rounded-xl';
+
         } else if (type === 'recipe') {
+            currentResultElement = resultRecipeSection;
             show(resultRecipeSection, 'block');
             recipeName.textContent = data.recipeName || "이름 없는 레시피";
-            recipeIngredients.innerHTML = '';
+            recipeDetails.innerHTML = '';
+
+            if (data.chefTip) {
+                const tipSection = document.createElement('div');
+                tipSection.className = 'mb-4 p-3 rounded-lg bg-blue-100/70 border border-blue-300';
+                tipSection.innerHTML = `<h4 class="font-bold text-lg text-blue-900 mb-1">👨‍🍳 셰프의 팁</h4><p class="text-blue-900 whitespace-pre-wrap">${data.chefTip}</p>`;
+                recipeDetails.appendChild(tipSection);
+            }
+
+            const ingredientsSection = document.createElement('div');
+            let ingredientsHTML = `<h3 class="font-semibold text-lg text-[#6e6052]">재료</h3><ul class="list-disc list-inside text-[#4a3f33]">`;
             (data.ingredients || []).forEach(ing => {
-                const li = document.createElement('li');
-                li.textContent = ing;
-                recipeIngredients.appendChild(li);
+                ingredientsHTML += `<li>${ing}</li>`;
             });
-            recipeInstructions.innerHTML = '';
+            ingredientsHTML += `</ul>`;
+            ingredientsSection.innerHTML = ingredientsHTML;
+            recipeDetails.appendChild(ingredientsSection);
+
+            const instructionsSection = document.createElement('div');
+            instructionsSection.className = 'mt-4';
+            let instructionsHTML = `<h3 class="font-semibold text-lg text-[#6e6052]">만드는 법</h3><ol class="list-decimal list-inside text-[#4a3f33] space-y-1">`;
             (data.instructions || []).forEach(step => {
-                const li = document.createElement('li');
-                li.textContent = step;
-                recipeInstructions.appendChild(li);
+                instructionsHTML += `<li>${step}</li>`;
             });
+            instructionsHTML += `</ol>`;
+            instructionsSection.innerHTML = instructionsHTML;
+            recipeDetails.appendChild(instructionsSection);
         }
       show(resultSection, 'block');
+      show(resultActionsContainer, 'block');
     }
 
     async function callGeminiAPI(systemPrompt, parts) {
@@ -552,9 +678,10 @@
         hide(resultSection);
         hide(errorSection);
         hide(loadingIndicator);
+        setRandomGreeting(); // 초기화 시에도 새로운 응원 메시지 설정
     }
-    homeButton.addEventListener('click', resetApp);
     clearButton.addEventListener('click', resetApp);
+
     function displayError(msg) { errorMessage.textContent = msg; show(errorSection, 'block'); }
     
     startCameraButton.addEventListener('click', async () => {
@@ -583,6 +710,33 @@
     cancelCameraButton.addEventListener('click', () => stopCamera());
     function stopCamera() { if (stream) stream.getTracks().forEach(t => t.stop()); hide(cameraView); stream = null; }
     
+    saveImageButton.addEventListener('click', () => {
+        if (!currentResultElement) return;
+
+        saveImageButton.textContent = '저장 중...';
+        saveImageButton.disabled = true;
+
+        html2canvas(currentResultElement, {
+            useCORS: true,
+            backgroundColor: null, // 투명 배경 캡처
+            onrendered: function(canvas) {
+                document.body.appendChild(canvas);
+            }
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'health_result.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+            saveImageButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg><span>JPG로 저장</span>`;
+            saveImageButton.disabled = false;
+        }).catch(err => {
+            console.error("이미지 저장 오류:", err);
+            displayError("이미지 저장에 실패했습니다.");
+            saveImageButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg><span>JPG로 저장</span>`;
+            saveImageButton.disabled = false;
+        });
+    });
+
     // --- Diet & Log Modal Logic ---
     recommendDietButton.addEventListener('click', async () => {
         show(dietModal, 'flex');
@@ -662,6 +816,23 @@
     }
     confirmCancelButton.addEventListener('click', () => { hide(confirmModal); confirmCallback = null; });
     confirmOkButton.addEventListener('click', () => { if (confirmCallback) confirmCallback(); hide(confirmModal); confirmCallback = null; });
+    
+    // --- Top Button Logic ---
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 200) {
+            topButton.classList.remove('hidden');
+        } else {
+            topButton.classList.add('hidden');
+        }
+    });
+
+    topButton.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
   });
   </script>
 </body>
