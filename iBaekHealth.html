@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>For Baek's Health (iOS + 사진 대응)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Noto Sans KR', sans-serif; background:#1a202c; color:#fff; }
+    .hidden { display:none !important; }
+    .flex { display:flex; }
+    .recommendation-badge { display:inline-block; padding:0.25rem 0.75rem; border-radius:9999px; font-weight:700; font-size:.875rem; }
+    .recommendation-good { background:#2f855a; color:#fff; }
+    .recommendation-caution { background:#d69e2e; color:#fff; }
+    .recommendation-bad { background:#c53030; color:#fff; }
+    .loader { border:5px solid #f3f3f3; border-top:5px solid #3498db; border-radius:50%; width:50px; height:50%; animation: spin 1s linear infinite; }
+    @keyframes spin { from {transform:rotate(0deg)} to {transform:rotate(360deg)} }
+  </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-md mx-auto">
+    <header class="text-center mb-3">
+      <h1 class="text-3xl font-bold text-teal-400">For Baek's Health</h1>
+      <p class="text-gray-400 mt-2">췌장 건강을 위한 식단 도우미</p>
+    </header>
+
+    <main class="bg-gray-800 rounded-lg shadow-xl p-6">
+      <div class="flex justify-end space-x-2 mb-4 border-b border-gray-700 pb-4">
+        <button id="home-button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-1 px-3 rounded-lg text-sm transition">홈</button>
+        <button id="clear-button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-1 px-3 rounded-lg text-sm transition">화면 지우기</button>
+      </div>
+
+      <div class="space-y-6">
+        <div>
+          <label for="food-text" class="block mb-2 text-sm font-medium text-gray-300">음식 이름 또는 재료 입력 (단일 분석용)</label>
+          <input type="text" id="food-text" class="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-teal-500 focus:border-teal-500 p-2.5" placeholder="예: 닭가슴살 샐러드">
+        </div>
+
+        <div class="text-center text-gray-400">또는 (여러 장 추가 가능)</div>
+        <div>
+          <label class="block mb-2 text-sm font-medium text-gray-300">음식 사진</label>
+          <div class="flex space-x-2">
+            <label for="food-image-input" class="w-full cursor-pointer text-center bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition">사진 업로드</label>
+            <input type="file" id="food-image-input" accept="image/*" class="hidden" multiple>
+            <button id="start-camera-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition">카메라 촬영</button>
+          </div>
+          <div id="image-preview-container" class="mt-4 flex flex-wrap gap-2 justify-center"></div>
+        </div>
+
+        <div class="space-y-2">
+          <button id="analyze-button" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-lg transition">분석하기</button>
+          <button id="recommend-diet-button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">추천 식단 보기</button>
+          <button id="view-log-button" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition">식단 기록 보기</button>
+        </div>
+      </div>
+
+      <div id="loading-indicator" class="text-center my-6 hidden" style="display:none">
+        <div class="loader mx-auto"></div>
+        <p class="mt-4 text-gray-400">AI가 분석 중입니다. 잠시만 기다려주세요...</p>
+      </div>
+
+      <div id="result-section" class="mt-8 hidden" style="display:none">
+        <h2 class="text-2xl font-bold border-b-2 border-gray-700 pb-2 mb-4">분석 결과</h2>
+        <div class="space-y-4 bg-gray-700 p-4 rounded-lg">
+          <div><h3 class="font-semibold text-teal-400">종합 의견</h3><p id="result-opinion" class="text-gray-300"></p></div>
+          <div><h3 class="font-semibold text-teal-400">예상 칼로리</h3><p id="result-calories" class="text-gray-300"></p></div>
+          <div><h3 class="font-semibold text-teal-400">추천</h3><p id="result-recommendation" class="text-gray-300"></p></div>
+        </div>
+        <div id="save-log-container" class="mt-4">
+          <button id="save-log-button" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">이 결과 기록하기</button>
+        </div>
+      </div>
+
+      <div id="error-section" class="mt-6 hidden bg-red-900/50 border border-red-500 text-red-300 px-4 py-3 rounded-lg" role="alert" style="display:none">
+        <strong class="font-bold">오류: </strong>
+        <span id="error-message" class="block sm:inline"></span>
+      </div>
+    </main>
+
+    <footer class="text-center mt-8 text-xs text-gray-500">
+      <p>본 결과는 AI에 의해 생성된 정보이며, 의학적 진단을 대체할 수 없습니다.</p>
+      <p>정확한 건강 정보는 전문의와 상담하세요.</p>
+    </footer>
+  </div>
+
+  <div id="camera-view" class="fixed inset-0 bg-black bg-opacity-90 flex-col items-center justify-center p-4 hidden z-50" style="display:none">
+    <video id="camera-stream" class="w-full max-w-md h-auto rounded-lg" autoplay playsinline></video>
+    <div class="flex items-center space-x-4 mt-4">
+      <button id="capture-button" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-full text-lg transition">사진 추가</button>
+      <button id="cancel-camera-button" class="text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 py-2 px-4 rounded-full">닫기</button>
+    </div>
+  </div>
+
+  <div id="diet-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50" style="display:none">
+    <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md relative max-h-[90vh] overflow-y-auto">
+      <button id="close-diet-modal" class="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+      <h2 class="text-2xl font-bold text-teal-400 mb-4 border-b border-gray-700 pb-2">오늘의 추천 식단</h2>
+      <div id="diet-loading" class="text-center hidden py-8" style="display:none">
+        <div class="loader mx-auto"></div>
+        <p class="mt-4 text-gray-400">AI가 식단을 생성 중입니다...</p>
+      </div>
+      <div id="diet-content" class="space-y-4 text-gray-300"></div>
+    </div>
+  </div>
+
+  <div id="log-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50" style="display:none">
+    <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md relative max-h-[90vh] flex flex-col">
+      <button id="close-log-modal" class="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+      <h2 class="text-2xl font-bold text-teal-400 mb-4 border-b border-gray-700 pb-2">나의 식단 기록</h2>
+      <div id="log-list" class="flex-grow overflow-y-auto space-y-3 pr-2"></div>
+      <button id="clear-log-button" class="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition">전체 기록 삭제</button>
+    </div>
+  </div>
+
+  <div id="confirm-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50" style="display:none">
+    <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm">
+      <h2 id="confirm-title" class="text-xl font-bold text-white mb-4"></h2>
+      <p id="confirm-message" class="text-gray-300 mb-6"></p>
+      <div class="flex justify-end space-x-4">
+        <button id="confirm-cancel-button" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition">취소</button>
+        <button id="confirm-ok-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function show(el, mode='block') { if (!el) return; el.style.display = mode; el.classList.remove('hidden'); }
+    function hide(el) { if (!el) return; el.style.display = 'none'; el.classList.add('hidden'); }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const foodTextInput = document.getElementById('food-text');
+      const foodImageInput = document.getElementById('food-image-input');
+      const imagePreviewContainer = document.getElementById('image-preview-container');
+      const analyzeButton = document.getElementById('analyze-button');
+      const loadingIndicator = document.getElementById('loading-indicator');
+      const resultSection = document.getElementById('result-section');
+      const errorSection = document.getElementById('error-section');
+      const errorMessage = document.getElementById('error-message');
+      const resultOpinion = document.getElementById('result-opinion');
+      const resultCalories = document.getElementById('result-calories');
+      const resultRecommendation = document.getElementById('result-recommendation');
+
+      const homeButton = document.getElementById('home-button');
+      const clearButton = document.getElementById('clear-button');
+
+      const startCameraButton = document.getElementById('start-camera-button');
+      const cameraView = document.getElementById('camera-view');
+      const cameraStream = document.getElementById('camera-stream');
+      const captureButton = document.getElementById('capture-button');
+      const cancelCameraButton = document.getElementById('cancel-camera-button');
+      let stream = null;
+
+      const recommendDietButton = document.getElementById('recommend-diet-button');
+      const dietModal = document.getElementById('diet-modal');
+      const closeDietModal = document.getElementById('close-diet-modal');
+      const dietLoading = document.getElementById('diet-loading');
+      const dietContent = document.getElementById('diet-content');
+
+      const viewLogButton = document.getElementById('view-log-button');
+      const logModal = document.getElementById('log-modal');
+      const closeLogModal = document.getElementById('close-log-modal');
+      const logList = document.getElementById('log-list');
+      const clearLogButton = document.getElementById('clear-log-button');
+      const saveLogButton = document.getElementById('save-log-button');
+
+      const confirmModal = document.getElementById('confirm-modal');
+      const confirmTitle = document.getElementById('confirm-title');
+      const confirmMessage = document.getElementById('confirm-message');
+      const confirmCancelButton = document.getElementById('confirm-cancel-button');
+      const confirmOkButton = document.getElementById('confirm-ok-button');
+      let confirmCallback = null;
+
+      let currentAnalysisResult = null;
+      // 이미지: {data, mime} 배열
+      let uploadedImages = [];
+
+      [loadingIndicator, resultSection, errorSection, dietModal, logModal, cameraView, confirmModal, dietLoading].forEach(hide);
+
+      function dataURLToImage(dataURL) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = dataURL;
+        });
+      }
+      async function resizeIfNeeded(dataURL, targetMime) {
+        try {
+          const img = await dataURLToImage(dataURL);
+          const maxSide = 1280;
+          let width = img.width, height = img.height;
+          if (Math.max(width, height) <= maxSide) return dataURL;
+          const scale = maxSide / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+          const canvas = document.createElement('canvas');
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          return canvas.toDataURL(targetMime || 'image/jpeg', 0.8);
+        } catch(e) { return dataURL; }
+      }
+      function parseDataURL(dataURL) {
+        const m = dataURL.match(/^data:(.*?);base64,(.*)$/);
+        return m ? { mime: m[1], base64: m[2] } : null;
+      }
+
+      function handleFiles(files) {
+        for (const file of files) {
+          if (!file.type.startsWith('image/')) continue;
+          const reader = new FileReader();
+          reader.onload = async (e) => {
+            let dataURL = e.target.result;
+            const preferMime = 'image/jpeg';
+            dataURL = await resizeIfNeeded(dataURL, preferMime);
+            const parsed = parseDataURL(dataURL);
+            if (!parsed) return;
+            uploadedImages.push({ data: parsed.base64, mime: parsed.mime });
+            renderImagePreviews();
+            clearInputs();
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function renderImagePreviews() {
+        imagePreviewContainer.innerHTML = '';
+        uploadedImages.forEach((item, index) => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'relative w-20 h-20';
+          const img = document.createElement('img');
+          img.src = `data:${item.mime};base64,${item.data}`;
+          img.className = 'w-full h-full object-cover rounded-md shadow-md';
+          const removeBtn = document.createElement('button');
+          removeBtn.innerHTML = '&times;';
+          removeBtn.className = 'absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-lg font-bold leading-none';
+          removeBtn.onclick = (e) => { e.stopPropagation(); uploadedImages.splice(index, 1); renderImagePreviews(); };
+          wrapper.appendChild(img); wrapper.appendChild(removeBtn);
+          imagePreviewContainer.appendChild(wrapper);
+        });
+      }
+
+      function clearInputs() { foodTextInput.value = ""; foodImageInput.value = ""; }
+      foodImageInput.addEventListener('change', (e) => handleFiles(e.target.files));
+      foodTextInput.addEventListener('input', () => { if (foodTextInput.value) { uploadedImages = []; renderImagePreviews(); } });
+
+      startCameraButton.addEventListener('click', async () => {
+        if (location.protocol !== 'https:') { displayError("카메라는 HTTPS에서만 동작합니다."); return; }
+        if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) { displayError("이 브라우저에서는 카메라를 지원하지 않습니다."); return; }
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          show(cameraView, 'flex'); cameraStream.srcObject = stream;
+        } catch (e) { console.error(e); displayError("카메라 접근이 거부되었거나 사용할 수 없습니다."); }
+      });
+      captureButton.addEventListener('click', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = cameraStream.videoWidth || 1280;
+        canvas.height = cameraStream.videoHeight || 720;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(cameraStream, 0, 0, canvas.width, canvas.height);
+        const dataURL = canvas.toDataURL('image/jpeg', 0.85);
+        const parsed = parseDataURL(dataURL);
+        if (parsed) { uploadedImages.push({ data: parsed.base64, mime: parsed.mime }); }
+        renderImagePreviews(); clearInputs(); stopCamera();
+      });
+      cancelCameraButton.addEventListener('click', () => stopCamera());
+      function stopCamera() { if (stream) stream.getTracks().forEach(t => t.stop()); hide(cameraView); stream = null; }
+
+      analyzeButton.addEventListener('click', async () => {
+        const foodText = foodTextInput.value.trim();
+        if (!foodText && uploadedImages.length === 0) { displayError("음식 이름 또는 사진을 입력해주세요."); return; }
+
+        hide(resultSection); hide(errorSection); show(loadingIndicator);
+        analyzeButton.disabled = true; analyzeButton.textContent = "분석 중...";
+
+        try {
+          const systemPrompt = `당신은 췌장이 약하거나 췌장염을 앓는 사람들을 위한 영양 전문가입니다. 당신의 조언은 항상 건강을 최우선으로 하며, 보수적이어야 합니다. 제공된 음식을 분석하고, 이해하기 쉬운 간결한 평가를 제공해주세요. 응답은 반드시 다음 세 개의 키를 가진 JSON 형식이어야 합니다: "opinion"(상세한 조언, 한국어), "calories"(예상 칼로리, "약 300-400 kcal"와 같은 문자열), "recommendation"("좋음", "주의", "나쁨" 중 하나의 문자열). 여러 음식이 제공되면 종합적으로 분석해주세요.`;
+          let parts = []; let foodName = foodText;
+          if (uploadedImages.length > 0) {
+            parts.push({ text: "이 음식들이 췌장이 약한 사람에게 괜찮은지 종합적으로 분석해주세요." });
+            uploadedImages.forEach(item => parts.push({ inline_data: { mime_type: item.mime, data: item.data } }));
+            foodName = `사진 ${uploadedImages.length}장 종합 분석`;
+          } else {
+            parts = [{ text: `음식: ${foodText}. 이 음식이 췌장이 약한 사람에게 괜찮은지 분석해주세요.` }];
+          }
+          const data = await callGeminiAPI(systemPrompt, parts);
+          currentAnalysisResult = { ...data, food: foodName, date: new Date().toISOString() };
+          displayResult(data);
+        } catch (error) {
+          console.error("분석 오류:", error);
+          displayError(error.message || "분석 중 오류가 발생했습니다.");
+        } finally {
+          hide(loadingIndicator);
+          analyzeButton.disabled = false; analyzeButton.textContent = "분석하기";
+        }
+      });
+
+      recommendDietButton.addEventListener('click', async () => {
+        dietContent.innerHTML = ''; show(dietModal, 'flex'); show(dietLoading); hide(errorSection);
+        try {
+          const systemPrompt = `당신은 췌장 건강 전문 임상 영양사입니다. 췌장이 약한 사람을 위한 간단한 하루치 샘플 식단을 제공해주세요. 식단은 저지방이고 소화가 잘 되어야 하며, 한국어로 제공되어야 합니다. 응답은 반드시 'breakfast', 'lunch', 'dinner', 'snacks' 네 개의 키를 가진 JSON 객체여야 합니다.`;
+          const parts = [{ text: "췌장이 약한 사람을 위한 하루 추천 식단을 생성해주세요." }];
+          const data = await callGeminiAPI(systemPrompt, parts);
+          displayDiet(data);
+        } catch (e) {
+          dietContent.innerHTML = `<p class="text-red-400">식단 정보를 불러오는 데 실패했습니다: ${e.message}</p>`;
+        } finally {
+          hide(dietLoading);
+        }
+      });
+      closeDietModal.addEventListener('click', () => hide(dietModal));
+
+      viewLogButton.addEventListener('click', () => { displayLogs(); show(logModal, 'flex'); });
+      closeLogModal.addEventListener('click', () => hide(logModal));
+
+      saveLogButton.addEventListener('click', () => {
+        if (currentAnalysisResult) {
+          const logs = JSON.parse(localStorage.getItem('foodLog')) || [];
+          logs.unshift(currentAnalysisResult);
+          localStorage.setItem('foodLog', JSON.stringify(logs));
+          saveLogButton.textContent = "저장 완료!";
+          saveLogButton.disabled = true;
+          saveLogButton.classList.replace('bg-green-600', 'bg-gray-500');
+          saveLogButton.classList.replace('hover:bg-green-700', 'hover:bg-gray-500');
+        }
+      });
+
+      clearLogButton.addEventListener('click', () => {
+        showConfirm("모든 기록 삭제","정말로 모든 기록을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.", () => {
+          localStorage.removeItem('foodLog');
+          displayLogs();
+        });
+      });
+
+      function resetApp() {
+        clearInputs(); uploadedImages = []; renderImagePreviews();
+        currentAnalysisResult = null; hide(resultSection); hide(errorSection); hide(loadingIndicator);
+        saveLogButton.textContent = "이 결과 기록하기"; saveLogButton.disabled = false;
+        saveLogButton.classList.replace('bg-gray-500', 'bg-green-600');
+        saveLogButton.classList.replace('hover:bg-gray-500', 'hover:bg-green-700');
+      }
+      homeButton.addEventListener('click', resetApp);
+      clearButton.addEventListener('click', resetApp);
+
+      async function callGeminiAPI(systemPrompt, parts) {
+        const apiKey = "AIzaSyBJEtwmOTMo1yB3VtfGre72AOIxZKpi8SU";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+        try {
+          const payload = { contents: [{ parts }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json" } };
+          const res = await fetch(apiUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload), signal:controller.signal });
+          clearTimeout(timeoutId);
+          if (!res.ok) { const t = await res.text(); throw new Error(`API 요청 실패: ${res.status} ${res.statusText} - ${t}`); }
+          const result = await res.json();
+          if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) return JSON.parse(result.candidates[0].content.parts[0].text);
+          throw new Error("AI 응답 구조가 예상과 다릅니다.");
+        } finally { clearTimeout(timeoutId); }
+      }
+
+      function displayResult(data) {
+        resultOpinion.textContent = data.opinion || "정보 없음";
+        resultCalories.textContent = data.calories || "정보 없음";
+        const recommendation = data.recommendation || "정보 없음";
+        const badge = document.createElement('span'); badge.textContent = recommendation; badge.className='recommendation-badge';
+        if (recommendation === '좋음') badge.classList.add('recommendation-good');
+        else if (recommendation === '주의') badge.classList.add('recommendation-caution');
+        else if (recommendation === '나쁨') badge.classList.add('recommendation-bad');
+        resultRecommendation.innerHTML = ''; resultRecommendation.appendChild(badge);
+        saveLogButton.textContent = "이 결과 기록하기"; saveLogButton.disabled = false;
+        saveLogButton.classList.replace('bg-gray-500', 'bg-green-600');
+        saveLogButton.classList.replace('hover:bg-gray-500', 'hover:bg-green-700');
+        show(resultSection);
+      }
+      function displayDiet(data) {
+        dietContent.innerHTML = `
+          <div class="mb-3"><h3 class="font-semibold text-lg text-teal-400">아침</h3><p>${data.breakfast || '정보 없음'}</p></div>
+          <div class="mb-3"><h3 class="font-semibold text-lg text-teal-400">점심</h3><p>${data.lunch || '정보 없음'}</p></div>
+          <div class="mb-3"><h3 class="font-semibold text-lg text-teal-400">저녁</h3><p>${data.dinner || '정보 없음'}</p></div>
+          <div><h3 class="font-semibold text-lg text-teal-400">간식</h3><p>${data.snacks || '정보 없음'}</p></div>
+        `;
+      }
+      function displayLogs() {
+        const logs = JSON.parse(localStorage.getItem('foodLog')) || [];
+        logList.innerHTML = '';
+        if (logs.length === 0) { logList.innerHTML = `<p class="text-gray-400 text-center">기록된 식단이 없습니다.</p>`; return; }
+        logs.forEach(log => {
+          const d = new Date(log.date); const when = `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+          const badge = document.createElement('span'); badge.textContent = log.recommendation; badge.className = 'recommendation-badge ml-2';
+          if (log.recommendation === '좋음') badge.classList.add('recommendation-good');
+          else if (log.recommendation === '주의') badge.classList.add('recommendation-caution');
+          else if (log.recommendation === '나쁨') badge.classList.add('recommendation-bad');
+          const item = document.createElement('div'); item.className = 'bg-gray-700 p-3 rounded-lg';
+          item.innerHTML = `<div class="flex justify-between items-center"><p class="font-bold text-teal-300">${log.food}</p>${badge.outerHTML}</div><p class="text-xs text-gray-400 mt-1">${when}</p>`;
+          logList.appendChild(item);
+        });
+      }
+      function displayError(msg) { errorMessage.textContent = msg; show(errorSection); }
+
+      function showConfirm(title, message, callback) {
+        confirmTitle.textContent = title; confirmMessage.textContent = message; confirmCallback = callback; show(confirmModal, 'flex');
+      }
+      confirmCancelButton.addEventListener('click', () => { hide(confirmModal); confirmCallback = null; });
+      confirmOkButton.addEventListener('click', () => { if (confirmCallback) confirmCallback(); hide(confirmModal); confirmCallback = null; });
+    });
+  </script>
+</body>
+</html>
