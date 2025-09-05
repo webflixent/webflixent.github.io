@@ -748,7 +748,9 @@
     clearButton.addEventListener('click', resetApp);
 
     refreshButton.addEventListener('click', () => {
-        location.reload(true);
+        // URL에 현재 시간을 추가하여 캐시를 무시하고 강제로 새로고침합니다.
+        const currentUrl = window.location.href.split('?')[0];
+        window.location.href = currentUrl + '?cache_bust=' + new Date().getTime();
     });
 
     function displayError(msg) { errorMessage.textContent = msg; show(errorSection, 'block'); }
@@ -903,6 +905,7 @@
   </script>
 </body>
 </html>
+
 
 
 
