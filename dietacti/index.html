@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AcTi Diet Manager - 전문 다이어트 플래너</title>
+    <meta name="description" content="AcTi 전문 다이어트 플래너">
+    
+    <meta name="theme-color" content="#312031">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AcTi Diet Manager">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%23C4B5FD%22>AD</text></svg>">
+
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&family=Cormorant+Garamond:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Global Styles & New Sophisticated Purple Theme */
+        :root {
+            --color-primary-accent: #C4B5FD; /* violet-300 for highlights */
+            --color-primary-accent-hover: #A78BFA; /* violet-400 */
+            --color-bg-deep-purple: #312031;
+            --color-surface: #402A40;
+            --color-border: #593A5A;
+            --color-text-light: #F5F3FF; /* violet-50, almost white */
+            --color-text-muted: #D9D4E1;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--color-bg-deep-purple);
+            color: var(--color-text-light);
+        }
+
+        .lux-title {
+            font-family: 'Cormorant Garamond', serif;
+            color: var(--color-primary-accent);
+        }
+        
+        .input-field, .textarea-field {
+            background-color: var(--color-bg-deep-purple);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-light);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .input-field::placeholder, .textarea-field::placeholder {
+            color: var(--color-text-muted);
+        }
+        .input-field:focus, .textarea-field:focus {
+            outline: none;
+            border-color: var(--color-primary-accent);
+            box-shadow: 0 0 0 2px rgba(196, 181, 253, 0.2);
+        }
+        
+        .btn-primary {
+            background-color: var(--color-primary-accent);
+            color: var(--color-bg-deep-purple);
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--color-primary-accent-hover);
+            transform: translateY(-2px);
+        }
+        .btn-primary:disabled {
+            background-color: #A78BFA;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        /* Loading Spinner */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinner {
+            border: 4px solid rgba(196, 181, 253, 0.2);
+            border-top: 4px solid var(--color-primary-accent);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Report Section Styles */
+        .report-section {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            overflow: hidden; /* Ensures child elements conform to border radius */
+        }
+        
+        .report-section-content {
+            padding: 1.5rem 2rem;
+        }
+
+        .report-content h2 { 
+            font-size: 1.5rem;
+            font-weight: bold; 
+            margin: 0;
+            padding: 1rem 2rem;
+            color: var(--color-text-light);
+            background-color: rgba(0,0,0,0.2);
+            border-bottom: 1px solid var(--color-border);
+        }
+        .report-content h3 { font-size: 1.3rem; font-weight: bold; margin-top: 2rem; margin-bottom: 1rem; color: var(--color-text-light); }
+        .report-content p { margin-bottom: 1.5rem; color: var(--color-text-muted);}
+        .report-content ul, .report-content ol { margin-left: 1.5rem; margin-bottom: 1.5rem; }
+        .report-content ul { list-style-type: disc; }
+        .report-content ol { list-style-type: decimal; }
+        .report-content li { margin-bottom: 0.75rem; }
+        .report-content strong { font-weight: bold; color: var(--color-primary-accent); }
+        
+        /* Table Styles */
+        .report-content table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 1.5rem; 
+            margin-bottom: 1.5rem; 
+            background-color: transparent; 
+            font-size: 0.9rem; 
+            border-radius: 8px; 
+            overflow: hidden; 
+            border: 1px solid var(--color-border); 
+        }
+        .report-content th, .report-content td { 
+            border: 1px solid var(--color-border); 
+            padding: 0.75rem 1rem; 
+            text-align: left; 
+        }
+        .report-content td[rowspan] {
+            vertical-align: middle;
+            text-align: center;
+        }
+        .report-content th { 
+            background-color: var(--color-bg-deep-purple); 
+            font-weight: bold; 
+            color: var(--color-primary-accent); 
+        }
+        
+        /* Blockquote for Warnings/Analysis */
+        .report-content blockquote {
+            border-left: 4px solid #F472B6; /* pink-400 */
+            background-color: rgba(244, 114, 182, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            font-style: normal;
+            color: #FCE7F3; /* pink-100 */
+            border-radius: 8px;
+        }
+
+    </style>
+</head>
+<body class="min-h-screen antialiased">
+
+    <div class="container mx-auto p-4 md:p-8">
+        
+        <header class="text-center mb-10 py-4">
+            <div class="flex items-center justify-center mb-4">
+                <img src="./icon.png" alt="AcTi Diet Manager Logo" class="rounded-full w-16 h-16 md:w-20 md:h-20 object-cover border-2 border-[var(--color-border)] mr-4">
+                <h1 class="text-4xl md:text-5xl font-bold tracking-wider lux-title">AcTi Diet Manager</h1>
+            </div>
+            <p class="text-[var(--color-text-muted)] -mt-2 text-lg">AcTi 전문 다이어트 플래너</p>
+        </header>
+
+        <div id="input-screen" class="max-w-xl mx-auto">
+            <div class="bg-[var(--color-surface)] p-6 md:p-8 rounded-2xl shadow-2xl border border-[var(--color-border)]">
+                <p class="mb-8 text-[var(--color-text-muted)] text-center">중요한 스케줄을 위해 AcTi 매니저가 최적의 플랜을 설계합니다.</p>
+                
+                <form id="input-form" class="space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-[var(--color-text-muted)] mb-2">이름 (Name)</label>
+                            <input type="text" id="name" required class="input-field w-full p-3 rounded-md">
+                        </div>
+
+                        <div>
+                            <label for="dob" class="block text-sm font-medium text-[var(--color-text-muted)] mb-2">생년월일 (Date of Birth)</label>
+                            <input type="text" id="dob" required class="input-field w-full p-3 rounded-md date-input" placeholder="YYYYMMDD">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label for="height" class="block text-sm font-medium text-[var(--color-text-muted)] mb-2">키 (cm)</label>
+                            <input type="number" id="height" required min="100" max="250" step="0.1" placeholder="" class="input-field w-full p-3 rounded-md">
+                        </div>
+
+                        <div>
+                            <label for="currentWeight" class="block text-sm font-medium text-[var(--color-text-muted)] mb-2">현재 몸무게 (kg)</label>
+                            <input type="number" id="currentWeight" required min="30" max="200" step="0.1" placeholder="" class="input-field w-full p-3 rounded-md">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                         <div>
+                            <label for="targetDate" class="block text-sm font-medium text-[var(--color-text-muted)] mb-2">목표 날짜 (D-Day)</label>
+                            <input type="text" id="targetDate" required class="input-field w-full p-3 rounded-md date-input" placeholder="YYYYMMDD">
+                        </div>
+
+                        <div>
+                            <label for="targetWeight" class="block text-sm font-medium text-[var(--color-text-muted)] mb-2">목표 몸무게 (kg)</label>
+                            <input type="number" id="targetWeight" required min="30" max="200" step="0.1" placeholder="" class="input-field w-full p-3 rounded-md">
+                        </div>
+                    </div>
+
+                    <div class="pt-6">
+                        <button type="submit" id="generate-btn" class="btn-primary w-full py-3 rounded-md text-lg">
+                            AcTi 다이어트플랜
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="loading-screen" class="hidden fixed inset-0 bg-[var(--color-bg-deep-purple)] bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50">
+            <div class="text-center">
+                <div class="spinner mx-auto mb-6"></div>
+                <p class="text-[var(--color-primary-accent)] text-2xl font-semibold">AcTi 다이어트 매니저가 분석중입니다...</p>
+                <p class="text-[var(--color-text-muted)] mt-3">개인 맞춤형 플랜 생성에는 약 15~30초가 소요됩니다.</p>
+            </div>
+        </div>
+
+        <div id="result-screen" class="hidden max-w-4xl mx-auto mt-8">
+            <div id="report-capture-area" class="bg-transparent p-0">
+                 <div class="text-center mb-10 pb-6 border-b border-[var(--color-border)]">
+                    <h2 class="text-3xl md:text-4xl font-bold lux-title whitespace-nowrap">Premium Fitness Report</h2>
+                    <p class="text-[var(--color-text-muted)] mt-3" id="report-date"></p>
+                </div>
+                <div id="report-content" class="report-content">
+                </div>
+            </div>
+
+            <div id="adjustment-section" class="mt-10 bg-[var(--color-surface)] p-6 md:p-8 rounded-2xl shadow-2xl border border-[var(--color-border)]">
+                <h3 class="text-2xl font-bold text-center mb-4 text-[var(--color-primary-accent)]">✨ 플랜 수정 요청하기</h3>
+                <p class="text-center text-[var(--color-text-muted)] mb-6">생성된 플랜에 대해 궁금한 점이나 바꾸고 싶은 부분을 AcTi 매니저에게 직접 요청해보세요.</p>
+                <textarea id="adjustment-request" class="textarea-field w-full p-3 rounded-md min-h-[100px]" placeholder="예: 저녁 약속이 생겼는데 식단을 어떻게 조절할까요?"></textarea>
+                <button id="adjust-plan-btn" class="bg-transparent hover:bg-[var(--color-primary-accent)] text-[var(--color-primary-accent)] hover:text-[var(--color-bg-deep-purple)] border border-[var(--color-primary-accent)] font-bold w-full py-3 rounded-md text-lg mt-4 transition-colors">
+                    요청하기
+                </button>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mt-10 mb-20">
+                <button id="get-motivation-btn" class="bg-transparent hover:bg-[var(--color-primary-accent)] text-[var(--color-primary-accent)] hover:text-[var(--color-bg-deep-purple)] border border-[var(--color-primary-accent)] font-bold w-full sm:w-auto py-3 px-8 rounded-md text-lg transition-colors flex items-center justify-center shadow-sm">
+                     ✨ 동기부여 메시지 받기
+                </button>
+                <button id="save-jpg-btn" class="btn-primary w-full sm:w-auto py-3 px-8 rounded-md text-lg flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    JPG로 저장하기
+                </button>
+                <button id="retry-btn" class="bg-transparent text-[var(--color-text-muted)] hover:bg-[var(--color-border)] font-bold w-full sm:w-auto py-3 px-8 rounded-md text-lg transition-colors">
+                    다시 시작하기
+                </button>
+            </div>
+        </div>
+
+        <footer class="text-center py-8 mt-12 text-[var(--color-text-muted)] text-sm">
+            @2025 Webflix AcTi
+        </footer>
+
+    </div>
+    
+    <div id="custom-alert-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-[var(--color-surface)] rounded-lg shadow-2xl p-6 md:p-8 max-w-sm mx-auto border border-[var(--color-border)]">
+            <p id="custom-alert-message" class="text-[var(--color-text-light)] text-center mb-6 whitespace-pre-wrap"></p>
+            <button id="custom-alert-close" class="btn-primary w-full py-2 rounded-md">확인</button>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Configuration ---
+        // 듀얼 API 키 시스템: 무료 키를 먼저 시도하고, 사용량 초과 시 유료 키로 자동 전환합니다.
+        const API_KEYS = [
+            'AIzaSyBJEtwmOTMo1yB3VtfGre72AOIxZKpi8SU', // 무료 키 (기본)
+            'AIzaSyBbEsfDqt5ojPAJoo70Nozro4LacKk__4k'  // 유료 키 (백업)
+        ];
+        let currentApiKeyIndex = 0; // 항상 무료 키(0번 인덱스)부터 시작
+
+        // Global state variables
+        let currentUserData = null;
+        let currentReportText = '';
+
+        // DOM Elements
+        const inputScreen = document.getElementById('input-screen');
+        const loadingScreen = document.getElementById('loading-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const inputForm = document.getElementById('input-form');
+        const reportContent = document.getElementById('report-content');
+        const saveJpgBtn = document.getElementById('save-jpg-btn');
+        const retryBtn = document.getElementById('retry-btn');
+        const reportDate = document.getElementById('report-date');
+        
+        const adjustPlanBtn = document.getElementById('adjust-plan-btn');
+        const adjustmentRequestText = document.getElementById('adjustment-request');
+        const getMotivationBtn = document.getElementById('get-motivation-btn');
+
+        const customAlertModal = document.getElementById('custom-alert-modal');
+        const customAlertMessage = document.getElementById('custom-alert-message');
+        const customAlertCloseBtn = document.getElementById('custom-alert-close');
+
+        function showMessage(message) {
+            customAlertMessage.textContent = message;
+            customAlertModal.classList.remove('hidden');
+        }
+
+        customAlertCloseBtn.addEventListener('click', () => {
+            customAlertModal.classList.add('hidden');
+        });
+        
+        inputForm.addEventListener('submit', generatePlan);
+        saveJpgBtn.addEventListener('click', saveAsJpg);
+        retryBtn.addEventListener('click', resetApp);
+        
+        adjustPlanBtn.addEventListener('click', adjustPlan);
+        getMotivationBtn.addEventListener('click', getMotivation);
+
+        document.querySelectorAll('.date-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, ''); // Remove all non-digits
+                if (value.length > 8) {
+                    value = value.slice(0, 8);
+                }
+                
+                if (value.length > 4) {
+                    value = value.slice(0, 4) + '-' + value.slice(4);
+                }
+                if (value.length > 7) {
+                    value = value.slice(0, 7) + '-' + value.slice(7);
+                }
+                
+                e.target.value = value;
+            });
+        });
+
+        async function callGemini(prompt, buttonElement = null) {
+            let originalButtonHTML = '';
+            if (buttonElement) {
+                originalButtonHTML = buttonElement.innerHTML;
+                buttonElement.disabled = true;
+                buttonElement.innerHTML = '<span class="animate-pulse">AcTi가 생각 중...</span>';
+            }
+            
+            try {
+                let apiKey = API_KEYS[currentApiKeyIndex];
+                let API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                let response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
+                        safetySettings: [{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }],
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    const errorMessage = errorData.error?.message || '';
+
+                    if (errorMessage.includes('quota') && currentApiKeyIndex === 0 && API_KEYS.length > 1) {
+                        console.warn('무료 API 키 사용량 초과. 유료 키로 전환하여 재시도합니다.');
+                        currentApiKeyIndex = 1;
+                        apiKey = API_KEYS[currentApiKeyIndex];
+                        API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                        
+                        response = await fetch(API_URL, {
+                             method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: prompt }] }],
+                                generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
+                                safetySettings: [{ category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }],
+                            })
+                        });
+
+                        if (!response.ok) { 
+                            const backupErrorData = await response.json();
+                            throw new Error(`백업 키 요청 실패: ${backupErrorData.error?.message || response.statusText}`);
+                        }
+                    } else {
+                        throw new Error(`요청 실패: ${errorMessage}`);
+                    }
+                }
+
+                const data = await response.json();
+                if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
+                    throw new Error("AcTi로부터 유효한 응답을 받지 못했습니다.");
+                }
+                return data.candidates[0].content.parts[0].text;
+
+            } catch (error) {
+                console.error("callGemini failed:", error);
+                throw error;
+            } finally {
+                if (buttonElement) {
+                    buttonElement.disabled = false;
+                    buttonElement.innerHTML = originalButtonHTML;
+                }
+            }
+        }
+
+        async function generatePlan(e) {
+            e.preventDefault();
+            currentApiKeyIndex = 0;
+            
+            currentUserData = {
+                name: document.getElementById('name').value,
+                dob: document.getElementById('dob').value,
+                height: document.getElementById('height').value,
+                currentWeight: document.getElementById('currentWeight').value,
+                targetDate: document.getElementById('targetDate').value,
+                targetWeight: document.getElementById('targetWeight').value
+            };
+
+            if (parseFloat(currentUserData.currentWeight) <= parseFloat(currentUserData.targetWeight)) {
+                showMessage("목표 몸무게는 현재 몸무게보다 낮아야 합니다.");
+                return;
+            }
+
+            toggleScreens('loading');
+
+            try {
+                const prompt = constructInitialPrompt(currentUserData);
+                const generatedText = await callGemini(prompt, document.getElementById('generate-btn'));
+                if (generatedText) {
+                    displayReport(generatedText, currentUserData.name);
+                    toggleScreens('result');
+                }
+            } catch (error) {
+                showMessage(`플랜 생성 중 오류가 발생했습니다: ${error.message}`);
+                toggleScreens('input');
+            }
+        }
+
+        async function adjustPlan() {
+            const userRequest = adjustmentRequestText.value;
+            if (!userRequest.trim()) {
+                showMessage("AcTi 매니저에게 요청할 내용을 입력해주세요.");
+                return;
+            }
+
+            const prompt = constructAdjustmentPrompt(currentUserData, currentReportText, userRequest);
+            
+            try {
+                const updatedPlanPart = await callGemini(prompt, adjustPlanBtn);
+                if(updatedPlanPart) {
+                    const adjustmentHtml = markdownToHtml(updatedPlanPart, true);
+                    reportContent.insertAdjacentHTML('beforeend', adjustmentHtml);
+                    adjustmentRequestText.value = ''; 
+                    showMessage("플랜 조정 내용이 하단에 추가되었습니다.");
+                    adjustmentRequestText.scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                showMessage(`플랜 조정 중 오류가 발생했습니다: ${error.message}`);
+            }
+        }
+
+        async function getMotivation() {
+            if (!currentUserData) return;
+
+            const prompt = `당신은 배우와 모델을 위한 따뜻하고 힘이 되는 피트니스 코치 'AcTi'입니다. 사용자 '${currentUserData.name}'님에게 오늘 하루를 활기차게 보낼 수 있는 짧고 강력한 동기부여 메시지를 한국어로 작성해주세요.`;
+
+            try {
+                const motivationalMessage = await callGemini(prompt, getMotivationBtn);
+                if(motivationalMessage) {
+                    showMessage(motivationalMessage);
+                }
+            } catch (error) {
+                showMessage(`메시지를 받는 중 오류가 발생했습니다: ${error.message}`);
+            }
+        }
+
+        function constructInitialPrompt(data) {
+            return `
+[역할]
+당신은 배우와 모델을 위한 최고의 피트니스 플래너 'AcTi'입니다. 영양학, 퍼스널 트레이닝, 건강 관리 컨설팅에 대한 깊이 있는 전문 지식을 바탕으로, 아래 사용자 데이터를 분석하여 실행 가능한 맞춤형 리포트를 작성합니다.
+
+[전체 가이드라인]
+- 리포트의 전체적인 정보량이 매우 풍부하고, 각 항목이 전문가 수준의 깊이 있는 분석과 실행 가능한 구체적인 조언을 담고 있도록 작성해주세요. 사용자가 이 리포트 하나만으로도 완벽하게 계획을 실행할 수 있어야 합니다.
+- 전체 내용은 존댓말을 사용하고, 신뢰감을 주는 전문가의 어조를 유지해 주세요.
+- 각 항목은 '##'으로 시작하는 제목을 반드시 포함해야 합니다. 목록 항목(*, -)이나 다른 내용 앞에는 절대 '##'을 붙이지 마세요.
+- 마크다운 형식을 엄격히 준수해 주세요.
+
+[사용자 데이터]
+* 이름: ${data.name}
+* 생년월일: ${data.dob}
+* 키: ${data.height}cm
+* 현재 체중: ${data.currentWeight}kg
+* 목표 날짜: ${data.targetDate}
+* 목표 체중: ${data.targetWeight}kg
+
+[리포트 생성 항목]
+1. **## 목표 현실성 분석 및 재설정**
+   - 주어진 기간 내 목표 체중 감량이 현실적이고 건강한 범위인지 과학적으로 상세히 분석해 주세요. 각 서술형 항목에 대해 최소 3-4문장 이상의 상세한 설명을 포함해주세요.
+   - 만약 무리한 목표라면, "**경고: 현재 설정된 목표는 건강을 해칠 수 있습니다. AcTi가 추천하는 현실적인 목표와 계획을 제안합니다.**"라는 메시지와 함께 건강한 목표를 제시하고, 그에 맞춰 아래 계획을 수립해 주세요.
+   - 이 분석 결과는 반드시 Blockquote 형식으로 강조하여 제시해 주세요.
+
+2. **## 총평 및 전략 요약**
+   - 현재 신체 데이터(BMI, 추정 BMR, TDEE)를 기반으로 한 종합적인 평가와 다이어트 전략의 핵심(목표 칼로리, 영양소 비율 등)을 반드시 목록 형식이 아닌, 문단으로 구성된 상세한 서술형으로 작성해주세요. 최소 3-4문장 이상으로 상세하게 설명해야 합니다.
+
+3. **## 필수 일일 지침 (Daily Must-Do List)**
+   - 배우의 유동적인 스케줄을 고려하여, 시간에 얽매이지 않고 하루 동안 반드시 실천해야 할 핵심 활동들을 Markdown **표(Table)** 형식으로 작성해주세요.
+   - **'시간' 열은 절대 포함하지 마세요.** '활동 계획'과 '비고' 열만으로 구성해야 합니다.
+   - 예시:
+     | 활동 계획 | 비고 |
+     |---|---|
+     | 기상 후 따뜻한 물 500ml 섭취 | 신진대사 활성화 및 수분 공급 |
+     | 아침 식사 (단백질 위주) | 균형 잡힌 영양, 하루 에너지원 공급 |
+
+4. **## 주간 식단 계획**
+   - 월요일부터 일요일까지 아침, 점심, 저녁, 간식 메뉴를 구체적인 음식 이름과 양(g 또는 ml)으로 제시하는 Markdown **표(Table)**를 작성해 주세요. 요일 셀은 각 식사(아침,점심 등)마다 반복되어야 합니다.
+
+5. **## 주간 운동 계획**
+   - 요일별 유산소, 근력 운동 계획을 상세 내용(세트x횟수/시간, 강도, 휴식)을 포함하여 Markdown **표(Table)** 형식으로 작성해 주세요. 요일 셀은 각 운동(근력, 유소 등)마다 반복되어야 합니다.
+
+6. **## 주의사항 및 전문가 팁**
+   - 다이어트 중 발생할 수 있는 변수(정체기, 외식 등) 대처법과 성공률을 높일 전문가 팁(수면, 스트레스 관리 등)을 상세한 설명 형식으로 작성해주세요. 최소 3-4문장 이상으로 상세하게 설명해야 합니다.
+`;
+        }
+
+        function constructAdjustmentPrompt(data, originalPlan, userRequest) {
+            return `당신은 사용자의 피트니스 플랜을 수정하고 질문에 답하는 피트니스 전문가 'AcTi'입니다.
+
+[기존 사용자 데이터]
+* 이름: ${data.name}, 키: ${data.height}cm, 목표 체중: ${data.targetWeight}kg
+
+[기존에 생성된 피트니스 플랜 요약]
+${originalPlan.substring(0, 1500)}... 
+
+[사용자의 새로운 요청]
+"${userRequest}"
+
+[당신의 임무]
+위 사용자의 새로운 요청에 대해, 기존 계획의 맥락을 유지하면서 친절하고 전문적인 답변을 마크다운 형식으로 작성해주세요. 만약 식단이나 운동 계획을 수정해야 한다면, 수정된 부분을 명확하게 제시해주세요. 전체 계획을 다시 생성할 필요는 없습니다. 요청에 대한 답변에만 집중해주세요.`;
+        }
+
+        function displayReport(text, userName) {
+            currentReportText = text;
+            const sections = text.split(/\n(?=## )/);
+            
+            const html = sections.map(section => {
+                if (!section.trim()) return '';
+                return markdownToHtml(section, true);
+            }).join('');
+
+            reportContent.innerHTML = html;
+            const today = new Date();
+            reportDate.textContent = `${userName}님을 위한 리포트 | 생성일: ${today.toLocaleDateString('ko-KR')}`;
+        }
+
+        function markdownToHtml(markdown, isTopLevelSection) {
+            if (!markdown) return "";
+            
+            let contentMarkdown = markdown.trim();
+            let titleHtml = '';
+            
+            if (isTopLevelSection) {
+                const lines = contentMarkdown.split('\n');
+                if (lines[0].startsWith('## ')) {
+                    const title = lines.shift().replace('## ', '').trim();
+                    titleHtml = `<h2>${title}</h2>`;
+                    contentMarkdown = lines.join('\n');
+                }
+            }
+            
+            const contentHtml = `<div class="report-section-content">${processMarkdownContent(contentMarkdown)}</div>`;
+            const finalHtml = titleHtml + contentHtml;
+
+            return isTopLevelSection ? `<div class="report-section">${finalHtml}</div>` : finalHtml;
+        }
+        
+        function processMarkdownContent(markdown) {
+            if (!markdown) return "";
+
+            let processed = markdown.replace(/\r\n?/g, '\n').trim();
+            
+            processed = processed.split('\n').filter(line => !/^\s*(>|---|--|-|\.)\s*$/.test(line)).join('\n');
+
+            processed = processed.replace(/((?:^\s*[\*\-]\s.*(?:\n|$))|(?:^\s*\d+\.\s.*(?:\n|$)))+/gm, (match) => {
+                const items = match.trim().split('\n').filter(Boolean);
+                if (items.length === 0) return '';
+                const isOrdered = /^\s*\d+\./.test(items[0]);
+                const listTag = isOrdered ? 'ol' : 'ul';
+                const itemTags = items.map(item => `<li>${item.replace(/^\s*(?:[\*\-]|\d+\.)\s/, '')}</li>`).join('');
+                return `<${listTag}>${itemTags}</${listTag}>\n`;
+            });
+            
+            processed = processed.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>');
+            processed = processed.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            processed = processed.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
+            
+            processed = processed.replace(/((?:\|.*\|(?:\r\n|\n|\r|$))+)/g, (match) => {
+                const rows = match.trim().split('\n');
+                if (rows.length < 2 || !rows[1].includes('-')) return match;
+                
+                const isPlanTable = /요일/.test(rows[0]);
+                
+                const headerCells = rows[0].split('|').slice(1, -1).map(c => c.trim());
+                if (headerCells.length === 0) return match;
+                
+                const dataRows = rows.slice(2).map(row => row.split('|').slice(1, -1).map(c => c.trim()));
+                if (dataRows.length === 0) return match;
+
+                let html = `<table><thead><tr>${headerCells.map(cell => `<th>${cell}</th>`).join('')}</tr></thead><tbody>`;
+                
+                if (isPlanTable) {
+                    const processedIndices = new Set();
+                    for (let i = 0; i < dataRows.length; i++) {
+                        if (processedIndices.has(i)) continue;
+
+                        const currentRow = dataRows[i];
+                        if (currentRow.length !== headerCells.length) continue;
+                        
+                        const dayValue = currentRow[0];
+                        let rowspan = 1;
+                        for (let j = i + 1; j < dataRows.length; j++) {
+                            if (dataRows[j].length === headerCells.length && dataRows[j][0] === dayValue) {
+                                rowspan++;
+                            } else {
+                                break;
+                            }
+                        }
+
+                        html += '<tr>';
+                        html += `<td rowspan="${rowspan}">${dayValue}</td>`;
+                        for (let k = 1; k < currentRow.length; k++) {
+                            html += `<td>${currentRow[k]}</td>`;
+                        }
+                        html += '</tr>';
+                        processedIndices.add(i);
+
+                        for (let r = 1; r < rowspan; r++) {
+                            const subRowIndex = i + r;
+                            if(dataRows[subRowIndex]) {
+                                const subRow = dataRows[subRowIndex];
+                                html += '<tr>';
+                                for (let k = 1; k < subRow.length; k++) {
+                                    html += `<td>${subRow[k]}</td>`;
+                                }
+                                html += '</tr>';
+                                processedIndices.add(subRowIndex);
+                            }
+                        }
+                    }
+                } else { 
+                    dataRows.forEach(row => {
+                         if (row.length === headerCells.length) {
+                             html += `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`;
+                         }
+                    });
+                }
+
+                html += '</tbody></table>\n';
+                return html;
+            });
+
+             const blocks = processed.split(/\n{2,}/);
+             return blocks.map(block => {
+                 if (!block.trim()) return '';
+                 if (block.match(/^(<h[3]|<ul|<ol|<table|<blockquote)/)) return block;
+                 return `<p>${block.replace(/\n/g, '<br>')}</p>`;
+             }).join('');
+        }
+
+
+        function saveAsJpg() {
+            const captureElement = document.getElementById('report-capture-area');
+            const userName = document.getElementById('name').value || 'User';
+            const fileName = `ActorBeauty_Plan_${userName}_${new Date().toISOString().slice(0,10)}.jpg`;
+
+            saveJpgBtn.disabled = true;
+            const originalBtnHTML = saveJpgBtn.innerHTML;
+            saveJpgBtn.innerHTML = '저장 중...';
+
+            html2canvas(captureElement, {
+                scale: 3, 
+                backgroundColor: '#312031',
+                logging: false,
+                useCORS: true,
+                windowWidth: captureElement.scrollWidth,
+                windowHeight: captureElement.scrollHeight
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = canvas.toDataURL("image/jpeg", 0.95);
+                link.click();
+            }).catch(error => {
+                console.error("Error saving image:", error);
+                showMessage("이미지 저장 중 오류가 발생했습니다.");
+            }).finally(() => {
+                saveJpgBtn.disabled = false;
+                saveJpgBtn.innerHTML = originalBtnHTML;
+            });
+        }
+
+        function toggleScreens(show) {
+            inputScreen.classList.add('hidden');
+            loadingScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+
+            if (show === 'input') inputScreen.classList.remove('hidden');
+            if (show === 'loading') loadingScreen.classList.remove('hidden');
+            if (show === 'result') {
+                resultScreen.classList.remove('hidden');
+                window.scrollTo(0, 0); 
+            }
+        }
+
+        function resetApp() {
+            inputForm.reset();
+            reportContent.innerHTML = '';
+            currentUserData = null;
+            currentReportText = '';
+            document.querySelectorAll('input.date-input').forEach(input => input.value = '');
+            toggleScreens('input');
+        }
+
+    </script>
+</body>
+</html>
+
