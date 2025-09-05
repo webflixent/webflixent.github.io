@@ -8,7 +8,7 @@
   <!-- Icons and Manifest -->
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="icon.png" type="image/png">
+  <link rel="icon" href="https://placehold.co/64x64/8a7a69/FFFFFF?text=BH" type="image/png">
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -24,7 +24,7 @@
     body {
       font-family: 'Noto Sans KR', sans-serif;
       color: #4a3f33; /* Deep brown for text */
-      background-image: url('https://images.unsplash.com/photo-1505935428862-770b6f24f629?q=80&w=2067&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%D');
+      background-image: url('https://images.unsplash.com/photo-1505935428862-770b6f24f629?q=80&w=2067&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
@@ -138,7 +138,7 @@
     <header class="mb-6">
       <div class="content-card rounded-2xl p-6 text-center">
         <div class="flex items-center justify-center">
-          <img src="icon.png" alt="Health Icon" class="h-16 w-16 mr-4 rounded-full shadow-md">
+          <img src="https://placehold.co/64x64/8a7a69/FFFFFF?text=BH" alt="Health Icon" class="h-16 w-16 mr-4 rounded-full shadow-md">
           <h1 class="text-4xl font-bold text-[#4a3f33]">For Baek's Health</h1>
         </div>
         <p class="text-[#6e6052] mt-2 text-lg font-light">백순애 100살 건강 프로젝트</p>
@@ -151,6 +151,11 @@
         <label for="food-text" class="block text-sm font-medium text-[#6e6052] mb-1">음식 이름 또는 재료</label>
         <div class="flex items-center gap-2">
             <input type="text" id="food-text" class="input-field w-full" placeholder="예: 닭가슴살, 브로콜리">
+            <button id="refresh-button-icon" class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/5 transition" title="강제 새로고침">
+                <svg class="w-5 h-5 text-[#6e6052]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0l3.181-3.183m-4.991-2.695v-2.695A8.25 8.25 0 004.668 7.158l-3.181 3.183" />
+                </svg>
+            </button>
             <button id="clear-button-icon" class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center hover:bg-black/5 transition" title="화면 지우기">
                 <svg class="w-5 h-5 text-[#6e6052]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             </button>
@@ -231,13 +236,13 @@
             <div id="recipe-details" class="space-y-4"></div>
           </div>
           <!-- 결과 액션 버튼 -->
-           <div id="result-actions-container" class="hidden mt-4 pt-4 border-t border-gray-400/50 space-y-2">
-               <button id="save-log-button" class="btn-primary w-full font-bold py-2 px-4 rounded-xl hidden">이 결과 기록하기</button>
-               <button id="save-image-button" class="btn-secondary w-full font-bold py-2 px-4 rounded-xl flex items-center justify-center gap-2">
-                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
-                   <span>JPG로 저장</span>
-               </button>
-           </div>
+            <div id="result-actions-container" class="hidden mt-4 pt-4 border-t border-gray-400/50 space-y-2">
+                <button id="save-log-button" class="btn-primary w-full font-bold py-2 px-4 rounded-xl hidden">이 결과 기록하기</button>
+                <button id="save-image-button" class="btn-secondary w-full font-bold py-2 px-4 rounded-xl flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                    <span>JPG로 저장</span>
+                </button>
+            </div>
       </div>
       <div id="error-section" class="mt-6 hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl" role="alert">
         <strong class="font-bold">오류: </strong>
@@ -323,6 +328,7 @@
     const recommendDietButton = document.getElementById('recommend-diet-button');
     const viewLogButton = document.getElementById('view-log-button');
     const clearButton = document.getElementById('clear-button-icon');
+    const refreshButton = document.getElementById('refresh-button-icon');
     const topButton = document.getElementById('top-button');
     const resultActionsContainer = document.getElementById('result-actions-container');
     const saveImageButton = document.getElementById('save-image-button');
@@ -453,7 +459,7 @@
         let foodName = foodText;
         if (qnaText) {
           analysisType = 'qna';
-          systemPrompt = `당신은 췌장 및 소화기계 건강에 특화된 건강 상담 AI입니다. 사용자는 췌장에 물혹이 있고 췌장암 및 대장암 가족력이 있습니다. 이 점을 반드시 인지하고, 일반적인 건강 질문에 대해 매우 안전하고 보수적인 관점에서 답변해주세요. 
+          systemPrompt = `당신은 개인 맞춤형 건강 관리를 돕는 헬스케어 AI입니다. 사용자의 건강 상태를 고려하여, 질문에 대해 안전하고 이해하기 쉽게 답변해주세요. 답변은 긍정적이고 희망적인 어조를 유지해주세요.
           응답은 반드시 다음 키를 가진 JSON 형식이어야 합니다:
           - "answer": 다음 3개의 키를 가진 객체:
               - "conclusion": (문자열) 질문에 대한 핵심적인 결론을 2~3줄로 요약.
@@ -463,22 +469,23 @@
           parts = [{ text: qnaText }];
         } else {
           analysisType = 'food';
-          systemPrompt = `당신은 췌장 건강 관리에 매우 특화된 임상 영양사입니다. 사용자는 췌장에 물혹이 있고, 췌장암 및 대장암 가족력이 있어 식단에 매우 민감합니다. 당신의 조언은 극도로 보수적이고 안전해야 합니다. 제공된 음식이 췌장에 미치는 영향을 최우선으로 분석하고, 조금이라도 위험 요소가 있다면 명확하게 경고해주세요. 
+          systemPrompt = `당신은 식단 관리를 돕는 전문 영양사 AI입니다. 사용자의 건강 상태를 고려하여, 제공된 음식에 대해 매우 신중하고 안전한 관점에서 분석해주세요. 응답은 긍정적이고 이해하기 쉬운 표현을 사용해주세요.
           응답은 반드시 다음 키를 가진 JSON 형식이어야 합니다:
           - "opinion": 다음 4개의 키를 가진 객체:
               - "summary": (문자열) 음식에 대한 핵심적인 평가를 2~3줄로 요약.
               - "pros": (문자열 또는 null) 건강에 긍정적인 측면이 있다면 간략히 서술, 없다면 null.
-              - "cons": (문자열) 건강, 특히 췌장에 부정적인 측면이나 위험 요소를 명확하고 직설적으로 서술.
-              - "tip": (문자열 또는 null) 이 음식이 '주의' 또는 '나쁨' 등급일 경우, 부득이하게 먹어야 할 때 피해를 최소화하는 현실적인 방법(예: '껍질은 반드시 제거하고, 딱 한 조각만 드세요')을 제안. '좋음' 등급이면 null.
+              - "cons": (문자열) 건강 관점에서 주의할 점이나 개선 방향을 부드럽게 서술.
+              - "tip": (문자열 또는 null) 이 음식이 '주의' 또는 '나쁨' 등급일 경우, 더 건강하게 섭취할 수 있는 현실적인 방법(예: '기름기가 많은 껍질 대신 살코기 위주로 드시면 좋습니다')을 제안. '좋음' 등급이면 null.
           - "calories": (문자열) 예상 칼로리.
           - "recommendation": (문자열) "좋음", "주의", "나쁨" 중 하나.
+          - "recommendationSummary": (문자열) 'recommendation' 등급에 대한 이유를 1~3줄로 간결하게 요약해서 설명.
           절대로 답변에 '**'와 같은 마크다운 문자를 사용하지 마세요.`;
           if (uploadedImages.length > 0) {
-            parts = [{ text: "이 음식들이 췌장이 약한 사람에게 괜찮은지 종합적으로 분석해주세요." }];
+            parts = [{ text: "이 음식들이 건강에 어떤 영향을 주는지 종합적으로 분석해주세요." }];
             uploadedImages.forEach(item => parts.push({ inline_data: { mime_type: item.mime, data: item.data } }));
             foodName = `사진 ${uploadedImages.length}장 종합 분석`;
           } else {
-            parts = [{ text: `음식: ${foodText}. 이 음식이 췌장이 약한 사람에게 괜찮은지 분석해주세요.` }];
+            parts = [{ text: `음식: ${foodText}. 이 음식이 건강에 어떤 영향을 주는지 분석해주세요.` }];
           }
         }
         const data = await callGeminiAPI(systemPrompt, parts);
@@ -504,7 +511,7 @@
         hide(resultSection); hide(errorSection); show(loadingIndicator, 'block');
         setButtonsState(true);
         try {
-            const systemPrompt = `당신은 췌장 건강식 전문 셰프입니다. 사용자는 췌장 물혹과 암 가족력이 있으므로, 제공된 재료로 만들 수 있는 요리는 반드시 저지방, 저자극, 소화가 잘되는 것이어야 합니다. 췌장에 부담을 줄 수 있는 조리법이나 재료는 피해주세요. 
+            const systemPrompt = `당신은 건강 요리 전문 셰프 AI입니다. 사용자의 건강 상태를 고려하여, 제공된 재료로 만들 수 있는 소화가 잘 되고 건강한 요리법을 추천해주세요. 긍정적이고 따라하기 쉬운 설명을 부탁드립니다.
             응답은 반드시 다음 키를 가진 JSON 형식이어야 합니다:
             - "recipeName": (문자열) 요리 이름.
             - "chefTip": (문자열) 요리를 더 건강하고 맛있게 만들기 위한 셰프의 팁.
@@ -597,6 +604,20 @@
 
             resultCalories.textContent = data.calories || "정보 없음";
             
+            const resultRecommendationEl = document.getElementById('result-recommendation');
+            const recommendationContainer = resultRecommendationEl.parentElement;
+            recommendationContainer.innerHTML = ''; // Clear previous content
+
+            // Create header div
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'flex items-center gap-2 mb-1';
+
+            // Create h3
+            const headerText = document.createElement('h3');
+            headerText.className = 'font-semibold text-lg text-[#6e6052]';
+            headerText.textContent = '추천';
+
+            // Create badge
             const recommendation = data.recommendation || "정보 없음";
             const badge = document.createElement('span');
             badge.textContent = recommendation;
@@ -604,8 +625,17 @@
             if (recommendation === '좋음') badge.classList.add('recommendation-good');
             else if (recommendation === '주의') badge.classList.add('recommendation-caution');
             else if (recommendation === '나쁨') badge.classList.add('recommendation-bad');
-            resultRecommendation.innerHTML = '';
-            resultRecommendation.appendChild(badge);
+            
+            headerDiv.appendChild(headerText);
+            headerDiv.appendChild(badge);
+            
+            // Create summary paragraph
+            const summaryP = document.createElement('p');
+            summaryP.className = 'text-[#4a3f33]';
+            summaryP.textContent = data.recommendationSummary || '';
+
+            recommendationContainer.appendChild(headerDiv);
+            recommendationContainer.appendChild(summaryP);
             
             saveLogButton.textContent = "이 결과 기록하기";
             saveLogButton.disabled = false;
@@ -648,21 +678,56 @@
     }
 
     async function callGeminiAPI(systemPrompt, parts) {
-      const apiKey = "AIzaSyBJEtwmOTMo1yB3VtfGre72AOIxZKpi8SU"; // API Key
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
-      try {
-        const payload = { contents: [{ parts }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json" } };
-        const res = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: controller.signal });
-        clearTimeout(timeoutId);
-        if (!res.ok) { const t = await res.text(); throw new Error(`API 요청 실패: ${res.status} - ${t}`); }
-        const result = await res.json();
-        if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) return JSON.parse(result.candidates[0].content.parts[0].text);
-        throw new Error("AI 응답 구조가 예상과 다릅니다.");
-      } finally {
-        clearTimeout(timeoutId);
+      const apiKey = "AIzaSyBJEtwmOTMo1yB3VtfGre72AOIxZKpi8SU"; 
+      if (apiKey === "YOUR_API_KEY_HERE" || apiKey === "") {
+        throw new Error("API 키가 설정되지 않았습니다. callGeminiAPI 함수 안에 있는 apiKey 변수를 확인해주세요.");
       }
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+      
+      const maxRetries = 3;
+      let delay = 1000; // 1초부터 시작
+
+      for (let i = 0; i < maxRetries; i++) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000); // 각 시도마다 20초 타임아웃
+
+        try {
+          const payload = { contents: [{ parts }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json" } };
+          const res = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: controller.signal });
+          
+          clearTimeout(timeoutId);
+
+          if (res.ok) {
+            const result = await res.json();
+            if (result.candidates && result.candidates[0]?.content?.parts?.[0]?.text) {
+              return JSON.parse(result.candidates[0].content.parts[0].text);
+            }
+            throw new Error("AI 응답 구조가 예상과 다릅니다.");
+          }
+
+          if (res.status === 503) {
+            if (i === maxRetries - 1) {
+                const t = await res.text();
+                throw new Error(`API 요청 실패 (재시도 모두 실패): ${res.status} - ${t}`);
+            }
+            console.log(`API Overloaded (503). Retrying in ${delay / 1000} seconds...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            delay *= 2; // 지수 백오프
+          } else {
+            const t = await res.text();
+            throw new Error(`API 요청 실패: ${res.status} - ${t}`);
+          }
+        } catch (error) {
+          clearTimeout(timeoutId);
+          if (i === maxRetries - 1) {
+            throw error;
+          }
+           console.log(`Fetch error. Retrying in ${delay / 1000} seconds... Error: ${error.message}`);
+           await new Promise(resolve => setTimeout(resolve, delay));
+           delay *= 2;
+        }
+      }
+      throw new Error("API 요청에 실패했습니다. (모든 재시도 실패)");
     }
     
     function clearInputs() {
@@ -681,6 +746,12 @@
         setRandomGreeting(); // 초기화 시에도 새로운 응원 메시지 설정
     }
     clearButton.addEventListener('click', resetApp);
+
+    refreshButton.addEventListener('click', () => {
+        // URL에 현재 시간을 추가하여 캐시를 무시하고 강제로 새로고침합니다.
+        const currentUrl = window.location.href.split('?')[0];
+        window.location.href = currentUrl + '?cache_bust=' + new Date().getTime();
+    });
 
     function displayError(msg) { errorMessage.textContent = msg; show(errorSection, 'block'); }
     
@@ -718,10 +789,7 @@
 
         html2canvas(currentResultElement, {
             useCORS: true,
-            backgroundColor: null, // 투명 배경 캡처
-            onrendered: function(canvas) {
-                document.body.appendChild(canvas);
-            }
+            backgroundColor: '#fdfaf6'
         }).then(canvas => {
             const link = document.createElement('a');
             link.download = 'health_result.jpg';
@@ -743,8 +811,8 @@
         show(dietLoading, 'block');
         dietContent.innerHTML = '';
         try {
-            const systemPrompt = `당신은 췌장 질환 및 암 예방 식단을 전문으로 하는 임상 영양사입니다. 사용자는 췌장 물혹과 암 가족력이 있다는 점을 고려하여, 매우 안전하고 보수적인 하루 추천 식단을 생성해주세요. 식단은 저지방, 저자극, 소화가 잘되어야 합니다. 답변은 'breakfast', 'lunch', 'dinner', 'snacks' 키를 가진 JSON 객체여야 합니다. 절대로 답변에 '**'와 같은 마크다운 문자를 사용하지 마세요.`;
-            const parts = [{ text: "췌장 건강에 좋은 하루 추천 식단을 생성해주세요." }];
+            const systemPrompt = `당신은 균형 잡힌 식단을 추천하는 전문 영양사 AI입니다. 사용자의 건강 상태를 고려하여, 소화가 편하고 건강한 하루 추천 식단을 생성해주세요. 식단은 저지방, 저자극, 소화가 잘되는 것을 기본으로 합니다. 답변은 'breakfast', 'lunch', 'dinner', 'snacks' 키를 가진 JSON 객체여야 합니다. 절대로 답변에 '**'와 같은 마크다운 문자를 사용하지 마세요.`;
+            const parts = [{ text: "건강에 좋은 하루 추천 식단을 생성해주세요." }];
             const data = await callGeminiAPI(systemPrompt, parts);
             dietContent.innerHTML = `
                 <div class="mb-3"><h3 class="font-semibold text-lg">아침</h3><p>${data.breakfast || '정보 없음'}</p></div>
@@ -837,4 +905,8 @@
   </script>
 </body>
 </html>
+
+
+
+
 
