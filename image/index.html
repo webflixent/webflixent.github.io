@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>웹 이미지 컨설턴트 (배우/모델)</title>
+  <meta name="color-scheme" content="light" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root{
+      --bg:#ECE9E4;          /* 배경(스톤 베이지) */
+      --paper:#F7F4F1;       /* 카드 상단 라이트 */
+      --card:#FFFFFF;        /* 카드 본색 */
+      --ink:#3A352F;         /* 본문 컬러 */
+      --sub:#827A72;         /* 보조 텍스트 */
+      --accent:#7B5E49;      /* 포커스(브론즈) */
+      --accent-2:#5E4738;    /* 포커스 딥 */
+      --ring:#CDB9A9;        /* 포커스 링 */
+      --line:#E7E1DB;        /* 섹션 경계선 */
+      --shadow-1: 0 14px 40px rgba(73,56,43,.16), 0 2px 10px rgba(73,56,43,.08);
+      --inner: inset 0 1px 0 rgba(255,255,255,.8), inset 0 -1px 0 rgba(0,0,0,.04);
+    }
+    html, body { height: 100%; }
+    body{ font-family:'Noto Sans KR', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; color:var(--ink); background:
+      radial-gradient(1200px 800px at 10% -10%, #ffffff 0%, rgba(255,255,255,.6) 45%, rgba(255,255,255,0) 60%),
+      radial-gradient(800px 600px at 90% 0%, #fff 0%, rgba(255,255,255,.5) 40%, rgba(255,255,255,0) 60%),
+      linear-gradient(180deg, var(--bg), #E6DFD9 60%, #EAE5E0 100%);
+      background-attachment: fixed; }
+
+    /* 카드 & 컨테이너 */
+    .container{ max-width: 920px; margin: 0 auto; padding: 24px; }
+    .hero{ border-radius: 28px; background: linear-gradient(180deg, var(--paper), var(--card)); box-shadow: var(--shadow-1); padding: 24px; display:flex; align-items:center; gap:16px; border:1px solid var(--line); position:relative; overflow:hidden; }
+    .hero::after{ content:""; position:absolute; inset:0; background: radial-gradient(600px 220px at -10% -20%, rgba(255,255,255,.7), transparent 60%); pointer-events:none; }
+    .avatar{ width:64px; height:64px; border-radius:50%; background: linear-gradient(180deg,#cfc7c0,#b9b1aa); box-shadow: 0 4px 10px rgba(60,50,42,.18) ; display:grid; place-items:center; font-weight:700; color:#fff; letter-spacing:.5px; }
+
+    .panel{ border-radius: 22px; background: linear-gradient(180deg, var(--paper), var(--card)); border:1px solid var(--line); box-shadow: var(--shadow-1); padding: 20px; }
+    .section-title{ font-weight:600; font-size: 1.05rem; }
+    .label{ color:var(--sub); font-size:.85rem; }
+
+    /* 버튼 */
+    .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.75rem 1.05rem; border-radius:14px; border:1px solid rgba(0,0,0,.04); box-shadow: var(--inner), 0 6px 18px rgba(73,56,43,.12); font-weight:600; transition: all .18s ease; }
+    .btn:focus{ outline: none; box-shadow: 0 0 0 4px var(--ring), var(--inner), 0 6px 18px rgba(73,56,43,.12); }
+    .btn:hover{ transform: translateY(-1px); }
+    .btn:active{ transform: translateY(0); }
+    .btn-primary{ background: linear-gradient(180deg, var(--accent), var(--accent-2)); color:#fff; }
+    .btn-ghost{ background: linear-gradient(180deg,#F4F0EC,#ECE6E1); color:var(--ink); }
+
+    /* 입력 */
+    .file-wrap{ display:flex; gap:.6rem; flex-wrap:wrap; }
+    .chip{ display:inline-flex; align-items:center; gap:.5rem; padding:.6rem 1rem; border-radius:14px; background: linear-gradient(180deg,#F4F0EC,#ECE6E1); border:1px solid var(--line); box-shadow: var(--inner); font-weight:600; }
+    .file-input{ display:none; }
+    .file-label{ cursor:pointer; }
+
+    /* 미리보기 */
+    .preview{ aspect-ratio: 1/1; width:100%; border-radius: 20px; background: #F0ECE8; border:1px solid var(--line); display:grid; place-items:center; overflow:hidden; }
+    .preview img{ max-height: 420px; object-fit: contain; }
+
+    /* 결과 카드 내부 */
+    .pill{ display:inline-block; padding:.2rem .55rem; border-radius:999px; background:#EFE8E2; border:1px solid var(--line); font-size:.78rem; margin:.1rem .2rem .1rem 0; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="avatar">W</div>
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight">웹 이미지 컨설턴트 <span class="opacity-80">(배우/모델)</span></h1>
+        <p class="label mt-1">사진(카메라/앨범)을 업로드하면 첫인상·헤어·피부·메이크업 상태와 맞춤 추천을 제공합니다.</p>
+      </div>
+    </section>
+
+    <!-- 업로드 -->
+    <section class="panel mt-5">
+      <div class="flex items-center justify-between">
+        <h2 class="section-title">사진 업로드</h2>
+        <span class="label">카메라 촬영 또는 앨범에서 선택</span>
+      </div>
+      <div class="grid md:grid-cols-2 gap-5 mt-4 items-start">
+        <div>
+          <div class="file-wrap">
+            <label for="fileInput" class="chip file-label">📷 사진 불러오기</label>
+            <button id="analyzeBtn" class="btn btn-primary">AI 분석하기</button>
+            <button id="clearBtn" class="btn btn-ghost">지우기</button>
+          </div>
+          <input id="fileInput" class="file-input" type="file" accept="image/*" capture="environment"/>
+          <p class="label mt-3">※ 초상권/저작권을 침해하지 않는 이미지로 테스트하세요.</p>
+        </div>
+        <div>
+          <div class="preview">
+            <img id="previewImage" alt="미리보기" class="hidden"/>
+            <div id="placeholder" class="label">이미지를 선택하면 미리보기가 표시됩니다.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 결과 -->
+    <section id="resultSection" class="panel mt-5 hidden">
+      <div class="flex items-center justify-between">
+        <h2 class="section-title">분석 결과</h2>
+        <button id="copyBtn" class="btn btn-ghost">복사하기</button>
+      </div>
+      <div id="summary" class="mt-3 p-4 rounded-xl border border-[color:var(--line)] bg-[#F5F1ED]"></div>
+
+      <div class="grid md:grid-cols-2 gap-4 mt-4">
+        <div id="feelsCard" class="p-4 rounded-xl border border-[color:var(--line)] bg-[#F7F3EF]"></div>
+        <div id="hairCard" class="p-4 rounded-xl border border-[color:var(--line)] bg-[#F7F3EF]"></div>
+        <div id="skinCard" class="p-4 rounded-xl border border-[color:var(--line)] bg-[#F7F3EF]"></div>
+        <div id="makeupCard" class="p-4 rounded-xl border border-[color:var(--line)] bg-[#F7F3EF]"></div>
+      </div>
+
+      <div id="dosCard" class="p-4 rounded-xl border border-[color:var(--line)] bg-[#F5F1ED] mt-4"></div>
+    </section>
+
+    <!-- 로딩 & 메시지 -->
+    <div id="overlay" class="fixed inset-0 hidden bg-black/35 grid place-items-center z-50">
+        <div id="loadingIndicator" class="panel w-[320px] text-center">
+            <div class="mx-auto mb-3 w-10 h-10 rounded-full border-4 border-[color:var(--accent)] border-t-transparent animate-spin"></div>
+            <div class="font-medium">AI 분석 중…</div>
+            <div class="label mt-1">이미지 크기에 따라 수 초가 걸릴 수 있습니다.</div>
+        </div>
+        <div id="messageBox" class="panel w-[320px] text-center hidden">
+             <h3 class="font-medium text-lg mb-2">알림</h3>
+             <p id="messageText" class="mb-4"></p>
+             <button id="messageCloseBtn" class="btn btn-primary">확인</button>
+        </div>
+    </div>
+  </main>
+
+  <script>
+    const $ = (sel) => document.querySelector(sel);
+
+    // --- 설정 ---
+    // 여기에 제공받은 API 키를 직접 입력합니다.
+    // 주의: 이 방식은 테스트용이며, 실제 서비스에서는 서버를 통해 키를 관리해야 안전합니다.
+    const API_KEY = 'AIzaSyBJEtwmOTMo1yB3VtfGre72AOIxZKpi8SU';
+    const MODEL = 'gpt-4o-mini';
+
+    // UI 요소
+    const fileInput = $('#fileInput');
+    const previewImage = $('#previewImage');
+    const placeholder = $('#placeholder');
+    const analyzeBtn = $('#analyzeBtn');
+    const clearBtn = $('#clearBtn');
+    
+    // 오버레이 및 메시지 박스
+    const overlay = $('#overlay');
+    const loadingIndicator = $('#loadingIndicator');
+    const messageBox = $('#messageBox');
+    const messageText = $('#messageText');
+    const messageCloseBtn = $('#messageCloseBtn');
+
+    // 결과 섹션
+    const resultSection = $('#resultSection');
+    const summary = $('#summary');
+    const feelsCard = $('#feelsCard');
+    const hairCard = $('#hairCard');
+    const skinCard = $('#skinCard');
+    const makeupCard = $('#makeupCard');
+    const dosCard = $('#dosCard');
+    const copyBtn = $('#copyBtn');
+
+    let imageBase64 = null;
+    
+    // --- 메시지 박스 관련 함수 ---
+    function showMessage(msg) {
+        messageText.textContent = msg;
+        loadingIndicator.classList.add('hidden');
+        messageBox.classList.remove('hidden');
+        overlay.classList.remove('hidden');
+    }
+    
+    messageCloseBtn.addEventListener('click', () => {
+        overlay.classList.add('hidden');
+        messageBox.classList.add('hidden');
+    });
+
+    // --- UI 이벤트 리스너 ---
+    clearBtn.addEventListener('click', () => {
+      fileInput.value = '';
+      imageBase64 = null;
+      previewImage.src = '';
+      previewImage.classList.add('hidden');
+      placeholder.classList.remove('hidden');
+      resultSection.classList.add('hidden');
+      analyzeBtn.disabled = false;
+    });
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      
+      try {
+        const url = URL.createObjectURL(file);
+        previewImage.src = url;
+        previewImage.onload = () => URL.revokeObjectURL(url);
+        previewImage.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+        imageBase64 = await toBase64(file);
+      } catch (err) {
+        console.error("File processing error:", err);
+        showMessage("파일을 처리하는 중 오류가 발생했습니다.");
+      }
+    });
+
+    analyzeBtn.addEventListener('click', async () => {
+      if (!imageBase64) {
+        showMessage('이미지를 먼저 선택하세요.');
+        return;
+      }
+      if (!API_KEY || API_KEY === 'AIzaSyBJEtwmOTMo1yB3VtfGre72AOIxZKpi8SU') {
+        showMessage('주의: 코드에 유효한 OpenAI API 키를 입력해야 합니다. 현재 키는 예시입니다.');
+        return;
+      }
+
+      analyzeBtn.disabled = true;
+      messageBox.classList.add('hidden');
+      loadingIndicator.classList.remove('hidden');
+      overlay.classList.remove('hidden');
+
+      try {
+        const data = await callOpenAI(imageBase64, API_KEY, MODEL);
+        const parsed = extractJSON(data);
+        renderResult(parsed);
+      } catch (err) {
+        console.error(err);
+        showMessage(`분석 중 오류가 발생했습니다: ${err.message}`);
+      } finally {
+        overlay.classList.add('hidden');
+        analyzeBtn.disabled = false;
+      }
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        const txt = buildClipboardText();
+        await navigator.clipboard.writeText(txt);
+        copyBtn.textContent = '복사됨!';
+        setTimeout(() => copyBtn.textContent = '복사하기', 1200);
+      } catch { 
+        showMessage('복사에 실패했습니다.'); 
+      }
+    });
+
+    // --- 프롬프트 및 API 호출 ---
+    function buildPrompt() {
+      return `당신은 상업 광고·캐스팅 경험이 풍부한 이미지 컨설턴트입니다.\n\n- 한국어로만 답하고, 반드시 JSON 객체만 출력하세요.\n- 직설적이고 실무 톤을 유지하며, 과장되거나 모호한 표현은 피하세요.\n- 사진 속 인물의 첫인상/무드, 헤어, 피부, 메이크업을 중심으로 평가와 개선안을 나누어 제시합니다.\n- 배우/모델이 현장에서 바로 적용할 수 있도록 제품/톤/헤어컷 명칭 등 구체적인 용어를 사용하세요.\n\n출력 스키마(JSON)는 다음과 같습니다:\n{\n  "summary": "종합 요약",\n  "mood": { "keywords": ["키워드1", "키워드2"], "why": "키워드 선정 이유" },\n  "hair": { "state": "현재 상태", "issues": ["문제점1"], "recommendations": ["개선 제안1"] },\n  "skin": { "state": "현재 상태", "issues": ["문제점1"], "recommendations": ["개선 제안1"] },\n  "makeup": { "state": "현재 상태", "issues": ["문제점1"], "recommendations": ["개선 제안1"] },\n  "dos": ["추천 사항1"],\n  "donts": ["피해야 할 사항1"]\n}\n\n주의: 주변 배경/사물에 대한 추정은 과도하게 하지 말고, 인물 외 요소 언급은 최소화하세요.`;
+    }
+
+    async function callOpenAI(imageBase64, apiKey, model) {
+        const apiUrl = 'https://api.openai.com/v1/chat/completions';
+        const body = {
+            model: model,
+            messages: [{
+                role: 'user',
+                content: [
+                    { type: 'text', text: buildPrompt() },
+                    { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageBase64}` } }
+                ]
+            }],
+            max_tokens: 1500,
+            response_format: { type: 'json_object' }
+        };
+
+        const r = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify(body)
+        });
+
+        if (!r.ok) {
+            const errorBody = await r.json();
+            console.error('OpenAI API Error:', errorBody);
+            throw new Error(`OpenAI 요청 실패: ${errorBody.error.message}`);
+        }
+        return await r.json();
+    }
+
+    function extractJSON(apiResponse) {
+      let txt = '';
+      if (apiResponse?.choices?.[0]?.message?.content) {
+          txt = apiResponse.choices[0].message.content;
+      }
+      try {
+          return JSON.parse(txt);
+      } catch (e) {
+          console.error('JSON 파싱 실패. 원문:', txt, e);
+          return { summary: `오류: 서버로부터 받은 응답을 파싱할 수 없습니다. 원문: ${txt}`, mood:{ keywords:[], why:'' }, hair: emptySec(), skin: emptySec(), makeup: emptySec(), dos:[], donts:[] };
+      }
+    }
+
+    function emptySec(){ return { state:'', issues:[], recommendations:[] }; }
+
+    // --- 렌더링 함수 ---
+    function renderResult(d){
+      resultSection.classList.remove('hidden');
+      summary.innerHTML = `<div>${escapeHTML(d.summary || '요약 없음')}</div>`;
+
+      const pills = (arr=[]) => arr.map(k=>`<span class='pill'>${escapeHTML(k)}</span>`).join('');
+
+      feelsCard.innerHTML = sectionHTML('첫인상 · 무드', `<div><b>키워드</b>: ${pills(d.mood?.keywords)}<div class='mt-2'>${escapeHTML(d.mood?.why||'')}</div></div>`);
+      hairCard.innerHTML  = sectionHTML('헤어스타일', blockSet(d.hair));
+      skinCard.innerHTML  = sectionHTML('피부 상태', blockSet(d.skin));
+      makeupCard.innerHTML= sectionHTML('메이크업', blockSet(d.makeup));
+
+      dosCard.innerHTML = sectionHTML('제안 / 피해야 할 것', `
+        <div class='grid md:grid-cols-2 gap-4'>
+          <div>
+            <div class='font-semibold mb-2'>제안(Do)</div>
+            <ul class='list-disc list-inside space-y-1'>${(d.dos||[]).map(li=>`<li>${escapeHTML(li)}</li>`).join('')}</ul>
+          </div>
+          <div>
+            <div class='font-semibold mb-2'>피해야 할 것(Don't)</div>
+            <ul class='list-disc list-inside space-y-1'>${(d.donts||[]).map(li=>`<li>${escapeHTML(li)}</li>`).join('')}</ul>
+          </div>
+        </div>`);
+        
+        resultSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function sectionHTML(title, inner){
+      return `<div><div class='label mb-1'>${title}</div>${inner}</div>`;
+    }
+
+    function blockSet(sec){
+      return `
+        <div class='space-y-2'>
+          <div><span class='label'>상태</span><div>${escapeHTML(sec?.state||'')}</div></div>
+          <div><span class='label'>이슈</span><ul class='list-disc list-inside space-y-1'>${(sec?.issues||[]).map(x=>`<li>${escapeHTML(x)}</li>`).join('')}</ul></div>
+          <div><span class='label'>추천</span><ul class='list-disc list-inside space-y-1'>${(sec?.recommendations||[]).map(x=>`<li>${escapeHTML(x)}</li>`).join('')}</ul></div>
+        </div>`;
+    }
+
+    // --- 유틸리티 함수 ---
+    function buildClipboardText() {
+        let text = `[웹 이미지 컨설팅 결과]\n\n`;
+        text += `요약:\n${summary.innerText}\n\n`;
+        text += `첫인상 · 무드:\n${feelsCard.innerText}\n\n`;
+        text += `헤어스타일:\n${hairCard.innerText}\n\n`;
+        text += `피부 상태:\n${skinCard.innerText}\n\n`;
+        text += `메이크업:\n${makeupCard.innerText}\n\n`;
+        text += `제안 / 피해야 할 것:\n${dosCard.innerText}`;
+        return text;
+    }
+
+    function toBase64(file){
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = error => reject(error);
+        });
+    }
+
+    function escapeHTML(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[m])); }
+  </script>
+</body>
+</html>
+
