@@ -177,7 +177,7 @@
     <div id="overlay" class="fixed inset-0 hidden bg-black/35 grid place-items-center z-50">
         <div id="loadingIndicator" class="panel w-[320px] text-center">
             <div class="mx-auto mb-3 w-10 h-10 rounded-full border-4 border-[color:var(--accent)] border-t-transparent animate-spin"></div>
-            <div class="font-medium">AI 분석 중…</div>
+            <div class="font-medium">이미지컨설팅 분석중입니다</div>
             <div class="label mt-1">이미지 크기에 따라 수 초가 걸릴 수 있습니다.</div>
         </div>
         <div id="messageBox" class="panel w-[320px] text-center hidden">
@@ -362,15 +362,28 @@
 
     function extractJSON(apiResponse) {
       try {
-          const txt = apiResponse?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (txt) {
-              return JSON.parse(txt);
+          const part = apiResponse?.candidates?.[0]?.content?.parts?.[0];
+          if (part && part.text) {
+              // Gemini can sometimes wrap the JSON in markdown fences. Clean it up.
+              const cleanedText = part.text.replace(/^```json\s*|```\s*$/g, '');
+              return JSON.parse(cleanedText);
           }
-          throw new Error("API 응답에서 분석 결과를 찾을 수 없습니다.");
+          
+          // Handle cases where the model blocks the request for safety reasons.
+          if (apiResponse?.candidates?.[0]?.finishReason === 'SAFETY') {
+              throw new Error("부적절하거나 유해한 이미지로 판단되어 분석을 중단했습니다. 다른 이미지를 사용해주세요.");
+          }
+
+          // Handle other potential errors like no candidates array.
+          if (apiResponse.error) {
+             throw new Error(apiResponse.error.message || "API에서 오류를 반환했습니다.");
+          }
+
+          throw new Error("API 응답에서 유효한 분석 결과를 찾을 수 없습니다.");
       } catch (e) {
-          console.error('JSON 파싱 실패. 원본 응답:', apiResponse, e);
-          const rawText = JSON.stringify(apiResponse);
-          return { summary: `오류: 서버로부터 받은 응답을 파싱할 수 없습니다. 원문: ${rawText}`, mood:{ keywords:[], why:'' }, hair: emptySec(), skin: emptySec(), makeup: emptySec(), dos:[], donts:[] };
+          console.error('JSON 파싱 또는 응답 처리 실패. 원본 응답:', apiResponse, e);
+          // Propagate a user-friendly message.
+          throw new Error(e.message || "AI 응답을 처리하는 데 실패했습니다. 잠시 후 다시 시도해주세요.");
       }
     }
 
@@ -461,6 +474,7 @@
   </script>
 </body>
 </html>
+
 
 
 
