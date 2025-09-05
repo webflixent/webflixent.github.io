@@ -418,7 +418,7 @@
             
             const results = await Promise.all(promises);
             
-            // This now correctly APPENDS images
+            uploadedImages = []; // Clear previous images before adding new ones
             results.forEach(resizedDataUrl => {
                 const base64 = resizedDataUrl.split(',')[1];
                 const mimeType = resizedDataUrl.match(/:(.*?);/)[1];
@@ -479,7 +479,6 @@
       }
     });
     foodImageInput.addEventListener('change', (event) => {
-        uploadedImages = []; // Clear previous images when selecting new ones
         handleFiles(event.target.files);
     });
 
@@ -785,7 +784,8 @@
         const dataURL = canvas.toDataURL('image/jpeg', 0.85);
         const file = dataURLtoFile(dataURL, 'camera-shot.jpg');
         
-        // Append the new photo
+        // Reset and handle the new file
+        uploadedImages = [];
         await handleFiles([file]);
         stopCamera();
     });
@@ -922,4 +922,3 @@
   </script>
 </body>
 </html>
-
