@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AcTi 이미지 컨설팅</title>
-  <meta name="color-scheme" content="light" />
+  <meta name="color-scheme" content="dark" />
   
   <!-- 홈 화면 전체화면 실행 (주소창 숨기기) -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,52 +20,55 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root{
-      --bg:#ECE9E4;          /* 배경(스톤 베이지) */
-      --paper:#F7F4F1;       /* 카드 상단 라이트 */
-      --card:#FFFFFF;        /* 카드 본색 */
-      --ink:#3A352F;         /* 본문 컬러 */
-      --sub:#827A72;         /* 보조 텍스트 */
-      --accent:#7B5E49;      /* 포커스(브론즈) */
-      --accent-2:#5E4738;    /* 포커스 딥 */
-      --ring:#CDB9A9;        /* 포커스 링 */
-      --line:#E7E1DB;        /* 섹션 경계선 */
-      --shadow-1: 0 14px 40px rgba(73,56,43,.16), 0 2px 10px rgba(73,56,43,.08);
-      --inner: inset 0 1px 0 rgba(255,255,255,.8), inset 0 -1px 0 rgba(0,0,0,.04);
+      --bg:#141414;          /* 배경 (다크) */
+      --paper:#1F1F1F;       /* 카드 상단 */
+      --card:#2A2A2A;        /* 카드 본색 */
+      --ink:#F5F5F5;         /* 본문 컬러 (밝은 회색) */
+      --sub:#A0A0A0;         /* 보조 텍스트 */
+      --accent:#E50914;      /* 포커스 (강렬한 레드) */
+      --accent-2:#B20710;    /* 포커스 딥 */
+      --ring:rgba(229, 9, 20, 0.5); /* 포커스 링 */
+      --line:#3A3A3A;        /* 섹션 경계선 */
+      --shadow-1: 0 8px 25px rgba(0,0,0,.5);
+      --inner: inset 0 1px 0 rgba(255,255,255,.1), inset 0 -1px 0 rgba(0,0,0,.2);
     }
     html, body { height: 100%; }
-    body{ font-family:'Noto Sans KR', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; color:var(--ink); background:
-      radial-gradient(1200px 800px at 10% -10%, #ffffff 0%, rgba(255,255,255,.6) 45%, rgba(255,255,255,0) 60%),
-      radial-gradient(800px 600px at 90% 0%, #fff 0%, rgba(255,255,255,.5) 40%, rgba(255,255,255,0) 60%),
-      linear-gradient(180deg, var(--bg), #E6DFD9 60%, #EAE5E0 100%);
-      background-attachment: fixed; }
+    body{ 
+      font-family:'Noto Sans KR', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; 
+      color:var(--ink); 
+      background-color: var(--bg);
+      background-image: none; /* 기존 그라데이션 제거 */
+    }
 
     /* 카드 & 컨테이너 */
     .container{ max-width: 920px; margin: 0 auto; padding: 24px; }
-    .hero{ border-radius: 28px; background: linear-gradient(180deg, var(--paper), var(--card)); box-shadow: var(--shadow-1); padding: 24px; display:flex; align-items:center; gap:16px; border:1px solid var(--line); position:relative; overflow:hidden; }
-    .hero::after{ content:""; position:absolute; inset:0; background: radial-gradient(600px 220px at -10% -20%, rgba(255,255,255,.7), transparent 60%); pointer-events:none; }
+    .hero{ border-radius: 28px; background: var(--card); box-shadow: var(--shadow-1); padding: 24px; display:flex; align-items:center; gap:16px; border:1px solid var(--line); position:relative; overflow:hidden; }
+    .hero::after{ content:""; display:none; } /* 기존 효과 제거 */
     .avatar{ 
         width:64px; 
         height:64px; 
         border-radius:50%; 
         object-fit: cover;
-        background-color: #cfc7c0; /* 이미지 로딩 전 배경색 */
-        box-shadow: 0 4px 10px rgba(60,50,42,.18);
+        background-color: #333; /* 이미지 로딩 전 배경색 */
+        box-shadow: 0 4px 10px rgba(0,0,0,.3);
     }
 
-    .panel{ border-radius: 22px; background: linear-gradient(180deg, var(--paper), var(--card)); border:1px solid var(--line); box-shadow: var(--shadow-1); padding: 20px; }
+    .panel{ border-radius: 22px; background: var(--card); border:1px solid var(--line); box-shadow: var(--shadow-1); padding: 20px; }
     #feelsCard, #hairCard, #skinCard, #makeupCard, #dosCard, .pro-card {
-        border-radius: 22px; background: linear-gradient(180deg, var(--paper), var(--card)); border:1px solid var(--line); box-shadow: var(--shadow-1); padding: 20px;
+        border-radius: 22px; background: var(--paper); border:1px solid var(--line); box-shadow: var(--shadow-1); padding: 20px;
     }
     .section-title{ font-weight:600; font-size: 1.05rem; }
     .label{ color:var(--sub); font-size:.85rem; }
 
     /* 버튼 */
-    .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.75rem 1.05rem; border-radius:14px; border:1px solid rgba(0,0,0,.04); box-shadow: var(--inner), 0 6px 18px rgba(73,56,43,.12); font-weight:600; transition: all .18s ease; cursor: pointer; }
-    .btn:focus{ outline: none; box-shadow: 0 0 0 4px var(--ring), var(--inner), 0 6px 18px rgba(73,56,43,.12); }
+    .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.75rem 1.05rem; border-radius:14px; border:1px solid rgba(255,255,255,.1); box-shadow: var(--inner), 0 6px 18px rgba(0,0,0,.2); font-weight:600; transition: all .18s ease; cursor: pointer; }
+    .btn:focus{ outline: none; box-shadow: 0 0 0 4px var(--ring), var(--inner), 0 6px 18px rgba(0,0,0,.2); }
     .btn:hover{ transform: translateY(-1px); }
     .btn:active{ transform: translateY(0); }
-    .btn-primary{ background: linear-gradient(180deg, var(--accent), var(--accent-2)); color:#fff; }
-    .btn-ghost{ background: linear-gradient(180deg,#F4F0EC,#ECE6E1); color:var(--ink); }
+    .btn-primary{ background: var(--accent); color:#fff; border-color: var(--accent-2); }
+    .btn-primary:hover{ background: var(--accent-2); }
+    .btn-ghost{ background: var(--line); color:var(--ink); }
+    .btn-ghost:hover{ background: #4a4a4a; }
 
     .btn-icon {
         width: 52px;
@@ -83,11 +86,11 @@
     .file-input{ display:none; }
 
     /* 미리보기 */
-    .preview{ aspect-ratio: 1/1; width:100%; border-radius: 20px; background: #F0ECE8; border:1px solid var(--line); display:grid; place-items:center; overflow:hidden; }
+    .preview{ aspect-ratio: 1/1; width:100%; border-radius: 20px; background: var(--bg); border:1px solid var(--line); display:grid; place-items:center; overflow:hidden; }
     .preview img{ max-height: 420px; object-fit: contain; }
 
     /* 결과 카드 내부 */
-    .pill{ display:inline-block; padding:.2rem .55rem; border-radius:999px; background:#EFE8E2; border:1px solid var(--line); font-size:.78rem; margin:.1rem .2rem .1rem 0; }
+    .pill{ display:inline-block; padding:.2rem .55rem; border-radius:999px; background:var(--line); border:1px solid #555; color: var(--ink); font-size:.78rem; margin:.1rem .2rem .1rem 0; }
     
     .result-card-title {
         display: inline-block;
@@ -105,17 +108,18 @@
         gap: .6rem;
         font-weight: 600;
         font-size: 1.1rem;
-        color: var(--accent-2);
+        color: var(--ink);
         margin-bottom: 1rem;
     }
      .pro-card-title svg {
         width: 22px;
         height: 22px;
         stroke-width: 2.5;
+        color: var(--accent);
     }
     .result-card-body {
         font-size: 0.95rem;
-        color: var(--ink);
+        color: var(--sub);
     }
     .result-card-body ul {
         padding-left: 4px;
@@ -166,7 +170,7 @@
         <div>
           <div class="preview">
             <img id="previewImage" alt="미리보기" class="hidden"/>
-            <div id="placeholder" class="label">이미지를 선택하면 미리보기가 표시됩니다.</div>
+            <div id="placeholder" class="label text-center">Webflix, 오늘 나의 습관이 내일의 미래를 결정한다</div>
           </div>
         </div>
       </div>
@@ -178,7 +182,7 @@
         <h2 class="text-2xl font-bold tracking-tight">컨설팅 리포트</h2>
       </div>
       
-      <div id="summary" class="mt-4 p-4 text-center rounded-xl border border-[color:var(--line)] bg-[#F5F1ED]"></div>
+      <div id="summary" class="mt-4 p-4 text-center rounded-xl border border-[color:var(--line)] bg-[var(--paper)]"></div>
 
       <!-- 전문가 활용 섹션 -->
       <div id="actorFocusSection" class="mt-6 space-y-4"></div>
@@ -196,7 +200,7 @@
     </section>
 
     <!-- 로딩 & 메시지 -->
-    <div id="overlay" class="fixed inset-0 hidden bg-black/35 grid place-items-center z-50">
+    <div id="overlay" class="fixed inset-0 hidden bg-black/75 grid place-items-center z-50">
         <div id="loadingIndicator" class="panel w-[320px] text-center">
             <div class="mx-auto mb-3 w-10 h-10 rounded-full border-4 border-[color:var(--accent)] border-t-transparent animate-spin"></div>
             <div class="font-medium">이미지컨설팅 분석중입니다</div>
@@ -427,7 +431,7 @@
     // --- 렌더링 함수 ---
     function renderResult(d){
       resultSection.classList.remove('hidden');
-      summary.innerHTML = `<div class="font-semibold">${escapeHTML(d.summary || '요약 없음')}</div>`;
+      summary.innerHTML = `<div class="font-semibold text-[color:var(--ink)]">${escapeHTML(d.summary || '요약 없음')}</div>`;
 
       // 전문가 활용 섹션 렌더링
       renderActorFocus(d.actorFocus);
@@ -443,7 +447,7 @@
             </div>
             <div>
                 <div class='sub-label'>선정 이유</div>
-                <div>${escapeHTML(d.mood?.why||'')}</div>
+                <div class="text-[color:var(--sub)]">${escapeHTML(d.mood?.why||'')}</div>
             </div>
         </div>
       `);
@@ -455,11 +459,11 @@
         <div class='grid md:grid-cols-2 gap-x-6 gap-y-4'>
           <div>
             <div class='sub-label'>제안(Do)</div>
-            <ul class='list-disc list-inside space-y-1'>${(d.dos||[]).map(li=>`<li>${escapeHTML(li)}</li>`).join('')}</ul>
+            <ul class='list-disc list-inside space-y-1 text-[color:var(--sub)]'>${(d.dos||[]).map(li=>`<li>${escapeHTML(li)}</li>`).join('')}</ul>
           </div>
           <div>
             <div class='sub-label'>피해야 할 것(Don't)</div>
-            <ul class='list-disc list-inside space-y-1'>${(d.donts||[]).map(li=>`<li>${escapeHTML(li)}</li>`).join('')}</ul>
+            <ul class='list-disc list-inside space-y-1 text-[color:var(--sub)]'>${(d.donts||[]).map(li=>`<li>${escapeHTML(li)}</li>`).join('')}</ul>
           </div>
         </div>`);
         
@@ -476,17 +480,15 @@
         const photo = focusData.photoGuide;
         const lookBook = focusData.lookBook;
         const staff = focusData.staffChecklist;
-
-        const checklistText = `[메이크업팀] ${staff?.forMakeup}\n[헤어팀] ${staff?.forHair}`;
         
         const lookBookHTML = lookBook?.concepts?.map(concept => `
             <div class="lookbook-card mt-4">
-                <h4 class="font-bold text-lg text-[color:var(--accent-2)]">${escapeHTML(concept.lookTitle)}</h4>
+                <h4 class="font-bold text-lg text-[color:var(--ink)]">${escapeHTML(concept.lookTitle)}</h4>
                 <div class="mt-2 space-y-2 text-sm">
-                    <p><strong class="font-semibold">컨셉:</strong> ${escapeHTML(concept.concept)}</p>
-                    <p><strong class="font-semibold">스타일링:</strong> ${escapeHTML(concept.styling)}</p>
-                    <p><strong class="font-semibold">헤어/메이크업:</strong> ${escapeHTML(concept.hairMakeup)}</p>
-                    <p><strong class="font-semibold">장소/분위기:</strong> ${escapeHTML(concept.locationVibe)}</p>
+                    <p><strong class="font-semibold text-[color:var(--sub)]">컨셉:</strong> ${escapeHTML(concept.concept)}</p>
+                    <p><strong class="font-semibold text-[color:var(--sub)]">스타일링:</strong> ${escapeHTML(concept.styling)}</p>
+                    <p><strong class="font-semibold text-[color:var(--sub)]">헤어/메이크업:</strong> ${escapeHTML(concept.hairMakeup)}</p>
+                    <p><strong class="font-semibold text-[color:var(--sub)]">장소/분위기:</strong> ${escapeHTML(concept.locationVibe)}</p>
                 </div>
             </div>
         `).join('') || '';
@@ -498,7 +500,7 @@
                     <span>추천 배역 / 캐릭터</span>
                 </div>
                 <div class="result-card-body space-y-2">
-                    <p class="font-semibold text-[color:var(--accent-2)]">${(char?.types || []).map(escapeHTML).join(', ')}</p>
+                    <p class="font-semibold text-[color:var(--ink)]">${(char?.types || []).map(escapeHTML).join(', ')}</p>
                     <p>${escapeHTML(char?.reason)}</p>
                 </div>
             </div>
@@ -550,15 +552,15 @@
         <div class='space-y-3'>
           <div>
             <div class='sub-label'>상태</div>
-            <div>${escapeHTML(sec?.state||'')}</div>
+            <div class="text-[color:var(--sub)]">${escapeHTML(sec?.state||'')}</div>
           </div>
           <div>
             <div class='sub-label'>이슈</div>
-            <ul class='list-disc list-inside space-y-1'>${(sec?.issues||[]).map(x=>`<li>${escapeHTML(x)}</li>`).join('')}</ul>
+            <ul class='list-disc list-inside space-y-1 text-[color:var(--sub)]'>${(sec?.issues||[]).map(x=>`<li>${escapeHTML(x)}</li>`).join('')}</ul>
           </div>
           <div>
             <div class="sub-label">추천</div>
-            <ul class='list-disc list-inside space-y-1'>${(sec?.recommendations||[]).map(x=>`<li>${escapeHTML(x)}</li>`).join('')}</ul>
+            <ul class='list-disc list-inside space-y-1 text-[color:var(--sub)]'>${(sec?.recommendations||[]).map(x=>`<li>${escapeHTML(x)}</li>`).join('')}</ul>
           </div>
         </div>`;
     }
@@ -590,4 +592,5 @@
   </script>
 </body>
 </html>
+
 
