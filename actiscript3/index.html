@@ -677,6 +677,8 @@
         const matchingCameraInput = document.getElementById('matching-camera-input');
         
         let currentAnalysisReport = null;
+        let currentMatchingReport = null;
+        let lastMatchedImage = null;
         let currentColorScheme = [];
 
         // IMPORTANT: Gemini API 키가 입력되었습니다.
@@ -698,7 +700,15 @@
             window.scrollTo(0, 0);
         }
 
-        document.getElementById('back-to-main-report').addEventListener('click', () => showScreen(mainScreen));
+        document.getElementById('back-to-main-report').addEventListener('click', () => {
+            scriptInput.value = '';
+            scriptInput.dispatchEvent(new Event('input', { bubbles: true }));
+            resetCharacterSelect();
+            currentAnalysisReport = null;
+            currentMatchingReport = null;
+            lastMatchedImage = null;
+            showScreen(mainScreen);
+        });
         
         document.querySelectorAll('.tab-link').forEach(button => {
             button.addEventListener('click', (e) => {
@@ -749,6 +759,9 @@
             scriptInput.value = '';
             scriptInput.dispatchEvent(new Event('input', { bubbles: true }));
             resetCharacterSelect();
+            currentAnalysisReport = null;
+            currentMatchingReport = null;
+            lastMatchedImage = null;
         });
 
 
@@ -1230,7 +1243,14 @@
         }
 
         // Matching Feature Logic
-        matchingBtn.addEventListener('click', () => matchingChoiceModalController.show());
+        matchingBtn.addEventListener('click', () => {
+            if (currentMatchingReport && lastMatchedImage) {
+                displayMatchingResult(currentMatchingReport, lastMatchedImage);
+                matchingResultModalController.show();
+            } else {
+                 matchingChoiceModalController.show();
+            }
+        });
         
         matchingGalleryInput.addEventListener('change', (e) => handleMatchingImage(e.target.files[0]));
         matchingCameraInput.addEventListener('change', (e) => handleMatchingImage(e.target.files[0]));
@@ -1245,6 +1265,7 @@
             
             try {
                 const base64Data = await readFileAsBase64(file);
+                lastMatchedImage = `data:${file.type};base64,${base64Data}`;
                 await startImageMatchingAnalysis(base64Data);
             } catch (error) {
                 console.error("이미지 매칭 오류:", error);
@@ -1287,10 +1308,11 @@
 
             const result = await callGeminiAPI(payload);
             const matchingData = JSON.parse(result.candidates[0].content.parts[0].text);
-            displayMatchingResult(matchingData);
+            currentMatchingReport = matchingData;
+            displayMatchingResult(matchingData, lastMatchedImage);
         }
 
-        function displayMatchingResult(data) {
+        function displayMatchingResult(data, imageUrl) {
              const resultContainer = document.getElementById('matching-result-content');
              const percentage = data.matchPercentage || 0;
              const radius = 50;
@@ -1300,6 +1322,7 @@
 
              resultContainer.innerHTML = `
                 <div class="matching-result-header">
+                     <img src="${imageUrl}" alt="매칭 이미지" style="max-width: 100px; max-height: 100px; border-radius: 8px; margin-bottom: 15px;">
                     <div class="progress-circle-container">
                         <svg width="120" height="120" viewBox="0 0 120 120">
                             <circle class="progress-circle-bg" cx="60" cy="60" r="${radius}" stroke-width="10"></circle>
