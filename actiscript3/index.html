@@ -311,7 +311,7 @@
         #matching-choice-modal .modal-content { max-width: 300px; }
         .matching-choice-btns { display: flex; flex-direction: column; gap: 15px; }
         
-        #matching-result-modal .modal-content { max-width: 500px; }
+        #matching-result-modal .modal-content, #qa-modal .modal-content { max-width: 500px; }
         .matching-result-header { text-align: center; margin-bottom: 20px; }
         
         .progress-circle-container {
@@ -342,6 +342,32 @@
             font-size: 16px;
             font-weight: 600;
         }
+        
+        /* Q&A Modal Styles */
+        #qa-input {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 15px;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 15px;
+            resize: vertical;
+        }
+        #qa-submit-btn { width: 100%; }
+        #qa-answer-area {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #161616;
+            border-radius: 8px;
+            min-height: 50px;
+        }
+         #qa-answer-area p {
+            font-size: 15px;
+            line-height: 1.7;
+         }
 
     </style>
 </head>
@@ -418,11 +444,14 @@
                     </button>
                     <h2 id="report-title">AcTi 분석 리포트</h2>
                     <div class="header-actions">
-                        <button id="save-jpg-btn" class="icon-btn" title="JPG로 저장">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                         <button id="qa-btn" class="icon-btn" title="AI에게 질문하기">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                         </button>
                          <button id="matching-btn" class="icon-btn" title="캐릭터 매칭">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5c0 1.66 1.34 3 3 3h4c1.66 0 3-1.34 3-3a5 5 0 0 0-5-5z"></path><path d="M20 21a8 8 0 0 0-16 0"></path></svg>
+                        </button>
+                        <button id="save-jpg-btn" class="icon-btn" title="JPG로 저장">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                         </button>
                         <button id="save-pdf-btn" class="icon-btn" title="PDF로 저장">
                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
@@ -564,7 +593,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h4>장면 컬러톤 분석</h4>
-                <button id="modal-close-btn" class="modal-close-btn">&times;</button>
+                <button class="modal-close-btn">&times;</button>
             </div>
             <div id="modal-color-content"></div>
         </div>
@@ -599,6 +628,23 @@
         </div>
     </div>
 
+    <!-- Q&A Modal -->
+    <div id="qa-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>AI에게 질문하기</h4>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div id="qa-content">
+                <textarea id="qa-input" placeholder="분석 결과나 대본에 대해 궁금한 점을 질문하세요..."></textarea>
+                <button id="qa-submit-btn" class="btn btn-primary">질문하기</button>
+                <div id="qa-answer-area">
+                    <p>AI의 답변이 여기에 표시됩니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -621,7 +667,12 @@
         const colorModal = document.getElementById('color-meaning-modal');
         const matchingChoiceModal = document.getElementById('matching-choice-modal');
         const matchingResultModal = document.getElementById('matching-result-modal');
+        const qaModal = document.getElementById('qa-modal');
+        const showColorMeaningBtn = document.getElementById('show-color-meaning-btn');
+        const modalColorContent = document.getElementById('modal-color-content');
+        
         const matchingBtn = document.getElementById('matching-btn');
+        const qaBtn = document.getElementById('qa-btn');
         const matchingGalleryInput = document.getElementById('matching-gallery-input');
         const matchingCameraInput = document.getElementById('matching-camera-input');
         
@@ -1096,14 +1147,7 @@
                     const card = document.createElement('div');
                     card.className = 'analysis-card relationship-card';
                     
-                    // Natural Korean particle ('와'/'과') logic
-                    const endsWithConsonant = (name) => {
-                        const lastChar = name.charCodeAt(name.length - 1);
-                        // In Unicode, Korean syllables are between 0xAC00 and 0xD7A3.
-                        // (lastChar - 0xAC00) % 28 will be non-zero if it has a final consonant.
-                        return (lastChar - 0xAC00) % 28 > 0;
-                    };
-                    const particle = endsWithConsonant(rel.otherCharacter) ? '과' : '와';
+                    const particle = getKoreanParticle(rel.otherCharacter || '');
                     
                     card.innerHTML = `
                         <h4>${rel.otherCharacter}${particle}의 관계</h4>
@@ -1159,8 +1203,9 @@
         const colorModalController = setupModal(colorModal);
         const matchingChoiceModalController = setupModal(matchingChoiceModal);
         const matchingResultModalController = setupModal(matchingResultModal);
-        
-        document.getElementById('show-color-meaning-btn').addEventListener('click', () => {
+        const qaModalController = setupModal(qaModal);
+
+        showColorMeaningBtn.addEventListener('click', () => {
             if (currentColorScheme.length > 0) {
                 modalColorContent.innerHTML = currentColorScheme.map(c => `
                     <div class="color-meaning-item">
@@ -1173,6 +1218,16 @@
                 showNotification("컬러 분석 정보가 없습니다.", 2000);
             }
         });
+        
+        // Korean Particle Logic
+        function getKoreanParticle(name) {
+            if (!name) return '와';
+            const lastChar = name.charCodeAt(name.length - 1);
+            if (lastChar < 0xAC00 || lastChar > 0xD7A3) {
+                return '와'; 
+            }
+            return (lastChar - 0xAC00) % 28 > 0 ? '과' : '와';
+        }
 
         // Matching Feature Logic
         matchingBtn.addEventListener('click', () => matchingChoiceModalController.show());
@@ -1202,14 +1257,17 @@
                 throw new Error("먼저 대본 분석을 완료해야 합니다.");
             }
             
-            const systemPrompt = `You are a professional casting director AI. Your task is to analyze an actor's photo and compare it with a provided character profile from a script. Provide a detailed, constructive, and professional analysis in the specified JSON format. All text must be in Korean.
+            const systemPrompt = `You are a professional and seasoned casting director AI. Your task is to analyze an actor's photo and provide a sophisticated comparison with a provided character profile from a script. Your analysis must be nuanced, constructive, and deeply insightful, as if you were making a critical casting decision for a major film. All text must be in Korean.
 
 **Your Analysis Must Include:**
-- **matchPercentage:** An integer from 0 to 100 representing the visual and atmospheric match between the actor and the character.
-- **imageAnalysis:** A professional assessment of the actor's image. Analyze their facial expression, gaze, overall mood, and what kind of stories or emotions their face conveys.
-- **strengths:** What aspects of the actor's look (e.g., intense eyes, gentle smile, strong jawline) align well with the character's profile (e.g., objective, subtext, emotional journey).
-- **improvements:** Constructive feedback. What aspects might the actor need to work on to better embody the character physically or emotionally? (e.g., "To portray the character's inner turmoil, more tension around the eyes would be effective.")
-- **stylingSuggestions:** Actionable advice on hair, makeup, and costume that would enhance the visual match to the character.`;
+- **matchPercentage:** An integer from 0 to 100. This is not a simple visual match. It's a holistic assessment of the actor's potential to embody the character's *essence*, considering their look, the character's core psychology (objective, subtext, emotional journey), and overall atmospheric fit. Base this on a careful, nuanced judgment.
+- **imageAnalysis:** A professional assessment of the actor's image. Analyze their facial expression, gaze, overall mood, and what kind of stories or emotions their face conveys. What is their "type"? What roles would they typically be cast for based on this single image?
+- **strengths:** What aspects of the actor's look (e.g., intense eyes, a vulnerable quality, a hint of arrogance) align well with the character's detailed profile? Be specific and connect the visual evidence to the character's inner life.
+- **improvements:** Constructive feedback for the actor. What aspects might they need to develop or suppress to better embody this specific character? This should be about performance and physical expression, not just appearance (e.g., "To capture the character's anxiety, a more grounded posture and tension in the jaw would be essential.").
+- **stylingSuggestions:** This is a crucial section. As a director consulting with hair, makeup, and wardrobe departments, provide highly detailed and specific recommendations.
+    - **hair:** Suggest a specific style, color, and condition (e.g., "Slightly unkempt, shoulder-length dark brown hair, perhaps with a few grey streaks to show world-weariness.").
+    - **makeup:** Describe the makeup approach. (e.g., "Minimal, naturalistic makeup, focusing on emphasizing under-eye circles to show fatigue, and chapped lips to suggest neglect.").
+    - **costume:** Recommend a specific costume concept with textures and colors. (e.g., "A faded, oversized wool sweater over a simple cotton shirt, in muted earth tones like olive and grey, to convey a sense of comfort but also of being worn down by the world.").`;
 
             const characterProfileText = JSON.stringify(currentAnalysisReport.characterProfile);
 
@@ -1223,7 +1281,7 @@
                 systemInstruction: { parts: [{ text: systemPrompt }] },
                 generationConfig: {
                     responseMimeType: "application/json",
-                    responseSchema: {type: 'OBJECT', properties: {matchPercentage: {type: 'NUMBER'}, imageAnalysis: {type: 'STRING'}, strengths: {type: 'STRING'}, improvements: {type: 'STRING'}, stylingSuggestions: {type: 'STRING'}}}
+                    responseSchema: {type: 'OBJECT', properties: {matchPercentage: {type: 'NUMBER'}, imageAnalysis: {type: 'STRING'}, strengths: {type: 'STRING'}, improvements: {type: 'STRING'}, stylingSuggestions: {type: 'OBJECT', properties: {hair: {type: 'STRING'}, makeup: {type: 'STRING'}, costume: {type: 'STRING'}}}}}
                 }
             };
 
@@ -1238,13 +1296,14 @@
              const radius = 50;
              const circumference = 2 * Math.PI * radius;
              const offset = circumference - (percentage / 100) * circumference;
+             const styling = data.stylingSuggestions || {};
 
              resultContainer.innerHTML = `
                 <div class="matching-result-header">
                     <div class="progress-circle-container">
                         <svg width="120" height="120" viewBox="0 0 120 120">
                             <circle class="progress-circle-bg" cx="60" cy="60" r="${radius}" stroke-width="10"></circle>
-                            <circle class="progress-circle-bar" cx="60" cy="60" r="${radius}" stroke-width="10" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"></circle>
+                            <circle class="progress-circle-bar" cx="60" cy="60" r="${radius}" stroke-width="10" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference}"></circle>
                             <text x="50%" y="50%" dy=".3em" class="progress-circle-text">${percentage}%</text>
                         </svg>
                     </div>
@@ -1264,16 +1323,82 @@
                 </div>
                  <div class="analysis-card">
                     <h4>스타일링 제언</h4>
-                    <p>${data.stylingSuggestions || '분석 정보 없음'}</p>
+                     <table class="relationship-table">
+                        <tbody>
+                            <tr>
+                                <td>헤어</td>
+                                <td>${styling.hair || '분석 정보 없음'}</td>
+                            </tr>
+                            <tr>
+                                <td>메이크업</td>
+                                <td>${styling.makeup || '분석 정보 없음'}</td>
+                            </tr>
+                            <tr>
+                                <td>의상</td>
+                                <td>${styling.costume || '분석 정보 없음'}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
              `;
+             
+             // Animate progress circle
+             setTimeout(() => {
+                resultContainer.querySelector('.progress-circle-bar').style.strokeDashoffset = offset;
+             }, 100);
         }
+        
+        // Q&A Feature Logic
+        qaBtn.addEventListener('click', () => qaModalController.show());
+        const qaSubmitBtn = document.getElementById('qa-submit-btn');
+        const qaInput = document.getElementById('qa-input');
+        const qaAnswerArea = document.getElementById('qa-answer-area');
+
+        qaSubmitBtn.addEventListener('click', async () => {
+            const question = qaInput.value.trim();
+            if (!question) {
+                showNotification("질문을 입력해주세요.", 2000);
+                return;
+            }
+            if (!currentAnalysisReport) {
+                showNotification("먼저 대본 분석을 완료해야 합니다.", 3000);
+                return;
+            }
+
+            qaAnswerArea.innerHTML = `<div class="loading-text">AI가 답변을 생성 중입니다...</div>`;
+            qaSubmitBtn.disabled = true;
+
+            try {
+                const systemPrompt = `You are 'AcTi', the AI script analysis expert who generated the provided analysis. A user is asking a follow-up question. Based on the original script and the detailed analysis you've already created (both provided below), answer the user's question in a helpful, insightful, and professional manner. Your answer must be in Korean.`;
+                const fullContext = `Original Script:\n---\n${scriptInput.value.trim()}\n---\n\nYour Previous Analysis:\n---\n${JSON.stringify(currentAnalysisReport)}\n---\n\nUser's Question:\n---\n${question}\n---`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: fullContext }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] }
+                };
+                
+                const result = await callGeminiAPI(payload);
+                const answer = result.candidates[0].content.parts[0].text;
+                qaAnswerArea.innerHTML = `<p>${answer.replace(/\n/g, '<br>')}</p>`;
+
+            } catch (error) {
+                 console.error("Q&A 오류:", error);
+                 qaAnswerArea.innerHTML = `<p>답변 생성 중 오류가 발생했습니다: ${error.message}</p>`;
+            } finally {
+                qaSubmitBtn.disabled = false;
+            }
+        });
+
 
 
         function drawEmotionGraph(data) {
             const svg = document.getElementById('reportEmotionGraph'); 
             const tableContainer = document.getElementById('emotion-table-container');
-            if (!svg || !tableContainer) return;
+            if (!svg || !tableContainer || !data || data.length === 0) {
+                if(svg) svg.innerHTML = '';
+                if(tableContainer) tableContainer.innerHTML = '';
+                return;
+            }
 
             svg.innerHTML = ''; 
             tableContainer.innerHTML = '';
@@ -1282,13 +1407,17 @@
             svg.innerHTML += `<line x1="0" y1="50" x2="100" y2="50" stroke="${axisColor}" stroke-width="0.3"/><line x1="0" y1="0" x2="0" y2="50" stroke="${axisColor}" stroke-width="0.3"/>`;
             
             let pathD = "M";
-            (data || []).forEach((point, index) => {
+            
+            const pointCount = data.length;
+            const spacing = pointCount > 1 ? 90 / (pointCount - 1) : 0;
+            const startX = 5;
+
+            data.forEach((point, index) => {
                 let intensity = point.intensity || 0;
-                // Normalize intensity: If it's a float between 0-1, scale it to 0-100.
                 if (intensity > 0 && intensity <= 1) {
                     intensity = Math.round(intensity * 100);
                 }
-                const x = point.time; 
+                const x = pointCount === 1 ? 50 : startX + (index * spacing);
                 const y = 50 - (intensity / 2);
                 pathD += (index === 0 ? '' : ' L ') + `${x} ${y}`;
                 
