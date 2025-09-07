@@ -444,7 +444,7 @@
                     </button>
                     <h2 id="report-title">AcTi 분석 리포트</h2>
                     <div class="header-actions">
-                         <button id="qa-btn" class="icon-btn" title="AI에게 질문하기">
+                         <button id="qa-btn" class="icon-btn" title="AcTi에게 질문하기">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                         </button>
                          <button id="matching-btn" class="icon-btn" title="캐릭터 매칭">
@@ -632,14 +632,14 @@
     <div id="qa-modal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h4>AI에게 질문하기</h4>
+                <h4>AcTi에게 질문하기</h4>
                 <button class="modal-close-btn">&times;</button>
             </div>
             <div id="qa-content">
                 <textarea id="qa-input" placeholder="분석 결과나 대본에 대해 궁금한 점을 질문하세요..."></textarea>
                 <button id="qa-submit-btn" class="btn btn-primary">질문하기</button>
                 <div id="qa-answer-area">
-                    <p>AI의 답변이 여기에 표시됩니다.</p>
+                    <p>AcTi의 답변이 여기에 표시됩니다.</p>
                 </div>
             </div>
         </div>
@@ -1407,7 +1407,7 @@
                 return;
             }
 
-            qaAnswerArea.innerHTML = `<div class="loading-text">AI가 답변을 생성 중입니다...</div>`;
+            qaAnswerArea.innerHTML = `<div class="loading-text">AcTi가 답변을 생성 중입니다...</div>`;
             qaSubmitBtn.disabled = true;
 
             try {
