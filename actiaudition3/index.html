@@ -189,7 +189,9 @@
 
                             <div class="flex items-center space-x-2">
                                 <button id="switchCameraBtn" class="control-btn" style="display: none;" aria-label="카메라 전환">
-                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 4h5v5M9 20H4v-5M15 20h5v-5M9 4H4v5"></path></svg>
+                                    <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0l3.181-3.183m-4.991-2.691V5.25a2.25 2.25 0 00-2.25-2.25H5.25a2.25 2.25 0 00-2.25 2.25v4.992" />
+                                    </svg>
                                 </button>
                                 <button id="startRehearsalBtn" class="control-btn text-green-500" aria-label="리허설 시작"></button>
                                 <button id="stopRehearsalBtn" class="control-btn text-red-500 hidden" aria-label="분석 중지"></button>
@@ -313,6 +315,7 @@
             let isLiveMode = true;
             let videoDevices = [];
             let currentVideoDeviceIndex = 0;
+            let scrollPosition = 0; // scrollPosition을 script 스코프로 이동
             
             const userApiKey = 'AIzaSyBbEsfDqt5ojPAJoo70Nozro4LacKk__4k';
             
@@ -369,23 +372,36 @@
                 try {
                     // Check if AudioContext was pre-initialized by user interaction
                     initAudioContext();
-
-                    if (videoDevices.length === 0) {
-                        const devices = await navigator.mediaDevices.enumerateDevices();
-                        videoDevices = devices.filter(device => device.kind === 'videoinput');
-                        if (videoDevices.length === 0) throw new Error("No camera found.");
-                    }
-
-                    switchCameraBtn.style.display = videoDevices.length > 1 ? 'block' : 'none';
                     
-                    const currentDeviceId = deviceId || videoDevices[currentVideoDeviceIndex].deviceId;
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    videoDevices = devices.filter(device => device.kind === 'videoinput');
+                    if (videoDevices.length === 0) throw new Error("No camera found.");
+
+                    // On mobile, always show the switch camera button if more than one camera is available
+                    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                    if (isMobile && videoDevices.length > 1) {
+                        switchCameraBtn.style.display = 'block';
+                    } else {
+                        switchCameraBtn.style.display = 'none';
+                    }
                     
                     const constraints = {
-                        video: { deviceId: { exact: currentDeviceId } },
+                        video: { 
+                            deviceId: deviceId ? { exact: deviceId } : undefined,
+                            // On mobile, prefer the user-facing camera by default
+                            facingMode: isMobile ? 'user' : undefined
+                        },
                         audio: true
                     };
                     
                     mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                    // After getting the stream, find the current device index
+                    const currentTrack = mediaStream.getVideoTracks()[0];
+                    const currentDeviceId = currentTrack.getSettings().deviceId;
+                    currentVideoDeviceIndex = videoDevices.findIndex(device => device.deviceId === currentDeviceId);
+
+
                     videoFeed.srcObject = mediaStream;
                     videoFeed.muted = true;
                     try {
@@ -1181,35 +1197,66 @@ Your entire output MUST be a single JSON object matching the provided schema. En
 
             function startTeleprompterScroll(isPreview) {
                 stopTeleprompterScroll(); // Stop any previous scroll
-                let scrollPosition = 0;
-                let scrollSpeed = scrollSpeedSlider.value;
+                
+                // 미리보기 시작이나 실제 리허설 시작 시에만 스크롤 위치를 리셋
+                if (isPreview || !isTeleprompterScrolling) {
+                    scrollPosition = 0;
+                }
+                isTeleprompterScrolling = true;
                 
                 const textHeight = teleprompterText.scrollHeight;
                 const containerHeight = teleprompterOverlay.clientHeight;
-                if (textHeight <= containerHeight) return;
+                if (textHeight <= containerHeight) {
+                    isTeleprompterScrolling = false;
+                    return;
+                }
                 
-                // Speed mapping: 1 (slowest) to 20 (fastest)
-                const scrollInterval = 210 - (scrollSpeed * 10);
-
-                teleprompterIntervalId = setInterval(() => {
-                    scrollPosition += 1;
+                const tick = () => {
+                    scrollPosition += 1; // Scroll by 1px
                     teleprompterText.style.transform = `translateY(-${scrollPosition}px)`;
-                    if (scrollPosition > textHeight - containerHeight / 2) {
-                        stopTeleprompterScroll();
+
+                    if (scrollPosition > textHeight) {
+                        stopTeleprompterScroll(true);
                         if (isPreview) {
-                           isTeleprompterPreviewing = false;
-                           previewScrollBtn.textContent = '미리보기';
+                            isTeleprompterPreviewing = false;
+                            previewScrollBtn.textContent = '미리보기';
                         }
                     }
-                }, scrollInterval);
+                };
+
+                const restartInterval = () => {
+                    if (teleprompterIntervalId) clearInterval(teleprompterIntervalId);
+                    const scrollSpeed = scrollSpeedSlider.value;
+                    const interval = 210 - (scrollSpeed * 10);
+                    teleprompterIntervalId = setInterval(tick, interval);
+                };
+
+                restartInterval(); // Start the interval
+
+                // 슬라이더 이벤트 리스너를 이 함수 내부에서 관리하여 상태를 공유
+                const speedChangeListener = () => {
+                    if (isTeleprompterScrolling) {
+                        restartInterval();
+                    }
+                };
+                scrollSpeedSlider.removeEventListener('input', speedChangeListener); // 이전 리스너 제거
+                scrollSpeedSlider.addEventListener('input', speedChangeListener);
             }
             
-            function stopTeleprompterScroll() {
-                if(teleprompterIntervalId) clearInterval(teleprompterIntervalId);
-                teleprompterText.style.transition = 'none';
-                teleprompterText.style.transform = `translateY(0px)`;
-                void teleprompterText.offsetHeight; // Force reflow
-                teleprompterText.style.transition = 'transform 1s linear';
+            function stopTeleprompterScroll(isFinished = false) {
+                if(teleprompterIntervalId) {
+                    clearInterval(teleprompterIntervalId);
+                    teleprompterIntervalId = null;
+                }
+                isTeleprompterScrolling = false;
+                
+                if (!isFinished) {
+                    teleprompterText.style.transition = 'none';
+                    teleprompterText.style.transform = `translateY(0px)`;
+                    scrollPosition = 0;
+                    void teleprompterText.offsetHeight; // Force reflow for transition to re-apply
+                    teleprompterText.style.transition = 'transform 1s linear';
+                }
             }
 
             function toggleTeleprompterPreview() {
@@ -1222,9 +1269,9 @@ Your entire output MUST be a single JSON object matching the provided schema. En
                         showNotification('미리보기를 위해 대본을 입력해주세요.', true);
                         return;
                     }
+                    isTeleprompterPreviewing = true;
                     startTeleprompterScroll(true); // true means it's a preview
                     previewScrollBtn.textContent = '중지';
-                    isTeleprompterPreviewing = true;
                 }
             }
 
@@ -1245,11 +1292,8 @@ Your entire output MUST be a single JSON object matching the provided schema. En
             closeHelpModalBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
             helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
 
-            scrollSpeedSlider.addEventListener('input', () => {
-                if (isTeleprompterPreviewing) {
-                    startTeleprompterScroll(true);
-                }
-            });
+            // This standalone listener is now managed inside startTeleprompterScroll
+            // scrollSpeedSlider.addEventListener('input', () => { ... });
 
             previewScrollBtn.addEventListener('click', toggleTeleprompterPreview);
             
@@ -1288,4 +1332,8 @@ Your entire output MUST be a single JSON object matching the provided schema. En
     </script>
 </body>
 </html>
+
+
+
+
 
