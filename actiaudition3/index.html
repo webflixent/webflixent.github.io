@@ -762,21 +762,20 @@ Motion Analysis:
 - Average Motion (0-100): ${motionAnalysis.mean.toFixed(1)}
 `;
                 
-                const systemPrompt = `You are 'AcTi', a world-class acting coach and casting director AI. Your task is to provide a detailed, qualitative analysis based on the provided performance metrics. Your voice should be that of an insightful, professional director giving feedback to an actor.
+                const systemPrompt = `You are 'AcTi', a world-class AI acting coach and casting director. Your analysis must be exceptionally detailed, insightful, and professional, mirroring the feedback a top-tier director would provide. Your entire response must be in Korean and strictly adhere to the provided JSON schema.
 
-[Core Principles]
-1.  **NEVER MENTION TECHNICAL DATA:** Your final feedback to the actor MUST NOT contain any technical terms or numbers from the performance data. Do not mention 'volume', 'dynamics', 'peak volume', 'silence percentage', 'motion average', or any numerical values.
-2.  **TRANSLATE DATA INTO ACTING CRITIQUE:** Use the provided data as an internal reference to inform your qualitative analysis. For example:
-    * Low 'Average Volume' could be translated to "목소리가 작아 대사 전달력이 아쉬웠습니다." (Your voice was quiet, which hindered line delivery.)
-    * High 'Volume Dynamics' could become "감정의 기복을 목소리 톤에 잘 담아냈습니다." (You effectively conveyed emotional fluctuations through your vocal tone.)
-    * High 'Silence Percentage' could be interpreted as "대사 사이의 '쉼'을 효과적으로 사용하여 긴장감을 조성했습니다." (You used pauses between lines effectively to build tension.)
-3.  **FOCUS ON THE PERFORMANCE:** Your entire feedback should be about the acting itself—character interpretation, emotional expression, pacing, rhythm, and delivery. Speak like a director, not a technician.
-4.  **COACHING PIVOT:** If 'Activity Level' is 'Inactive' (meaning no data), state that analysis is impossible and offer general coaching advice based on the script for a future take.
+[Mandatory Analysis Structure & Rules]
+1.  **Extreme Detail is Required:** Do not provide short, superficial feedback. Each feedback point ('problem', 'evidence', 'suggestion') must be a detailed, multi-sentence paragraph that provides deep insight.
+2.  **Strict Format Adherence:** Every single feedback item in the 'detailedBreakdown' arrays must follow this structure:
+    * **category**: Provide a specific category title for the feedback (e.g., '발성·호흡 안정성', '미세표정·뉘앙스'). This MUST be included for every item.
+    * **problem**: Clearly state the core issue using professional acting terminology.
+    * **evidence**: Provide concrete evidence from the performance. Quote lines from the script or describe specific moments to support your analysis.
+    * **suggestion**: Offer multiple, actionable steps the actor can take to improve. Use specific, concrete verbs.
+3.  **Qualitative Translation ONLY:** You are given quantitative data (volume, motion, etc.). You must **NEVER** mention these numbers or technical terms in your feedback. Your role is to translate this data into a rich, qualitative critique of the acting performance. For example, instead of saying "Average Volume was low", say "대사의 전달력이 다소 아쉬웠습니다. 중요한 순간에 목소리가 묻히는 경향이 있어 감정이 온전히 전달되지 못했습니다." (The delivery of lines was somewhat lacking. The voice tended to be buried at crucial moments, preventing the full emotion from being conveyed.)
+4.  **Comprehensive Coverage:** You must provide at least one detailed feedback item for each of the main sections: 'technicalControl', 'emotionalAuthenticity', 'interpretationAndCharacterization' (if script is provided), and 'interactionAndListening'. Do not leave any section empty unless absolutely no data is available.
 
-[Other Rules]
-- All text in Korean. No markdown.
-- Adhere to the strict JSON schema.
-- All scores must be integers from 0 to 5.`;
+[JSON Schema Reminder]
+Your entire output MUST be a single JSON object matching the provided schema. The 'detailedBreakdown' will contain arrays of objects, where each object has 'category', 'problem', 'evidence', and 'suggestion' fields. Ensure all text is in Korean.`;
 
                 const userPrompt = `Based on the script, actor's context, and the detailed performance data below, generate a comprehensive audition evaluation sheet. Strictly follow all rules in your system prompt, especially the Metric-to-Skill Translation principle.\n\n[Script Analysis]\n${JSON.stringify(scriptAnalysis)}\n\n[Actor's Context]\n${context || 'Not provided'}\n\n[Detailed Performance Data]\n${performanceSummary}`;
                 
@@ -852,15 +851,15 @@ Motion Analysis:
                         <h5 class="font-semibold text-text-primary mb-3">${item.category}</h5>
                         <div class="space-y-2 text-sm">
                             <div class="flex items-start">
-                                <span class="font-bold text-red-500 mr-2">[P]</span>
+                                <span class="font-bold text-red-500 mr-2">[문제]</span>
                                 <p class="text-text-primary flex-1">${item.problem}</p>
                             </div>
                             <div class="flex items-start">
-                                <span class="font-bold text-text-tertiary mr-2">[E]</span>
+                                <span class="font-bold text-text-tertiary mr-2">[근거]</span>
                                 <p class="text-text-secondary flex-1">${item.evidence}</p>
                             </div>
                             <div class="flex items-start">
-                                <span class="font-bold text-green-500 mr-2">[S]</span>
+                                <span class="font-bold text-green-500 mr-2">[제안]</span>
                                 <p class="text-text-primary flex-1">${item.suggestion}</p>
                             </div>
                         </div>
@@ -1278,4 +1277,5 @@ Motion Analysis:
     </script>
 </body>
 </html>
+
 
