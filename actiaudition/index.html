@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AcTi Live Audition</title>
     <!-- 홈 화면 아이콘 추가 -->
-    <link rel="apple-touch-icon" href="audition.png">
+    <link rel="apple-touch-icon" href="https://placehold.co/180x180/F0F5F2/4A5C52?text=AcTi">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
@@ -147,7 +147,7 @@
     <div id="app" class="studio-container relative min-h-screen w-full flex flex-col items-center p-4 md:p-8">
         <div class="main-content w-full max-w-4xl">
             <header class="text-left mb-6 md:mb-10 flex flex-row items-center justify-center space-x-4">
-                <img src="audition.png" alt="AcTi Logo" class="acti-logo">
+                <img src="https://placehold.co/48x48/F0F5F2/4A5C52?text=AcTi" alt="AcTi Logo" class="acti-logo">
                 <div>
                      <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-text-primary">AcTi Live Audition</h1>
                      <p id="actingTip" class="text-sm text-text-secondary"></p>
@@ -170,12 +170,12 @@
 
                             <div id="teleprompterSettings" class="hidden sm:flex items-center space-x-4">
                                 <div class="flex items-center space-x-2">
-                                    <button id="decreaseFontSize" class="p-1 btn-secondary" aria-label="글자 작게">
+                                    <button id="decreaseFontSize" class="p-2 btn-secondary rounded-full" aria-label="글자 작게">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                           <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd" />
                                         </svg>
                                     </button>
-                                    <button id="increaseFontSize" class="p-1 btn-secondary" aria-label="글자 크게">
+                                    <button id="increaseFontSize" class="p-2 btn-secondary rounded-full" aria-label="글자 크게">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                           <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
                                         </svg>
@@ -202,11 +202,11 @@
 
                     <div class="relative w-full">
                         <div id="videoContainer" class="mb-6 bg-black rounded-xl overflow-hidden aspect-video w-full">
-                             <div id="setupMessage" class="w-full h-full flex flex-col items-center justify-center space-y-4">
+                             <div id="setupMessage" class="w-full h-full flex flex-col items-center justify-center space-y-4 p-4 text-center">
                                  <p class="text-lg text-white">어떻게 시작할까요?</p>
-                                 <div class="flex space-x-4">
-                                     <button id="startLiveBtn" class="px-6 py-2 font-semibold btn-primary">라이브 카메라 시작</button>
-                                     <button id="uploadVideoBtn" class="px-6 py-2 font-semibold btn-secondary">영상 파일 업로드</button>
+                                 <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                                     <button id="startLiveBtn" class="px-6 py-3 font-semibold btn-primary">라이브 카메라 시작</button>
+                                     <button id="uploadVideoBtn" class="px-6 py-3 font-semibold btn-secondary">영상 파일 업로드</button>
                                  </div>
                                  <input type="file" id="videoFileInput" class="hidden" accept="video/*">
                              </div>
@@ -325,6 +325,20 @@
                 actingTip.textContent = "배우 오디션 실전 마스터";
                 teleprompterText.style.fontSize = `${currentFontSize}px`;
                 startRehearsalBtn.disabled = true;
+                // 사파리 등 모바일 브라우저의 오디오 정책을 위한 초기화
+                document.body.addEventListener('click', initAudioContext, { once: true });
+                document.body.addEventListener('touchstart', initAudioContext, { once: true });
+            }
+            
+            function initAudioContext() {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 256;
+                    const bufferLength = analyser.frequencyBinCount;
+                    dataArray = new Uint8Array(bufferLength);
+                    console.log('AudioContext initialized by user interaction.');
+                }
             }
 
             function showNotification(message, isError = false, duration = 3000) {
@@ -353,6 +367,9 @@
                 }
                 
                 try {
+                    // AudioContext가 유저 상호작용으로 미리 초기화되었는지 확인
+                    initAudioContext();
+
                     if (videoDevices.length === 0) {
                         const devices = await navigator.mediaDevices.enumerateDevices();
                         videoDevices = devices.filter(device => device.kind === 'videoinput');
@@ -375,16 +392,8 @@
 
                     setupForAnalysis();
                     
-                    if (!audioContext) {
-                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                        analyser = audioContext.createAnalyser();
-                    }
                     source = audioContext.createMediaStreamSource(mediaStream);
                     source.connect(analyser);
-                    
-                    analyser.fftSize = 256;
-                    const bufferLength = analyser.frequencyBinCount;
-                    dataArray = new Uint8Array(bufferLength);
 
                     videoFeed.onloadedmetadata = () => {
                         const motionCanvas = document.createElement('canvas');
@@ -393,10 +402,21 @@
                         motionContext = motionCanvas.getContext('2d', { willReadFrequently: true });
                     };
                 } catch (error) {
-                    console.error("카메라/마이크 접근 오류:", error);
-                    let errorMessage = `<p class="text-red-500 font-semibold">카메라/마이크 접근 권한이 거부되었습니다.</p><p class="text-sm text-text-secondary mt-2">이 앱을 사용하려면 권한이 필요합니다. 브라우저 설정을 확인해주세요.</p><div class="flex space-x-4 mt-4"><button id="retrySetup" class="px-6 py-2 font-semibold btn-secondary">다시 시도</button></div>`;
+                    console.error("카메라/마이크 접근 오류:", error.name, error.message);
+                    let userMessage = '카메라/마이크 접근 중 오류가 발생했습니다.';
+                    if(error.name === 'NotAllowedError') {
+                        userMessage = '카메라/마이크 사용 권한이 거부되었습니다. 브라우저 설정을 확인해주세요.';
+                    } else if(error.name === 'NotFoundError') {
+                        userMessage = '연결된 카메라나 마이크를 찾을 수 없습니다.';
+                    }
+                    
+                    let errorMessage = `<p class="text-red-500 font-semibold">${userMessage}</p><div class="flex space-x-4 mt-4"><button id="retrySetup" class="px-6 py-2 font-semibold btn-secondary">다시 시도</button></div>`;
                     setupMessage.innerHTML = errorMessage;
-                    document.getElementById('retrySetup')?.addEventListener('click', () => setupCamera());
+                    document.getElementById('retrySetup')?.addEventListener('click', () => {
+                         setupMessage.innerHTML = `<p class="text-lg text-white">어떻게 시작할까요?</p><div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4"><button id="startLiveBtn" class="px-6 py-3 font-semibold btn-primary">라이브 카메라 시작</button><button id="uploadVideoBtn" class="px-6 py-3 font-semibold btn-secondary">영상 파일 업로드</button></div><input type="file" id="videoFileInput" class="hidden" accept="video/*">`;
+                         document.getElementById('startLiveBtn').addEventListener('click', () => setupCamera());
+                         document.getElementById('uploadVideoBtn').addEventListener('click', () => videoFileInput.click());
+                    });
                 }
             }
 
@@ -405,7 +425,6 @@
                 currentVideoDeviceIndex = (currentVideoDeviceIndex + 1) % videoDevices.length;
                 await setupCamera(videoDevices[currentVideoDeviceIndex].deviceId);
             }
-
 
             function handleVideoUpload(event) {
                 const file = event.target.files[0];
@@ -419,27 +438,21 @@
                 videoFeed.muted = false;
 
                 setupForAnalysis();
+                
+                initAudioContext();
 
                 videoFeed.oncanplay = () => {
-                     if (!audioContext) { 
-                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                        analyser = audioContext.createAnalyser();
-                        try {
-                             source = audioContext.createMediaElementSource(videoFeed);
-                             source.connect(analyser);
-                             analyser.connect(audioContext.destination);
-                        } catch (e) {
-                            console.error("Error connecting audio source:", e);
-                            showNotification("오디오 분석을 시작할 수 없습니다.", true);
-                            return;
-                        }
-                        
-                        analyser.fftSize = 256;
-                        const bufferLength = analyser.frequencyBinCount;
-                        dataArray = new Uint8Array(bufferLength);
+                    try {
+                         source = audioContext.createMediaElementSource(videoFeed);
+                         source.connect(analyser);
+                         analyser.connect(audioContext.destination);
+                    } catch (e) {
+                        console.error("Error connecting audio source:", e);
+                        showNotification("오디오 분석을 시작할 수 없습니다.", true);
+                        return;
                     }
                 }
-               
+                
                 videoFeed.onloadedmetadata = () => {
                     const motionCanvas = document.createElement('canvas');
                     motionCanvas.width = videoFeed.videoWidth;
@@ -469,9 +482,59 @@
                 oscillator.start(now);
                 oscillator.stop(now + 0.1);
             }
+            
+            // 핵심 개선 사항: 마이크가 준비될 때까지 기다리는 함수
+            function waitForAudioData() {
+                return new Promise((resolve, reject) => {
+                    loadingText.textContent = "마이크 신호 확인 중...";
+                    const checkInterval = 100; // 0.1초마다 확인
+                    const timeout = 3000; // 3초 동안 신호가 없으면 실패
+                    let elapsedTime = 0;
+                    let consecutiveSuccess = 0;
 
-            function startPerformanceAnalysis() {
+                    const check = () => {
+                        if (!analyser || !dataArray) {
+                           reject(new Error("Audio analyzer not ready."));
+                           return;
+                        }
+
+                        analyser.getByteFrequencyData(dataArray);
+                        const sum = dataArray.reduce((a, b) => a + b, 0);
+
+                        if (sum > 0) {
+                            consecutiveSuccess++;
+                            // 2번 연속으로 신호가 잡히면 안정적인 것으로 간주
+                            if (consecutiveSuccess >= 2) {
+                                console.log("Audio signal detected. Starting analysis.");
+                                loadingText.textContent = "AcTi가 당신의 연기를 분석하고 있습니다...";
+                                resolve();
+                                return;
+                            }
+                        } else {
+                            consecutiveSuccess = 0; // 신호가 끊기면 초기화
+                        }
+                        
+                        elapsedTime += checkInterval;
+                        if (elapsedTime >= timeout) {
+                            console.error("Audio signal timeout.");
+                            reject(new Error("마이크에서 음성 신호를 감지할 수 없습니다. 마이크 연결을 확인해주세요."));
+                            return;
+                        }
+                        setTimeout(check, checkInterval);
+                    };
+                    check();
+                });
+            }
+
+
+            async function startPerformanceAnalysis() {
+                if (!audioContext || audioContext.state === 'closed') {
+                    showNotification("오디오 시스템 오류. 페이지를 새로고침 해주세요.", true);
+                    return;
+                }
+                
                 performanceData = { volume: [], motion: [] };
+
                 function analysisLoop() {
                     if (analyser && dataArray) {
                         analyser.getByteFrequencyData(dataArray);
@@ -501,27 +564,52 @@
                  stopTeleprompterScroll();
             }
 
-            function startRehearsal() {
+            async function startRehearsal() {
                  if (isTeleprompterPreviewing) {
                      toggleTeleprompterPreview(); 
                  }
                 startRehearsalBtn.disabled = true;
 
-                const startTheShow = () => {
-                    if(!isLiveMode) {
-                        videoFeed.play();
-                        if (audioContext && audioContext.state === 'suspended') {
-                            audioContext.resume();
+                const startTheShow = async () => {
+                    try {
+                        // 오디오 컨텍스트가 닫혔으면 다시 초기화 시도
+                        if (!audioContext || audioContext.state === 'closed') {
+                            initAudioContext();
                         }
+                        // 오디오 컨텍스트 활성화
+                        if (audioContext && audioContext.state === 'suspended') {
+                           await audioContext.resume();
+                        }
+                        
+                        // 영상 파일일 경우 재생 시작
+                        if(!isLiveMode) {
+                            videoFeed.play();
+                        }
+
+                        // 마이크 신호 대기 (라이브 모드에서만)
+                        if (isLiveMode) {
+                            await waitForAudioData();
+                        }
+
+                        // UI 변경 및 분석 시작
+                        startRehearsalBtn.classList.add('hidden');
+                        stopRehearsalBtn.classList.remove('hidden');
+                        scriptInput.disabled = true;
+                        contextInput.disabled = true;
+                        uploadBtn.disabled = true;
+                        if(teleprompterToggle.checked) startTeleprompterScroll(false);
+                        startPerformanceAnalysis();
+                        startRehearsalBtn.disabled = false;
+
+                    } catch(error) {
+                        showNotification(error.message, true, 5000);
+                        console.error("Failed to start rehearsal:", error);
+                        // 실패 시 리허설 상태 초기화
+                        stopRehearsalBtn.classList.add('hidden');
+                        startRehearsalBtn.classList.remove('hidden');
+                        startRehearsalBtn.disabled = false;
+                        loadingText.textContent = "AcTi가 당신의 연기를 분석하고 있습니다...";
                     }
-                    startRehearsalBtn.classList.add('hidden');
-                    stopRehearsalBtn.classList.remove('hidden');
-                    scriptInput.disabled = true;
-                    contextInput.disabled = true;
-                    uploadBtn.disabled = true;
-                    if(teleprompterToggle.checked) startTeleprompterScroll(false);
-                    startPerformanceAnalysis();
-                    startRehearsalBtn.disabled = false;
                 }
 
                 if (isLiveMode) {
@@ -602,15 +690,18 @@
                 updateTeleprompterText();
                 isLiveMode = true;
                  if (audioContext && audioContext.state !== 'closed') {
-                    audioContext.close();
-                }
+                     audioContext.close();
+                 }
                 audioContext = null;
+                // 초기화 후 다시 오디오 컨텍스트 활성화 리스너 추가
+                document.body.addEventListener('click', initAudioContext, { once: true });
+                document.body.addEventListener('touchstart', initAudioContext, { once: true });
             }
 
             async function getScriptAnalysis(script, context) {
                  const systemPrompt = `You are 'AcTi', a world-class acting coach, screenwriter, and director AI. Your analysis must be detailed, insightful, and professional, providing a sincere and deep guide for an actor. Analyze the script deeply and provide your insights in the specified JSON format. Your primary focus is on the writer's intent and the script's core elements.
                 
-                - **General**: ALL text output MUST be in Korean. Do not use any markdown formatting like **.`;
+                 - **General**: ALL text output MUST be in Korean. Do not use any markdown formatting like **.`;
                 const userQuery = `Analyze this script and provide a deep analysis of its core components. Consider the following context provided by the actor:\n\n[Actor's Context]\n${context || '제공되지 않음'}\n\n[Script]\n---\n${script}\n---`;
                 const payload = {
                     contents: [{ parts: [{ text: userQuery }] }],
@@ -624,44 +715,50 @@
                  return JSON.parse(result.candidates[0].content.parts[0].text);
             }
 
-
+            // AI 프롬프트 개선을 위한 핵심 함수
             async function getPerformanceAnalysis(script, context, performance, scriptAnalysis) {
                 const isScriptless = !script.trim();
-                const { mean: avgVolume, stdDev: volumeVariability, isSilent } = analyzeData(performance.volume);
-                const { mean: avgMotion, isStatic } = analyzeData(performance.motion);
-
-                let performanceSummary;
-                if (isSilent && isStatic) {
-                    performanceSummary = "[Performance Data] Voice: Inactive (Average Volume: Low). Motion: Inactive (Average Motion: Low). [Analysis Guideline] The actor remained still and silent throughout the performance. The analysis must be based on this fact. Do not invent actions or speech that did not occur.";
-                } else {
-                     performanceSummary = `[Performance Data] Voice: ${isSilent ? 'Mostly Inactive' : 'Active'}. Motion: ${isStatic ? 'Mostly Static' : 'Dynamic'}. [Analysis Guideline] The actor's performance was characterized by ${isStatic ? 'minimal movement' : 'physical engagement'} and ${isSilent ? 'periods of silence' : 'consistent vocal delivery'}.`;
-                }
                 
-                const systemPrompt = `You are 'AcTi', a world-class acting coach and casting director AI. Your analysis must be insightful, detailed, and grounded in the data provided.
+                // 1. 원본 데이터로부터 더 풍부한 분석 지표 생성
+                const voiceAnalysis = analyzeData(performance.volume, true);
+                const motionAnalysis = analyzeData(performance.motion, false);
 
-[Golden Rule]
-Your entire analysis MUST be a direct and logical consequence of the provided [Performance Data]. NEVER invent actions, speech, or emotions that are not supported by this data. If the data indicates silence and stillness, your analysis must reflect a performance of silence and stillness. Do not use the script to guess what the actor *might* have done. Analyze what they *actually* did based on the data. For example, if the data is "Voice: Inactive, Motion: Inactive", do NOT say "the actor's diction was clear" or "the subtle tension in their body was palpable". Instead, state that "the actor chose a completely static and silent delivery, which makes a detailed analysis of vocal and physical technique impossible".
+                // 2. AI에게 전달할 상세한 퍼포먼스 요약 생성
+                let performanceSummary = `[Performance Data]
+Voice Analysis:
+- Activity Level: ${voiceAnalysis.isDataPresent ? 'Active' : 'Inactive'}
+- Average Volume (0-100): ${voiceAnalysis.mean.toFixed(1)}
+- Volume Dynamics (0-50): ${voiceAnalysis.stdDev.toFixed(1)} (A higher value means more dynamic, less monotone)
+- Peak Volume (0-100): ${voiceAnalysis.peak.toFixed(1)}
+- Silence Percentage: ${voiceAnalysis.silenceRatio.toFixed(1)}%
 
-[Other Important Rules]
-1.  **Formatting:** ALL text output must be in Korean. Do NOT use any markdown formatting like **.
-2.  **Strict JSON Structure:** Every feedback object within the detailed breakdown arrays MUST include a 'category' key, specifying which sub-category it belongs to (e.g., '발성·호흡 안정성').
-3.  **Data Translation:** Do not mention technical data like "average motion 0.21". Translate all data into qualitative descriptions of performance.
-4.  **Complete Analysis:** Provide a detailed analysis for all required sections.
-5.  **Scoring:** All rubric scores must be an integer from 0 to 5.
+Motion Analysis:
+- Activity Level: ${motionAnalysis.isDataPresent ? 'Active' : 'Inactive'}
+- Average Motion (0-100): ${motionAnalysis.mean.toFixed(1)}
+`;
+                
+                // 3. AI에게 내릴 새로운 명령어(프롬프트)
+                const systemPrompt = `You are 'AcTi', a world-class acting coach AI. Your task is to provide a detailed, data-driven analysis based on the quantitative performance metrics provided.
 
-[5 Evaluation Axes & Sub-categories]
-A. Technical (Voice/Body/Camera): 발성·호흡 안정성, 딕션 명확도, 페이싱·리듬, 자세·긴장도, 제스처 유효성, 시선 처리, 프레이밍 활용
-B. Emotional Authenticity: 멀티모달 감정 일치도, 미세표정·뉘앙스, 감정 흐름·전환
-C. Interpretation & Characterization: 서브텍스트 구현, 목표/장애/행동, 비트 인지·전환
-D. Interaction & Listening: 능동적 듣기, 리액션 타이밍, 무대 밖 순간 유지
-E. Overall Performance & Potential: 테이크 간 일관성 (추정), 캐스팅 적합도/확장성`;
+[Core Principles]
+1.  **Strict Data Adherence:** Ground ALL analysis in the provided quantitative metrics (Average Volume, Dynamics, Silence Percentage, etc.). DO NOT invent observations.
+2.  **Metric-to-Skill Translation:** You MUST use specific metrics to inform your analysis of specific acting skills.
+    * **발성·호흡 안정성 (Vocal Stability):** Base this on 'Average Volume' and 'Peak Volume'. Low average volume might indicate poor breath support or a deliberate choice.
+    * **딕션 명확도 (Diction Clarity):** While you cannot hear diction, you can infer potential issues. For example, if 'Volume Dynamics' are high but 'Average Volume' is low, it could suggest mumbling. Phrase this as a question or suggestion for the actor to check.
+    * **페이싱·리듬 (Pacing & Rhythm):** This is CRUCIAL. Analyze 'Volume Dynamics' and 'Silence Percentage'. A high silence percentage could be masterful pausing or hesitation. High dynamics suggest an energetic pace. Interpret this in the context of the script.
+3.  **Coaching Pivot (for genuinely missing data):** ONLY if the 'Activity Level' is 'Inactive' (meaning near-zero data), you must first state that analysis is impossible due to lack of data. Then, pivot to "coaching mode" and offer advice based on the script for a future take. Do not use this pivot if there is any data to analyze, no matter how small.
 
-                const userPrompt = `Based on the pre-analyzed script, the actor's context, and the following performance data, generate a comprehensive audition evaluation sheet in the specified JSON format. Adhere strictly to all rules in the system prompt.\n\n[Pre-Analyzed Script]\n${JSON.stringify(scriptAnalysis)}\n\n[Actor's Context]\n${context || 'Not provided'}\n\n[Performance Data Interpretation]\n${performanceSummary}`;
+[Other Rules]
+- All text in Korean. No markdown.
+- Adhere to the strict JSON schema.
+- All scores must be integers from 0 to 5.`;
+
+                const userPrompt = `Based on the script, actor's context, and the detailed performance data below, generate a comprehensive audition evaluation sheet. Strictly follow all rules in your system prompt, especially the Metric-to-Skill Translation principle.\n\n[Script Analysis]\n${JSON.stringify(scriptAnalysis)}\n\n[Actor's Context]\n${context || 'Not provided'}\n\n[Detailed Performance Data]\n${performanceSummary}`;
                 
                 const feedbackFormat = { 
                     type: "OBJECT", 
                     properties: { 
-                        category: { type: "STRING", description: "e.g., 발성·호흡 안정성, 딕션 명확도 etc." },
+                        category: { type: "STRING" },
                         problem: { type: "STRING" }, 
                         evidence: { type: "STRING" }, 
                         suggestion: { type: "STRING" } 
@@ -670,9 +767,9 @@ E. Overall Performance & Potential: 테이크 간 일관성 (추정), 캐스팅 
                 const schema = {
                     type: "OBJECT",
                     properties: {
-                        finalGrade: { type: "STRING", description: "A(즉시 캐스팅) / B(콜백·단기 코칭 후) / C(재촬영·재코칭) 중 하나" },
+                        finalGrade: { type: "STRING" },
                         overallReview: { type: "STRING" },
-                        rubricScores: { type: "ARRAY", items: { type: "OBJECT", properties: { axis: { type: "STRING" }, score: { type: "NUMBER", description: "0-5점 척도 정수" }, summary: { type: "STRING" } } } },
+                        rubricScores: { type: "ARRAY", items: { type: "OBJECT", properties: { axis: { type: "STRING" }, score: { type: "NUMBER" }, summary: { type: "STRING" } } } },
                         detailedBreakdown: {
                             type: "OBJECT",
                             properties: {
@@ -914,14 +1011,29 @@ E. Overall Performance & Potential: 테이크 간 일관성 (추정), 캐스팅 
                     });
                 });
             }
+            
+            // 데이터 분석 함수 개선
+            function analyzeData(data, isVoice) {
+                if (!data || data.length < 10) { // 데이터 포인트가 너무 적으면 분석 불가
+                    return { mean: 0, stdDev: 0, peak: 0, silenceRatio: 100, isDataPresent: false };
+                }
 
-            function analyzeData(data) {
-                if (!data || data.length < 2) return { mean: 0, stdDev: 0, isStatic: true, isSilent: true };
                 const mean = data.reduce((a, b) => a + b, 0) / data.length;
                 const stdDev = Math.sqrt(data.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b, 0) / data.length);
-                const isStatic = mean < 0.1; 
-                const isSilent = mean < 1;
-                return { mean, stdDev, isStatic, isSilent };
+                const peak = Math.max(...data);
+                
+                // 음성 데이터의 '침묵' 기준점
+                const silenceThreshold = isVoice ? 2.0 : 0.1;
+                const silentFrames = data.filter(d => d < silenceThreshold).length;
+                const silenceRatio = (silentFrames / data.length) * 100;
+
+                return {
+                    mean: mean,
+                    stdDev: stdDev,
+                    peak: peak,
+                    silenceRatio: silenceRatio,
+                    isDataPresent: true
+                };
             }
             
             async function handleFileUpload(file) {
