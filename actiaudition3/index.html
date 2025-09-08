@@ -762,22 +762,31 @@ Motion Analysis:
 - Average Motion (0-100): ${motionAnalysis.mean.toFixed(1)}
 `;
                 
-                const systemPrompt = `You are 'AcTi', a world-class AI acting coach and casting director. Your analysis must be exceptionally detailed, insightful, and professional, mirroring the feedback a top-tier director would provide. Your entire response must be in Korean and strictly adhere to the provided JSON schema.
+                const systemPrompt = `You are 'AcTi', a world-class AI acting coach and casting director. Your analysis must be exceptionally detailed, insightful, and professional, mirroring the feedback a top-tier director would provide. Your entire response must be in Korean.
+
+[New Core Principle: Context is King]
+Your primary task is to evaluate how well the actor's performance (represented by the quantitative data) aligns with the intentions of the script (represented by the script analysis). You are NOT a sonar. You are a director.
 
 [Mandatory Analysis Structure & Rules]
-1.  **Extreme Detail is Required:** Do not provide short, superficial feedback. Each feedback point ('problem', 'evidence', 'suggestion') must be a detailed, multi-sentence paragraph that provides deep insight.
-2.  **Strict Format Adherence:** Every single feedback item in the 'detailedBreakdown' arrays must follow this structure:
-    * **category**: Provide a specific category title for the feedback (e.g., '발성·호흡 안정성', '미세표정·뉘앙스'). This MUST be included for every item.
-    * **problem**: Clearly state the core issue using professional acting terminology.
-    * **evidence**: Provide concrete evidence from the performance. Quote lines from the script or describe specific moments to support your analysis.
-    * **suggestion**: Offer multiple, actionable steps the actor can take to improve. Use specific, concrete verbs.
-3.  **Qualitative Translation ONLY:** You are given quantitative data (volume, motion, etc.). You must **NEVER** mention these numbers or technical terms in your feedback. Your role is to translate this data into a rich, qualitative critique of the acting performance. For example, instead of saying "Average Volume was low", say "대사의 전달력이 다소 아쉬웠습니다. 중요한 순간에 목소리가 묻히는 경향이 있어 감정이 온전히 전달되지 못했습니다." (The delivery of lines was somewhat lacking. The voice tended to be buried at crucial moments, preventing the full emotion from being conveyed.)
-4.  **Comprehensive Coverage:** You must provide at least one detailed feedback item for each of the main sections: 'technicalControl', 'emotionalAuthenticity', 'interpretationAndCharacterization' (if script is provided), and 'interactionAndListening'. Do not leave any section empty unless absolutely no data is available.
+1.  **5 Core Competencies REQUIRED:** Your response MUST evaluate all 5 of the following axes in the 'rubricScores' array: '기술적 제어', '감정적 진정성', '해석 및 캐릭터 구축', '상호작용 및 경청', '종합 퍼포먼스'.
+2.  **Strict Scoring Rubric:** You MUST score each competency on a 0-5 integer scale based on this rubric:
+    * **5 (Exceptional):** A professional, nuanced performance that perfectly matches the script's intent. Masterful control.
+    * **4 (Strong):** A very good performance with minor areas for improvement. Strong choices were made.
+    * **3 (Competent):** Shows potential and understanding, but has clear areas that need work and direction.
+    * **2 (Developing):** Basic understanding is present, but execution is flawed or inconsistent.
+    * **1 (Major Issues):** The performance significantly deviates from the script's intent or has fundamental technical problems.
+    * **0 (No Data):** Only use if the corresponding 'Activity Level' is 'Inactive'.
+3.  **Data-to-Critique Translation (Crucial):**
+    * **DO NOT** mention technical data (e.g., "volume was 50") in the final output.
+    * **DO** use the data to justify your critique. For example: "If the script analysis says 'a scene of rising tension' but the 'Volume Dynamics' are flat, this is a clear mismatch. The score for '감정적 진정성' should be lowered, and the feedback should mention that the emotional arc felt underdeveloped."
+4.  **Detailed Feedback Format:**
+    * Every item in 'detailedBreakdown' must have a 'category' (e.g., '발성·호흡 안정성'), 'problem', 'evidence', and 'suggestion'.
+    * Each of these fields must be a detailed, multi-sentence paragraph. No short answers.
 
 [JSON Schema Reminder]
-Your entire output MUST be a single JSON object matching the provided schema. The 'detailedBreakdown' will contain arrays of objects, where each object has 'category', 'problem', 'evidence', and 'suggestion' fields. Ensure all text is in Korean.`;
+Your entire output MUST be a single JSON object matching the provided schema. Ensure all text is in Korean.`;
 
-                const userPrompt = `Based on the script, actor's context, and the detailed performance data below, generate a comprehensive audition evaluation sheet. Strictly follow all rules in your system prompt, especially the Metric-to-Skill Translation principle.\n\n[Script Analysis]\n${JSON.stringify(scriptAnalysis)}\n\n[Actor's Context]\n${context || 'Not provided'}\n\n[Detailed Performance Data]\n${performanceSummary}`;
+                const userPrompt = `Based on the script analysis, actor's context, and the detailed performance data below, generate a comprehensive audition evaluation sheet. Strictly follow all rules in your system prompt, especially the scoring rubric and the principle of comparing performance data against the script's intent.\n\n[Script Analysis]\n${JSON.stringify(scriptAnalysis)}\n\n[Actor's Context]\n${context || 'Not provided'}\n\n[Detailed Performance Data]\n${performanceSummary}`;
                 
                 const feedbackFormat = { 
                     type: "OBJECT", 
@@ -835,8 +844,10 @@ Your entire output MUST be a single JSON object matching the provided schema. Th
             function displayAuditionSheet(performanceResult, scriptResult) {
                 const { finalGrade, overallReview, rubricScores, detailedBreakdown, onSetAlerts, grandCritique } = performanceResult;
 
-                if (!detailedBreakdown) {
-                    showNotification("분석 결과에 오류가 있습니다 (detailedBreakdown 누락).", true);
+                if (!detailedBreakdown || !rubricScores || rubricScores.length < 5) {
+                    showNotification("분석 결과가 불완전합니다. 다시 시도해주세요.", true);
+                    console.error("Incomplete analysis data received:", performanceResult);
+                    resetForNewRehearsal();
                     return;
                 }
                 
@@ -1277,5 +1288,4 @@ Your entire output MUST be a single JSON object matching the provided schema. Th
     </script>
 </body>
 </html>
-
 
