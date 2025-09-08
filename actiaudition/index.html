@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcTi Live Audition</title>
+    <!-- 홈 화면 아이콘 추가 -->
+    <link rel="apple-touch-icon" href="audition.jpg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #F0F5F2; /* Soft mint green background */
+            --bg-secondary: #FFFFFF; /* White cards */
+            --text-primary: #2F3D37; /* Dark olive green */
+            --text-secondary: #586A61;
+            --text-tertiary: #8FA39A;
+            --accent-primary: #4A5C52; /* Darker olive for buttons */
+            --accent-secondary: #D4E0DB;
+            --border-color: #E1EBE6;
+        }
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        .studio-container { background: var(--bg-primary); }
+        .main-content { position: relative; z-index: 1; }
+        .video-glow { box-shadow: 0 10px 30px -10px rgba(74, 92, 82, 0.3); border: 1px solid var(--border-color); }
+        .btn-primary { 
+            background: var(--accent-primary); 
+            color: white;
+            transition: all 0.3s ease; 
+            border-radius: 8px; 
+            font-weight: 500;
+        }
+        .btn-primary:hover { background-color: var(--text-primary); }
+        .btn-secondary { 
+            background-color: white;
+            color: var(--accent-primary);
+            border: 1px solid var(--accent-secondary); 
+            transition: all 0.3s ease; 
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .btn-secondary:hover { background-color: #F8FBF9; }
+        .control-btn {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 9999px;
+            padding: 0.75rem;
+            transition: all 0.2s ease-in-out;
+            color: var(--text-secondary);
+        }
+        .control-btn:hover { background-color: var(--bg-primary); transform: scale(1.05); }
+        .loader {
+            border: 4px solid var(--accent-secondary); border-left-color: var(--accent-primary);
+            border-radius: 50%; width: 50px; height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .report-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .modal-backdrop { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); }
+        .countdown-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
+            font-size: 8rem; font-weight: bold; color: white; z-index: 20; opacity: 0;
+            transition: opacity 0.3s ease-in-out; pointer-events: none;
+        }
+        .countdown-overlay.visible { opacity: 1; pointer-events: auto; }
+        .acti-logo {
+            width: 40px; height: 40px; 
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .accordion-header { cursor: pointer; transition: background-color 0.2s ease; border-radius: 8px; }
+        .accordion-header:hover { background-color: var(--bg-primary); }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.8s ease-in-out; }
+        .accordion-content.open { max-height: 2000px; }
+        .accordion-arrow { transition: transform 0.3s ease; }
+        .open .accordion-arrow { transform: rotate(90deg); }
+        .coaching-card { 
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+        .action-btn {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+        .action-btn:hover {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div id="app" class="studio-container relative min-h-screen w-full flex flex-col items-center p-4 md:p-8">
+        <div class="main-content w-full max-w-4xl">
+            <header class="text-left mb-6 md:mb-10 flex items-center space-x-4">
+                <img src="audition.jpg" alt="AcTi Logo" class="acti-logo">
+                <div>
+                     <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-text-primary">AcTi Live Audition</h1>
+                     <p id="actingTip" class="text-sm text-text-secondary"></p>
+                </div>
+            </header>
+
+             <div class="report-card p-4 mb-6">
+                <label for="apiKeyInput" class="block text-sm font-medium text-text-primary mb-2">Google AI API 키</label>
+                <div class="flex space-x-2">
+                    <input type="password" id="apiKeyInput" class="w-full bg-white border border-gray-300 rounded-lg p-2 text-text-primary focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition" value="AIzaSyBbEsfDqt5ojPAJoo70Nozro4LacKk__4k">
+                    <button id="saveApiKey" class="px-4 py-2 text-sm font-semibold btn-secondary">저장</button>
+                </div>
+            </div>
+
+            <main id="rehearsalStage">
+                 <div id="setupMessage" class="text-center p-8 report-card mb-6">
+                    <p class="text-lg text-text-primary">카메라와 마이크 접근을 허용해주세요.</p>
+                    <button id="startSetup" class="mt-4 px-6 py-2 font-semibold btn-primary">시작하기</button>
+                </div>
+
+                <div id="topControls" class="flex justify-center items-center space-x-4 mb-4 hidden">
+                     <button id="startRehearsalBtn" class="control-btn text-green-500" aria-label="리허설 시작"></button>
+                     <button id="stopRehearsalBtn" class="control-btn text-red-500 hidden" aria-label="분석 중지"></button>
+                     <button id="helpBtn" class="control-btn text-blue-500" aria-label="도움말">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.546-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                     </button>
+                </div>
+                <div class="relative">
+                    <div id="videoContainer" class="mb-6 bg-black rounded-xl overflow-hidden aspect-video w-full hidden">
+                        <video id="videoFeed" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                        <div id="countdown" class="countdown-overlay"></div>
+                    </div>
+                </div>
+               
+                <div id="controls" class="hidden report-card p-4">
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="scriptInput" class="block text-sm font-medium text-text-primary">대본 입력 (선택 사항)</label>
+                             <div id="reformatSpinner" class="hidden w-4 h-4 border-2 border-gray-300 border-t-accent-primary rounded-full animate-spin"></div>
+                        </div>
+                        <textarea id="scriptInput" rows="5" class="w-full bg-white border border-gray-300 rounded-lg p-3 text-text-primary focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition" placeholder="여기에 대본을 입력하거나 파일을 업로드하세요."></textarea>
+                        <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt,.srt">
+                        <button id="uploadBtn" class="w-full mt-2 px-4 py-2 text-sm font-semibold btn-secondary flex items-center justify-center space-x-2">
+                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            <span>파일 업로드 (PDF, TXT, SRT)</span>
+                        </button>
+                    </div>
+                </div>
+            </main>
+
+            <div id="loading" class="hidden text-center py-10">
+                <div class="loader mx-auto"></div>
+                <p class="mt-4 text-lg text-text-secondary">AcTi가 당신의 연기를 분석하고 있습니다...</p>
+                <p class="text-sm text-text-tertiary">캐스팅 디렉터의 시선으로 종합 평가 시트를 생성합니다.</p>
+            </div>
+
+            <section id="feedbackReport" class="hidden space-y-6">
+            </section>
+        </div>
+
+        <div id="helpModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden"> 
+            <div class="report-card p-6 w-full max-w-lg text-text-primary"> 
+                <div class="flex justify-between items-center mb-4"> <h3 class="font-bold text-xl" style="color: var(--accent-primary);">AcTi Live Audition 사용법</h3> <button id="closeHelpModalBtn" class="text-text-tertiary hover:text-text-primary">&times;</button> </div> 
+                <div class="space-y-4 text-left"> <div class="flex items-start"> <div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center font-bold text-white mr-4">1</div> <div> <h4 class="font-semibold">리허설 준비</h4> <p class="text-sm text-text-secondary">API 키 저장 후 카메라/마이크를 허용하고, 필요시 대본을 입력하거나 업로드합니다.</p> </div> </div> <div class="flex items-start"> <div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center font-bold text-white mr-4">2</div> <div> <h4 class="font-semibold">리허설 시작</h4> <p class="text-sm text-text-secondary">상단의 시작 아이콘(▶)을 누르면 10초 카운트다운 후 퍼포먼스 분석이 시작됩니다.</p> </div> </div> <div class="flex items-start"> <div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center font-bold text-white mr-4">3</div> <div> <h4 class="font-semibold">분석 및 평가</h4> <p class="text-sm text-text-secondary">중지 아이콘(■)을 누르면 AI가 퍼포먼스와 대본을 종합 분석하여 오디션 평가 시트를 생성합니다.</p> </div> </div> <div class="flex items-start"> <div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center font-bold text-white mr-4">4</div> <div> <h4 class="font-semibold">리포트 확인</h4> <p class="text-sm text-text-secondary">생성된 평가 시트의 강점/보완점과 감독 총평을 통해 연기를 발전시키세요.</p> </div> </div> </div> 
+            </div> 
+        </div>
+        <div id="notification" class="fixed top-5 right-5 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg hidden transition-all duration-300 z-50"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+
+            const videoFeed = document.getElementById('videoFeed');
+            const videoContainer = document.getElementById('videoContainer');
+            const setupMessage = document.getElementById('setupMessage');
+            const startSetupBtn = document.getElementById('startSetup');
+            const controls = document.getElementById('controls');
+            const topControls = document.getElementById('topControls');
+            const rehearsalStage = document.getElementById('rehearsalStage');
+            const feedbackReport = document.getElementById('feedbackReport');
+            const loading = document.getElementById('loading');
+            const startRehearsalBtn = document.getElementById('startRehearsalBtn');
+            const stopRehearsalBtn = document.getElementById('stopRehearsalBtn');
+            const scriptInput = document.getElementById('scriptInput');
+            const notification = document.getElementById('notification');
+            const actingTip = document.getElementById('actingTip');
+            const helpBtn = document.getElementById('helpBtn');
+            const helpModal = document.getElementById('helpModal');
+            const closeHelpModalBtn = document.getElementById('closeHelpModalBtn');
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            const saveApiKeyBtn = document.getElementById('saveApiKey');
+            const countdown = document.getElementById('countdown');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const fileInput = document.getElementById('fileInput');
+            const reformatSpinner = document.getElementById('reformatSpinner');
+
+            let mediaStream, audioContext, analyser, dataArray, source, motionContext, lastImageData;
+            let performanceData = { volume: [], motion: [] };
+            let analysisLoopId;
+            let userApiKey = localStorage.getItem('acti-api-key') || 'AIzaSyBbEsfDqt5ojPAJoo70Nozro4LacKk__4k';
+            apiKeyInput.value = userApiKey;
+            
+            const actingTips = ["상대방의 대사를 듣는 것이 연기의 시작입니다.", "당신의 캐릭터가 이 씬에서 무엇을 원하는지 명확히 하세요.", "미리 계획된 감정보단, 순간에 대한 자연스러운 반응이 중요합니다.", "신체 언어는 대사만큼이나 강력한 메시지를 전달합니다."];
+            const startIconSVG = `<svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+            const stopIconSVG = `<svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z"/></svg>`;
+            startRehearsalBtn.innerHTML = startIconSVG;
+            stopRehearsalBtn.innerHTML = stopIconSVG;
+
+            function initializeApp() {
+                actingTip.textContent = actingTips[Math.floor(Math.random() * actingTips.length)];
+            }
+
+            function showNotification(message, isError = false, duration = 3000) {
+                notification.textContent = message;
+                notification.className = `fixed top-5 right-5 text-white px-6 py-3 rounded-lg shadow-lg transition-all duration-300 z-50 ${isError ? 'bg-accent-red' : 'bg-green-500'}`;
+                setTimeout(() => { notification.classList.add('hidden'); }, duration);
+            }
+            
+            async function setupCamera() {
+                try {
+                    mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    videoFeed.srcObject = mediaStream;
+                    setupMessage.classList.add('hidden');
+                    videoContainer.classList.remove('hidden');
+                    videoContainer.classList.add('video-glow');
+                    controls.classList.remove('hidden');
+                    topControls.classList.remove('hidden');
+                    
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    source = audioContext.createMediaStreamSource(mediaStream);
+                    source.connect(analyser);
+                    analyser.fftSize = 256;
+                    const bufferLength = analyser.frequencyBinCount;
+                    dataArray = new Uint8Array(bufferLength);
+
+                    videoFeed.onloadedmetadata = () => {
+                        const motionCanvas = document.createElement('canvas');
+                        motionCanvas.width = videoFeed.videoWidth / 8;
+                        motionCanvas.height = videoFeed.videoHeight / 8;
+                        motionContext = motionCanvas.getContext('2d', { willReadFrequently: true });
+                    };
+                } catch (error) {
+                    console.error("카메라/마이크 접근 오류:", error);
+                    let errorMessage = `<p class="text-red-500 font-semibold">카메라/마이크 접근 권한이 거부되었습니다.</p><p class="text-sm text-text-secondary mt-2">이 앱을 사용하려면 권한이 필요합니다. 브라우저 설정을 확인해주세요.</p><button id="retrySetup" class="mt-4 px-6 py-2 font-semibold btn-secondary">다시 시도</button>`;
+                    setupMessage.innerHTML = errorMessage;
+                    document.getElementById('retrySetup')?.addEventListener('click', setupCamera);
+                }
+            }
+            
+            function playTickSound() {
+                if (!audioContext) return;
+                const now = audioContext.currentTime;
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(1200, now);
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.15, now + 0.01);
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.1);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.start(now);
+                oscillator.stop(now + 0.1);
+            }
+
+            function startPerformanceAnalysis() {
+                performanceData = { volume: [], motion: [] };
+                function analysisLoop() {
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = dataArray.reduce((a, b) => a + b, 0);
+                    performanceData.volume.push(sum / dataArray.length);
+
+                    if (motionContext) {
+                        motionContext.drawImage(videoFeed, 0, 0, motionContext.canvas.width, motionContext.canvas.height);
+                        const currentImageData = motionContext.getImageData(0, 0, motionContext.canvas.width, motionContext.canvas.height).data;
+                        if (lastImageData) {
+                            let diff = 0;
+                            for (let i = 0; i < currentImageData.length; i += 4) {
+                                diff += Math.abs(currentImageData[i] - lastImageData[i]) + Math.abs(currentImageData[i+1] - lastImageData[i+1]) + Math.abs(currentImageData[i+2] - lastImageData[i+2]);
+                            }
+                            performanceData.motion.push(diff / (currentImageData.length * 0.75));
+                        }
+                        lastImageData = currentImageData;
+                    }
+                    analysisLoopId = requestAnimationFrame(analysisLoop);
+                }
+                analysisLoop();
+            }
+
+            function stopPerformanceAnalysis() {
+                if(analysisLoopId) cancelAnimationFrame(analysisLoopId);
+            }
+
+            function startRehearsal() {
+                 if (!userApiKey) { showNotification('Google AI API 키를 입력하고 저장해주세요.', true); return; }
+                startRehearsalBtn.disabled = true;
+                let count = 10;
+                countdown.textContent = count;
+                countdown.classList.add('visible');
+                playTickSound();
+                const timer = setInterval(() => {
+                    count--;
+                    countdown.textContent = count > 0 ? count : '▶';
+                    if (count >= 0) playTickSound();
+                    
+                    if (count < 0) {
+                        clearInterval(timer);
+                        countdown.classList.remove('visible');
+                        startRehearsalBtn.classList.add('hidden');
+                        stopRehearsalBtn.classList.remove('hidden');
+                        scriptInput.disabled = true;
+                        uploadBtn.disabled = true;
+                        startPerformanceAnalysis();
+                        startRehearsalBtn.disabled = false;
+                    }
+                }, 1000);
+            }
+
+            async function stopAndAnalyze() {
+                stopPerformanceAnalysis();
+                rehearsalStage.classList.add('hidden');
+                loading.classList.remove('hidden');
+                
+                try {
+                    const aiAnalysisResult = await getRealAiAnalysis(scriptInput.value, performanceData);
+                    displayAuditionSheet(aiAnalysisResult);
+                    feedbackReport.classList.remove('hidden');
+                } catch (error) {
+                    console.error("AcTi 분석 오류:", error);
+                    showNotification(`분석 중 오류가 발생했습니다: ${error.message}`, true, 5000);
+                    resetForNewRehearsal();
+                } finally {
+                    loading.classList.add('hidden');
+                }
+            }
+
+            function resetForNewRehearsal() {
+                feedbackReport.innerHTML = '';
+                feedbackReport.classList.add('hidden');
+                rehearsalStage.classList.remove('hidden');
+                stopRehearsalBtn.classList.add('hidden');
+                startRehearsalBtn.classList.remove('hidden');
+                scriptInput.disabled = false;
+                uploadBtn.disabled = false;
+                scriptInput.value = '';
+            }
+
+            async function getRealAiAnalysis(script, performance) {
+                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${userApiKey}`;
+                const isScriptless = !script.trim();
+                const { mean: avgVolume, stdDev: volumeVariability } = analyzeData(performance.volume);
+                const { mean: avgMotion } = analyzeData(performance.motion);
+                const performanceSummary = `배우는 ${avgMotion > 0.5 ? '신체를 적극적으로 활용하는 동적인 연기' : '움직임을 절제하고 내면에 집중하는 정적인 연기'}를 선보였습니다. 음성 표현은 ${volumeVariability > 10 ? '감정의 기복을 드러내는 다이나믹한' : '차분하고 안정적인'} 톤을 유지했습니다.`;
+                
+                const systemPrompt = `당신은 세계 최고의 캐스팅 디렉터이자 연기 코치인 'AcTi'입니다. 당신의 분석은 업계에서 가장 통찰력 있고, 상세하며, 배우의 커리어를 바꿀 만큼 강력한 것으로 정평이 나 있습니다. 당신의 임무는 배우의 연기를 단순히 평가하는 것을 넘어, 마스터클래스 수준의 심층 분석을 통해 잠재력을 극대화하는 것입니다.
+
+[중요 규칙]
+1.  **깊이와 분량:** 절대로 한두 문장의 피상적인 피드백을 제공해서는 안 됩니다. 각 세부 항목에 대한 분석은 매우 풍부하고 구체적이어야 합니다.
+2.  **엄격한 형식 준수:** 모든 세부 항목의 피드백은 반드시 **'[문제] → [근거] → [제안]'** 형식을 따라야 합니다.
+    * **[문제]:** 전문 연기 용어를 사용하여 핵심적인 문제점을 명확히 기술합니다.
+    * **[근거]:** 대사가 있다면 해당 대사를 "앵커"로 인용하거나, 연기 중 특정 순간을 구체적으로 묘사하여 문제의 근거를 제시합니다.
+    * **[제안]:** 배우가 즉시 실행할 수 있는 2-3개 이상의 구체적인 행동 동사(예: 준비호흡, 시선 고정, 속도 감속)를 사용하여 해결책을 제시합니다.
+3.  **배우의 언어 사용:** "움직임 평균 0.21"과 같은 기술적 수치는 절대 노출하지 마십시오. 모든 데이터를 배우의 연기력에 대한 질적 평가로 완벽하게 번역하여 설명해야 합니다.
+4.  **전체 항목 분석:** 아래 5대 평가 축의 모든 세부 항목에 대해 상세한 분석을 제공해야 합니다. 누락은 절대 허용되지 않습니다.
+
+[5대 평가 축 및 18개 세부 항목]
+A. 기술(Voice/Body/Camera): 발성·호흡 안정성, 딕션 명확도, 페이싱·리듬, 자세·긴장도, 제스처 유효성, 시선 처리, 프레이밍 활용
+B. 감정의 진정성·표현력: 멀티모달 감정 일치도, 미세표정·뉘앙스, 감정 흐름·전환
+C. 해석·캐릭터 구현: 서브텍스트 구현, 목표/장애/행동, 비트 인지·전환
+D. 상호작용·듣기: 능동적 듣기, 리액션 타이밍, 무대 밖 순간 유지
+E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 적합도/확장성`;
+
+                const userPrompt = `다음 대본과 퍼포먼스 데이터를 바탕으로 배우의 연기를 심층적으로 분석하고, 5가지 핵심 기준과 지정된 출력 형식에 맞춰 '오디션 평가 시트'를 작성해주세요:\n\n[대본]\n${isScriptless ? '제공되지 않음 (즉흥 연기)' : script}\n\n[퍼포먼스 데이터 해석]\n${performanceSummary}`;
+                
+                const feedbackFormat = { type: "OBJECT", properties: { problem: { type: "STRING", description: "핵심 문제점을 전문적으로 기술"}, evidence: { type: "STRING", description: "대사 인용('앵커') 또는 특정 순간을 묘사"}, suggestion: { type: "STRING", description: "2-3개 이상의 구체적이고 실행 가능한 행동 제안"} } };
+                const schema = {
+                    type: "OBJECT",
+                    properties: {
+                        finalGrade: { type: "STRING", description: "A(즉시 캐스팅) / B(콜백·단기 코칭 후) / C(재촬영·재코칭) 중 하나" },
+                        overallReview: { type: "STRING", description: "연기에 대한 2-3문장의 핵심 총평" },
+                        rubricScores: { type: "ARRAY", items: { type: "OBJECT", properties: { axis: { type: "STRING" }, score: { type: "NUMBER", description: "0-5점 척도" }, summary: { type: "STRING", description: "점수에 대한 서술 등급 (예: 의도-행동-감정이 선명하고 일관)" } } } },
+                        detailedBreakdown: {
+                            type: "OBJECT",
+                            properties: {
+                                technicalControl: { type: "ARRAY", items: feedbackFormat },
+                                emotionalAuthenticity: { type: "ARRAY", items: feedbackFormat },
+                                interpretationAndCharacterization: { type: "ARRAY", items: feedbackFormat },
+                                interactionAndListening: { type: "ARRAY", items: feedbackFormat },
+                            }
+                        },
+                        onSetAlerts: { type: "ARRAY", items: {type: "OBJECT", properties: { alertType: {type: "STRING", description: "딕션 말끝 먹힘 / 시선 이탈 / 말-표정 불일치 중 하나"}, directorChecklist: {type: "STRING", description: "해당 알림에 대한 감독의 현장용 체크리스트 제안"} } } },
+                        grandCritique: {type: "STRING", description: "모든 분석을 종합하여 감독이 최종적으로 제공하는 종합 연기 평가. 배우의 현재 상태와 나아갈 방향을 제시하는 깊이 있는 피드백."}
+                    }
+                };
+                if (isScriptless) delete schema.properties.detailedBreakdown.properties.interpretationAndCharacterization;
+
+                const payload = { systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ parts: [{ text: userPrompt }] }], generationConfig: { responseMimeType: "application/json", responseSchema: schema } };
+                
+                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    throw new Error(errorBody.error?.message || `API 요청 실패 (HTTP ${response.status})`);
+                }
+                const data = await response.json();
+                return JSON.parse(data.candidates[0].content.parts[0].text);
+            }
+
+            function displayAuditionSheet(result) {
+                const { finalGrade, overallReview, rubricScores, detailedBreakdown, onSetAlerts, grandCritique } = result;
+
+                const gradeInfo = {
+                    'A': { text: '즉시 캐스팅', color: 'bg-green-500 text-black', icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`},
+                    'B': { text: '콜백 대상', color: 'bg-blue-500 text-white', icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>` },
+                    'C': { text: '재코칭 필요', color: 'bg-yellow-400 text-black', icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>` }
+                };
+
+                const createCoachingCard = (item) => `
+                    <div class="coaching-card p-4 rounded-lg mt-3">
+                        <div class="flex items-start">
+                            <span class="text-red-500 font-bold mr-3 text-lg">P</span>
+                            <p class="text-sm text-text-primary flex-1">${item.problem}</p>
+                        </div>
+                         <div class="flex items-start mt-2">
+                             <span class="text-text-tertiary font-bold mr-3 text-lg">E</span>
+                            <p class="text-xs text-text-tertiary flex-1">${item.evidence}</p>
+                        </div>
+                         <div class="flex items-start mt-2">
+                            <span class="text-green-500 font-bold mr-3 text-lg">S</span>
+                            <p class="text-sm text-text-primary flex-1">${item.suggestion}</p>
+                        </div>
+                    </div>`;
+
+                const createSectionHTML = (title, icon, data) => {
+                    if (!data || data.length === 0) return '';
+                    return `
+                        <div class="report-card">
+                            <details class="accordion-item" open>
+                                <summary class="accordion-header flex justify-between items-center p-4">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="text-yellow-400 text-2xl">${icon}</span>
+                                        <h3 class="text-lg font-semibold text-text-primary">${title}</h3>
+                                    </div>
+                                    <svg class="accordion-arrow w-6 h-6 text-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </summary>
+                                <div class="accordion-content open px-4 pb-4">
+                                    ${data.map(createCoachingCard).join('')}
+                                </div>
+                            </details>
+                        </div>`;
+                };
+                
+                const chartData = {
+                    labels: (rubricScores || []).map(item => item.axis.split('·')[0]),
+                    datasets: [{
+                        label: '역량 평가',
+                        data: (rubricScores || []).map(item => item.score),
+                        backgroundColor: 'rgba(74, 92, 82, 0.2)',
+                        borderColor: 'rgba(74, 92, 82, 1)',
+                        pointBackgroundColor: 'rgba(74, 92, 82, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(74, 92, 82, 1)',
+                    }]
+                };
+
+                feedbackReport.innerHTML = `
+                    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                        <h2 class="text-2xl md:text-3xl font-bold">오디션 최종 평가 보고서</h2>
+                        <div class="flex items-center space-x-2">
+                           <button id="saveJpgBtn" title="JPG로 저장" class="action-btn p-2 rounded-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></button>
+                           <button id="savePdfBtn" title="PDF로 저장" class="action-btn p-2 rounded-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></button>
+                           <button id="newRehearsalBtn" class="px-4 py-2 font-semibold text-sm btn-secondary">새 리허설 시작</button>
+                        </div>
+                    </div>
+                    
+                    <div class="report-card p-4 sm:p-6 space-y-4">
+                        <div class="text-center">
+                            <p class="text-sm text-text-tertiary">최종 평가 등급</p>
+                            <div class="flex items-center justify-center space-x-2 text-xl font-bold ${gradeInfo[finalGrade]?.color || 'bg-gray-500'} py-1 px-3 rounded-full inline-flex my-2">
+                                ${gradeInfo[finalGrade]?.icon || ''}
+                                <span>${gradeInfo[finalGrade]?.text || finalGrade}</span>
+                            </div>
+                        </div>
+                        <p class="text-sm text-text-secondary text-center italic border-t border-border-color pt-4">"${overallReview}"</p>
+                    </div>
+
+                    <div class="report-card p-4 sm:p-6">
+                         <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-accent-primary">5대 핵심 역량 대시보드</h3>
+                            <button id="toggleChartBtn" class="text-xs btn-secondary px-2 py-1">설명 보기</button>
+                        </div>
+                         <div id="chartContainer" class="w-full max-w-md mx-auto">
+                            <canvas id="rubricChart"></canvas>
+                         </div>
+                         <div id="rubricListContainer" class="hidden space-y-3 mt-4">
+                            ${(rubricScores || []).map(item => `
+                                <div class="border-t border-border-color pt-3">
+                                    <div class="flex justify-between items-baseline">
+                                        <p class="font-semibold text-text-primary">${item.axis}</p>
+                                        <p class="text-sm font-bold text-accent-primary">${item.score}/5</p>
+                                    </div>
+                                    <p class="text-xs text-text-tertiary">${item.summary}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    ${createSectionHTML('기술 (Voice/Body/Camera)', '🎤', detailedBreakdown.technicalControl)}
+                    ${createSectionHTML('감정의 진정성·표현력', '🎭', detailedBreakdown.emotionalAuthenticity)}
+                    ${detailedBreakdown.interpretationAndCharacterization ? createSectionHTML('해석·캐릭터 구현', '🤫', detailedBreakdown.interpretationAndCharacterization) : ''}
+                    ${createSectionHTML('상호작용·듣기', '👂', detailedBreakdown.interactionAndListening)}
+
+                    <div class="report-card p-4 sm:p-6">
+                        <h3 class="text-lg font-semibold text-accent-primary mb-4">주요 알림 구간 (On-Set Alerts)</h3>
+                        <div class="space-y-3">
+                        ${(onSetAlerts || []).map(item => `
+                             <div class="flex items-start p-3 rounded-lg bg-bg-primary">
+                                <div class="w-5 h-5 mr-3 flex-shrink-0 text-yellow-400 mt-1">⚠️</div>
+                                <p class="text-sm text-text-secondary"><strong class="font-semibold">${item.alertType}:</strong> ${item.directorChecklist}</p>
+                            </div>
+                        `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="report-card p-4 sm:p-6">
+                        <h3 class="text-lg font-semibold text-green-500 mb-4">종합 연기 평가</h3>
+                        <p class="text-sm text-text-secondary leading-relaxed whitespace-pre-line">${grandCritique}</p>
+                    </div>
+                `;
+                
+                const ctx = document.getElementById('rubricChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: chartData,
+                    options: {
+                        scales: {
+                            r: {
+                                beginAtZero: true, max: 5, stepSize: 1,
+                                angleLines: { color: 'rgba(47, 61, 55, 0.2)' },
+                                grid: { color: 'rgba(47, 61, 55, 0.2)' },
+                                pointLabels: { color: 'var(--text-primary)', font: { size: 12 } },
+                                ticks: { backdropColor: 'transparent', color: 'var(--text-secondary)' }
+                            }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+
+
+                document.getElementById('newRehearsalBtn').addEventListener('click', resetForNewRehearsal);
+                document.getElementById('toggleChartBtn').addEventListener('click', (e) => {
+                    document.getElementById('chartContainer').classList.toggle('hidden');
+                    document.getElementById('rubricListContainer').classList.toggle('hidden');
+                    e.target.textContent = e.target.textContent === '설명 보기' ? '차트 보기' : '설명 보기';
+                });
+                document.querySelectorAll('.accordion-header').forEach(header => {
+                    header.addEventListener('click', (e) => {
+                        if(e.target.closest('button')) return;
+                        const detail = header.parentElement;
+                        const content = header.nextElementSibling;
+                        detail.classList.toggle('open');
+                        content.classList.toggle('open');
+                    });
+                });
+                
+                // Save functionality
+                document.getElementById('saveJpgBtn').addEventListener('click', () => {
+                    showNotification('리포트를 이미지로 저장 중입니다...', false);
+                    html2canvas(document.getElementById('feedbackReport'), { backgroundColor: '#F0F5F2', useCORS: true, scale: 2 }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = 'AcTi_Report.jpg';
+                        link.href = canvas.toDataURL('image/jpeg');
+                        link.click();
+                    });
+                });
+                document.getElementById('savePdfBtn').addEventListener('click', () => {
+                     showNotification('리포트를 PDF로 저장 중입니다...', false);
+                     const { jsPDF } = window.jspdf;
+                     html2canvas(document.getElementById('feedbackReport'), { backgroundColor: '#F0F5F2', useCORS: true, scale: 2 }).then(canvas => {
+                        const imgData = canvas.toDataURL('image/png');
+                        const pdf = new jsPDF({ orientation: 'p', unit: 'px', format: [canvas.width, canvas.height] });
+                        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                        pdf.save('AcTi_Report.pdf');
+                    });
+                });
+            }
+
+            function analyzeData(data) {
+                if (data.length < 2) return { mean: 0, stdDev: 0 };
+                const mean = data.reduce((a, b) => a + b, 0) / data.length;
+                const stdDev = Math.sqrt(data.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b, 0) / data.length);
+                return { mean, stdDev };
+            }
+            
+            async function handleFileUpload(file) {
+                let text = '';
+                if (file.type === 'text/plain') text = await file.text();
+                else if (file.name.endsWith('.srt')) {
+                    const srtContent = await file.text();
+                    text = srtContent.replace(/(^\d+$)|(\d{2}:\d{2}:\d{2},\d{3}\s+-->\s+\d{2}:\d{2}:\d{2},\d{3}$)|(<[^>]*>)/gm, '').replace(/^\s*[\r\n]/gm, '').trim();
+                } else if (file.type === 'application/pdf') {
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        const typedarray = new Uint8Array(e.target.result);
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        let pdfText = '';
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const content = await page.getTextContent();
+                            pdfText += content.items.map(item => item.str).join(' ');
+                        }
+                        processExtractedText(pdfText);
+                    };
+                    reader.readAsArrayBuffer(file);
+                    return;
+                } else { showNotification('지원하지 않는 파일 형식입니다. (PDF, TXT, SRT)', true); return; }
+                processExtractedText(text);
+            }
+
+            async function processExtractedText(text) {
+                scriptInput.value = 'AcTi가 대본을 재배열하는 중...';
+                reformatSpinner.classList.remove('hidden');
+                try {
+                    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${userApiKey}`;
+                    const payload = { systemInstruction: { parts: [{ text: "당신은 전문 스크립트 에디터입니다. 주어진 텍스트를 배우가 보기 편한 대본 형식으로 재배열해주세요. 캐릭터 이름이 있다면 대문자로 표기하고, 대사와 지문을 구분해주세요." }] }, contents: [{ parts: [{ text: `다음 텍스트를 재배열해주세요:\n\n---\n${text}\n---` }] }] };
+                    const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error('API Reformat Failed');
+                    const data = await response.json();
+                    scriptInput.value = data.candidates[0].content.parts[0].text;
+                } catch(error) {
+                    showNotification('대본 재배열에 실패했습니다.', true);
+                    scriptInput.value = text;
+                } finally {
+                    reformatSpinner.classList.add('hidden');
+                }
+            }
+
+            startSetupBtn.addEventListener('click', setupCamera);
+            startRehearsalBtn.addEventListener('click', startRehearsal);
+            stopRehearsalBtn.addEventListener('click', stopAndAnalyze);
+            saveApiKeyBtn.addEventListener('click', () => {
+                userApiKey = apiKeyInput.value;
+                localStorage.setItem('acti-api-key', userApiKey);
+                showNotification('API 키가 저장되었습니다.', false);
+            });
+            uploadBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) handleFileUpload(file);
+                e.target.value = '';
+            });
+            helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
+            closeHelpModalBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
+            helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
+
+            initializeApp();
+        });
+    </script>
+</body>
+</html>
+
