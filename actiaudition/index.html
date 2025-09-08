@@ -188,6 +188,9 @@
                             </div>
 
                             <div class="flex items-center space-x-2">
+                                <button id="switchCameraBtn" class="control-btn" style="display: none;" aria-label="카메라 전환">
+                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 4h5v5M9 20H4v-5M15 20h5v-5M9 4H4v5"></path></svg>
+                                </button>
                                 <button id="startRehearsalBtn" class="control-btn text-green-500" aria-label="리허설 시작"></button>
                                 <button id="stopRehearsalBtn" class="control-btn text-red-500 hidden" aria-label="분석 중지"></button>
                                 <button id="helpBtn" class="control-btn text-blue-500" aria-label="도움말">
@@ -281,6 +284,7 @@
             const loadingText = document.getElementById('loadingText');
             const startRehearsalBtn = document.getElementById('startRehearsalBtn');
             const stopRehearsalBtn = document.getElementById('stopRehearsalBtn');
+            const switchCameraBtn = document.getElementById('switchCameraBtn');
             const scriptInput = document.getElementById('scriptInput');
             const contextInput = document.getElementById('contextInput');
             const notification = document.getElementById('notification');
@@ -307,6 +311,8 @@
             let currentFontSize = 24;
             let isTeleprompterPreviewing = false;
             let isLiveMode = true;
+            let videoDevices = [];
+            let currentVideoDeviceIndex = 0;
             
             const userApiKey = 'AIzaSyBbEsfDqt5ojPAJoo70Nozro4LacKk__4k';
             
@@ -340,18 +346,39 @@
                 unifiedControls.classList.remove('hidden');
             }
             
-            async function setupCamera() {
+            async function setupCamera(deviceId = null) {
                 isLiveMode = true;
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(track => track.stop());
+                }
+                
                 try {
-                    mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    if (videoDevices.length === 0) {
+                        const devices = await navigator.mediaDevices.enumerateDevices();
+                        videoDevices = devices.filter(device => device.kind === 'videoinput');
+                        if (videoDevices.length === 0) throw new Error("No camera found.");
+                    }
+
+                    switchCameraBtn.style.display = videoDevices.length > 1 ? 'block' : 'none';
+                    
+                    const currentDeviceId = deviceId || videoDevices[currentVideoDeviceIndex].deviceId;
+                    
+                    const constraints = {
+                        video: { deviceId: { exact: currentDeviceId } },
+                        audio: true
+                    };
+                    
+                    mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
                     videoFeed.srcObject = mediaStream;
-                    videoFeed.muted = true; // Mute live feed to prevent echo
+                    videoFeed.muted = true;
                     videoFeed.play();
 
                     setupForAnalysis();
                     
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    analyser = audioContext.createAnalyser();
+                    if (!audioContext) {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        analyser = audioContext.createAnalyser();
+                    }
                     source = audioContext.createMediaStreamSource(mediaStream);
                     source.connect(analyser);
                     
@@ -369,15 +396,23 @@
                     console.error("카메라/마이크 접근 오류:", error);
                     let errorMessage = `<p class="text-red-500 font-semibold">카메라/마이크 접근 권한이 거부되었습니다.</p><p class="text-sm text-text-secondary mt-2">이 앱을 사용하려면 권한이 필요합니다. 브라우저 설정을 확인해주세요.</p><div class="flex space-x-4 mt-4"><button id="retrySetup" class="px-6 py-2 font-semibold btn-secondary">다시 시도</button></div>`;
                     setupMessage.innerHTML = errorMessage;
-                    document.getElementById('retrySetup')?.addEventListener('click', setupCamera);
+                    document.getElementById('retrySetup')?.addEventListener('click', () => setupCamera());
                 }
             }
+
+            async function switchCamera() {
+                if (videoDevices.length < 2) return;
+                currentVideoDeviceIndex = (currentVideoDeviceIndex + 1) % videoDevices.length;
+                await setupCamera(videoDevices[currentVideoDeviceIndex].deviceId);
+            }
+
 
             function handleVideoUpload(event) {
                 const file = event.target.files[0];
                 if (!file) return;
 
                 isLiveMode = false;
+                switchCameraBtn.style.display = 'none';
                 const videoURL = URL.createObjectURL(file);
                 videoFeed.srcObject = null;
                 videoFeed.src = videoURL;
@@ -386,13 +421,13 @@
                 setupForAnalysis();
 
                 videoFeed.oncanplay = () => {
-                     if (!audioContext) { // Initialize audio context only once
+                     if (!audioContext) { 
                         audioContext = new (window.AudioContext || window.webkitAudioContext)();
                         analyser = audioContext.createAnalyser();
                         try {
                              source = audioContext.createMediaElementSource(videoFeed);
                              source.connect(analyser);
-                             analyser.connect(audioContext.destination); // So user can hear the video
+                             analyser.connect(audioContext.destination);
                         } catch (e) {
                             console.error("Error connecting audio source:", e);
                             showNotification("오디오 분석을 시작할 수 없습니다.", true);
@@ -475,7 +510,6 @@
                 const startTheShow = () => {
                     if(!isLiveMode) {
                         videoFeed.play();
-                        // Make sure audio context is resumed
                         if (audioContext && audioContext.state === 'suspended') {
                             audioContext.resume();
                         }
@@ -1048,11 +1082,12 @@ E. Overall Performance & Potential: 테이크 간 일관성 (추정), 캐스팅 
             }
 
             // Event Listeners
-            startLiveBtn.addEventListener('click', setupCamera);
+            startLiveBtn.addEventListener('click', () => setupCamera());
             uploadVideoBtn.addEventListener('click', () => videoFileInput.click());
             videoFileInput.addEventListener('change', handleVideoUpload);
             startRehearsalBtn.addEventListener('click', startRehearsal);
             stopRehearsalBtn.addEventListener('click', stopAndAnalyze);
+            switchCameraBtn.addEventListener('click', switchCamera);
             
             uploadBtn.addEventListener('click', () => fileInput.click());
             fileInput.addEventListener('change', (e) => {
