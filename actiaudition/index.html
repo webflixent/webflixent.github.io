@@ -22,6 +22,7 @@
             --accent-primary: #4A5C52; /* Darker olive for buttons */
             --accent-secondary: #D4E0DB;
             --border-color: #E1EBE6;
+            --accent-red: #e53e3e;
         }
         body {
             font-family: 'Inter', 'Noto Sans KR', sans-serif;
@@ -38,7 +39,9 @@
             border-radius: 8px; 
             font-weight: 500;
         }
-        .btn-primary:hover { background-color: var(--text-primary); }
+        .btn-primary:hover { background-color: #3d4c44; }
+        .btn-primary:disabled { background-color: #aeb8b3; cursor: not-allowed; }
+
         .btn-secondary { 
             background-color: white;
             color: var(--accent-primary);
@@ -56,7 +59,9 @@
             transition: all 0.2s ease-in-out;
             color: var(--text-secondary);
         }
-        .control-btn:hover { background-color: var(--bg-primary); transform: scale(1.05); }
+        .control-btn:disabled { background-color: #f0f0f0; cursor: not-allowed; color: #ccc; }
+        .control-btn:hover:not(:disabled) { background-color: var(--bg-primary); transform: scale(1.05); }
+
         .loader {
             border: 4px solid var(--accent-secondary); border-left-color: var(--accent-primary);
             border-radius: 50%; width: 50px; height: 50px;
@@ -78,16 +83,16 @@
         }
         .countdown-overlay.visible { opacity: 1; pointer-events: auto; }
         .acti-logo {
-            width: 40px; height: 40px; 
-            border-radius: 8px;
+            width: 48px; height: 48px; 
+            border-radius: 12px;
             object-fit: cover;
         }
         .accordion-header { cursor: pointer; transition: background-color 0.2s ease; border-radius: 8px; }
         .accordion-header:hover { background-color: var(--bg-primary); }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.8s ease-in-out; }
-        .accordion-content.open { max-height: 2000px; }
+        details[open] .accordion-content { max-height: 2000px; }
         .accordion-arrow { transition: transform 0.3s ease; }
-        .open .accordion-arrow { transform: rotate(90deg); }
+        details[open] summary .accordion-arrow { transform: rotate(90deg); }
         .coaching-card { 
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
@@ -109,26 +114,39 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background-color: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 4rem;
-            text-align: center;
             font-weight: 500;
             line-height: 1.8;
             z-index: 10;
             transition: opacity 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
         }
         .teleprompter-content {
             height: 100%;
+            width: 100%;
             overflow: hidden;
+            display: flex;
+            justify-content: center;
         }
         .teleprompter-text {
-             transition: transform 1s linear;
+            transition: transform 1s linear;
+            width: 80%;
+        }
+        .unified-control-panel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            width: 100%;
         }
     </style>
 </head>
 <body class="antialiased">
     <div id="app" class="studio-container relative min-h-screen w-full flex flex-col items-center p-4 md:p-8">
         <div class="main-content w-full max-w-4xl">
-            <header class="text-left mb-6 md:mb-10 flex items-center space-x-4">
+            <header class="text-left mb-6 md:mb-10 flex flex-row items-center justify-center space-x-4">
                 <img src="audition.png" alt="AcTi Logo" class="acti-logo">
                 <div>
                      <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-text-primary">AcTi Live Audition</h1>
@@ -136,86 +154,95 @@
                 </div>
             </header>
 
-             <div class="report-card p-4 mb-6">
-                <label for="apiKeyInput" class="block text-sm font-medium text-text-primary mb-2">Google AI API 키</label>
-                <div class="flex space-x-2">
-                    <input type="password" id="apiKeyInput" class="w-full bg-white border border-gray-300 rounded-lg p-2 text-text-primary focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition" value="AIzaSyBbEsfDqt5ojPAJoo70Nozro4LacKk__4k">
-                    <button id="saveApiKey" class="px-4 py-2 text-sm font-semibold btn-secondary">저장</button>
-                </div>
-            </div>
-
             <main id="rehearsalStage">
-                 <div id="setupMessage" class="text-center p-8 report-card mb-6">
-                    <p class="text-lg text-text-primary">카메라와 마이크 접근을 허용해주세요.</p>
-                    <button id="startSetup" class="mt-4 px-6 py-2 font-semibold btn-primary">시작하기</button>
-                </div>
-
-                <div id="topControls" class="flex justify-center items-center space-x-4 mb-4 hidden">
-                     <button id="startRehearsalBtn" class="control-btn text-green-500" aria-label="리허설 시작"></button>
-                     <button id="stopRehearsalBtn" class="control-btn text-red-500 hidden" aria-label="분석 중지"></button>
-                     <button id="helpBtn" class="control-btn text-blue-500" aria-label="도움말">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.546-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                     </button>
-                </div>
-                <div class="relative">
-                    <div id="videoContainer" class="mb-6 bg-black rounded-xl overflow-hidden aspect-video w-full hidden">
-                        <video id="videoFeed" autoplay playsinline muted class="w-full h-full object-cover"></video>
-                        <div id="countdown" class="countdown-overlay"></div>
-                        <div id="teleprompterOverlay" class="teleprompter-overlay hidden">
-                            <div class="teleprompter-content">
-                               <div id="teleprompterText" class="teleprompter-text whitespace-pre-line"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-               
-                <div id="controls" class="hidden report-card p-4">
-                     <!-- Teleprompter Controls -->
-                    <div id="teleprompterControls" class="mb-4 p-3 bg-gray-100 rounded-lg">
-                        <div class="flex justify-between items-center mb-2">
-                            <label for="teleprompterToggle" class="text-sm font-medium text-text-primary">텔레프롬프터 모드</label>
-                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                                <input type="checkbox" name="teleprompterToggle" id="teleprompterToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                                <label for="teleprompterToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                            </div>
-                            <style>.toggle-checkbox:checked { right: 0; border-color: #4A5C52; } .toggle-checkbox:checked + .toggle-label { background-color: #4A5C52; }</style>
-                        </div>
-                        <div id="teleprompterSettings" class="hidden space-y-2">
-                            <div class="flex items-center justify-between">
-                                <label class="text-xs text-text-secondary">글자 크기</label>
-                                <div class="flex items-center space-x-2">
-                                    <button id="decreaseFontSize" class="px-2 py-0.5 text-sm btn-secondary">-</button>
-                                    <button id="increaseFontSize" class="px-2 py-0.5 text-sm btn-secondary">+</button>
+                <div id="videoAndControls" class="flex flex-col items-center">
+                    <!-- Unified Control Panel -->
+                    <div id="unifiedControls" class="report-card p-3 mb-4 w-full hidden">
+                        <div class="unified-control-panel">
+                            <div class="flex items-center space-x-2">
+                                 <label for="teleprompterToggle" class="text-sm font-medium text-text-primary">텔레프롬프터</label>
+                                <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in">
+                                    <input type="checkbox" name="teleprompterToggle" id="teleprompterToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                                    <label for="teleprompterToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
                                 </div>
+                                <style>.toggle-checkbox:checked { right: 0; border-color: #4A5C52; } .toggle-checkbox:checked + .toggle-label { background-color: #4A5C52; }</style>
                             </div>
-                            <div class="flex items-center justify-between">
-                                <label for="scrollSpeed" class="text-xs text-text-secondary">스크롤 속도</label>
+
+                            <div id="teleprompterSettings" class="hidden sm:flex items-center space-x-4">
                                 <div class="flex items-center space-x-2">
-                                   <input type="range" id="scrollSpeed" min="0" max="10" value="2" class="w-24">
+                                    <button id="decreaseFontSize" class="p-1 btn-secondary" aria-label="글자 작게">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                          <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <button id="increaseFontSize" class="p-1 btn-secondary" aria-label="글자 크게">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                          <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                   <input type="range" id="scrollSpeed" min="1" max="20" value="5" class="w-24">
                                    <button id="previewScrollBtn" class="text-xs btn-secondary px-2 py-1">미리보기</button>
                                 </div>
                             </div>
+
+                            <div class="flex items-center space-x-2">
+                                <button id="startRehearsalBtn" class="control-btn text-green-500" aria-label="리허설 시작"></button>
+                                <button id="stopRehearsalBtn" class="control-btn text-red-500 hidden" aria-label="분석 중지"></button>
+                                <button id="helpBtn" class="control-btn text-blue-500" aria-label="도움말">
+                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.546-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="mb-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <label for="scriptInput" class="block text-sm font-medium text-text-primary">대본 입력</label>
-                             <div id="reformatSpinner" class="hidden w-4 h-4 border-2 border-gray-300 border-t-accent-primary rounded-full animate-spin"></div>
+
+                    <div class="relative w-full">
+                        <div id="videoContainer" class="mb-6 bg-black rounded-xl overflow-hidden aspect-video w-full">
+                             <div id="setupMessage" class="w-full h-full flex flex-col items-center justify-center">
+                                 <p class="text-lg text-white">카메라와 마이크 접근을 허용해주세요.</p>
+                                 <button id="startSetup" class="mt-4 px-6 py-2 font-semibold btn-primary">카메라 켜기</button>
+                             </div>
+                            <video id="videoFeed" autoplay playsinline muted class="w-full h-full object-cover hidden"></video>
+                            <div id="countdown" class="countdown-overlay"></div>
+                            <div id="teleprompterOverlay" class="teleprompter-overlay opacity-0 pointer-events-none">
+                                <div class="teleprompter-content">
+                                    <div id="teleprompterText" class="teleprompter-text whitespace-pre-line"></div>
+                                </div>
+                            </div>
                         </div>
-                        <textarea id="scriptInput" rows="5" class="w-full bg-white border border-gray-300 rounded-lg p-3 text-text-primary focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition" placeholder="여기에 대본을 입력하거나 파일을 업로드하세요."></textarea>
-                        <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt,.srt">
-                        <button id="uploadBtn" class="w-full mt-2 px-4 py-2 text-sm font-semibold btn-secondary flex items-center justify-center space-x-2">
-                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                            <span>파일 업로드 (PDF, TXT, SRT)</span>
-                        </button>
+                    </div>
+                   
+                    <div id="controls" class="hidden report-card p-4 w-full">
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <label for="scriptInput" class="block text-sm font-medium text-text-primary">대본 입력 (필수)</label>
+                                     <div id="reformatSpinner" class="hidden w-4 h-4 border-2 border-gray-300 border-t-accent-primary rounded-full animate-spin"></div>
+                                </div>
+                                <textarea id="scriptInput" rows="5" class="w-full bg-white border border-gray-300 rounded-lg p-3 text-text-primary focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition" placeholder="여기에 대본을 입력하거나 파일을 업로드하세요."></textarea>
+                            </div>
+                           
+                            <div>
+                                <label for="contextInput" class="block text-sm font-medium text-text-primary mb-2">대본 상황설명 (선택사항)</label>
+                                <textarea id="contextInput" rows="2" class="w-full bg-white border border-gray-300 rounded-lg p-3 text-text-primary focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition" placeholder="예: 이 장면은 스케치 코미디 형식으로 장소는 엘리베이터 안이다."></textarea>
+                            </div>
+
+                            <div>
+                                <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt,.srt">
+                                <button id="uploadBtn" class="w-full px-4 py-2 text-sm font-semibold btn-secondary flex items-center justify-center space-x-2">
+                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                     <span>파일 업로드 (PDF, TXT, SRT)</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>
 
             <div id="loading" class="hidden text-center py-10">
                 <div class="loader mx-auto"></div>
-                <p class="mt-4 text-lg text-text-secondary">AcTi가 당신의 연기를 분석하고 있습니다...</p>
+                <p id="loadingText" class="mt-4 text-lg text-text-secondary">AcTi가 당신의 연기를 분석하고 있습니다...</p>
                 <p class="text-sm text-text-tertiary">캐스팅 디렉터의 시선으로 종합 평가 시트를 생성합니다.</p>
             </div>
 
@@ -225,11 +252,11 @@
 
         <div id="helpModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden"> 
             <div class="report-card p-6 w-full max-w-lg text-text-primary"> 
-                <div class="flex justify-between items-center mb-4"> <h3 class="font-bold text-xl" style="color: var(--accent-primary);">AcTi Live Audition 사용법</h3> <button id="closeHelpModalBtn" class="text-text-tertiary hover:text-text-primary">&times;</button> </div> 
-                <div class="space-y-4 text-left"> <div class="flex items-start"> <div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center font-bold text-white mr-4">1</div> <div> <h4 class="font-semibold">리허설 준비</h4> <p class="text-sm text-text-secondary">API 키 저장 후 카메라/마이크를 허용하고, 필요시 대본을 입력하거나 업로드합니다.</p> </div> </div> <div class="flex items-start"> <div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center font-bold text-white mr-4">2</div> <div> <h4 class="font-semibold">텔레프롬프터 사용 (선택)</h4> <p class="text-sm text-text-secondary">대본 입력 후 '텔레프롬프터 모드'를 켜면 카메라 화면 위로 대사가 표시되어 시선 처리에 도움이 됩니다. '미리보기'로 속도를 조절하세요.</p> </div> </div><div class="flex items-start"> <div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center font-bold text-white mr-4">3</div> <div> <h4 class="font-semibold">리허설 시작</h4> <p class="text-sm text-text-secondary">상단의 시작 아이콘(▶)을 누르면 10초 카운트다운 후 퍼포먼스 분석이 시작됩니다.</p> </div> </div> <div class="flex items-start"> <div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center font-bold text-white mr-4">4</div> <div> <h4 class="font-semibold">분석 및 평가</h4> <p class="text-sm text-text-secondary">중지 아이콘(■)을 누르면 AI가 퍼포먼스와 대본을 종합 분석하여 오디션 평가 시트를 생성합니다.</p> </div> </div> <div class="flex items-start"> <div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center font-bold text-white mr-4">5</div> <div> <h4 class="font-semibold">리포트 확인</h4> <p class="text-sm text-text-secondary">생성된 평가 시트의 강점/보완점과 감독 총평을 통해 연기를 발전시키세요.</p> </div> </div> </div> 
+                <div class="flex justify-between items-center mb-4"> <h3 class="font-bold text-xl" style="color: var(--accent-primary);">AcTi Live Audition 사용법</h3> <button id="closeHelpModalBtn" class="text-2xl font-bold text-text-tertiary hover:text-text-primary">&times;</button> </div> 
+                <div class="space-y-4 text-left"> <div class="flex items-start"> <div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center font-bold text-white mr-4">1</div> <div> <h4 class="font-semibold">리허설 준비</h4> <p class="text-sm text-text-secondary">카메라/마이크를 허용하고, 대본과 상황 설명을 입력하거나 업로드합니다.</p> </div> </div> <div class="flex items-start"> <div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center font-bold text-white mr-4">2</div> <div> <h4 class="font-semibold">텔레프롬프터 사용 (선택)</h4> <p class="text-sm text-text-secondary">컨트롤 패널에서 텔레프롬프터를 켜고 '미리보기'로 자신에게 맞는 속도를 조절하세요.</p> </div> </div><div class="flex items-start"> <div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center font-bold text-white mr-4">3</div> <div> <h4 class="font-semibold">리허설 시작</h4> <p class="text-sm text-text-secondary">컨트롤 패널의 시작 아이콘(▶)을 누르면 10초 카운트다운 후 퍼포먼스 분석이 시작됩니다.</p> </div> </div> <div class="flex items-start"> <div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center font-bold text-white mr-4">4</div> <div> <h4 class="font-semibold">분석 및 평가</h4> <p class="text-sm text-text-secondary">중지 아이콘(■)을 누르면 AI가 퍼포먼스와 대본을 종합 분석하여 오디션 평가 시트를 생성합니다.</p> </div> </div> <div class="flex items-start"> <div class="flex-shrink-0 w-8 h-8 rounded-full bg-accent-primary flex items-center justify-center font-bold text-white mr-4">5</div> <div> <h4 class="font-semibold">리포트 확인</h4> <p class="text-sm text-text-secondary">생성된 평가 시트의 강점/보완점과 감독 총평을 통해 연기를 발전시키세요.</p> </div> </div> </div> 
             </div> 
         </div>
-        <div id="notification" class="fixed top-5 right-5 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg hidden transition-all duration-300 z-50"></div>
+        <div id="notification" class="fixed top-5 right-5 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 transition-all duration-300 z-50 pointer-events-none"></div>
     </div>
 
     <script>
@@ -241,20 +268,21 @@
             const setupMessage = document.getElementById('setupMessage');
             const startSetupBtn = document.getElementById('startSetup');
             const controls = document.getElementById('controls');
-            const topControls = document.getElementById('topControls');
+            const unifiedControls = document.getElementById('unifiedControls'); 
             const rehearsalStage = document.getElementById('rehearsalStage');
+            const videoAndControls = document.getElementById('videoAndControls');
             const feedbackReport = document.getElementById('feedbackReport');
             const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loadingText');
             const startRehearsalBtn = document.getElementById('startRehearsalBtn');
             const stopRehearsalBtn = document.getElementById('stopRehearsalBtn');
             const scriptInput = document.getElementById('scriptInput');
+            const contextInput = document.getElementById('contextInput');
             const notification = document.getElementById('notification');
             const actingTip = document.getElementById('actingTip');
             const helpBtn = document.getElementById('helpBtn');
             const helpModal = document.getElementById('helpModal');
             const closeHelpModalBtn = document.getElementById('closeHelpModalBtn');
-            const apiKeyInput = document.getElementById('apiKeyInput');
-            const saveApiKeyBtn = document.getElementById('saveApiKey');
             const countdown = document.getElementById('countdown');
             const uploadBtn = document.getElementById('uploadBtn');
             const fileInput = document.getElementById('fileInput');
@@ -274,24 +302,29 @@
             let currentFontSize = 24;
             let isTeleprompterPreviewing = false;
             
-            let userApiKey = localStorage.getItem('acti-api-key') || 'AIzaSyBbEsfDqt5ojPAJoo70Nozro4LacKk__4k';
-            apiKeyInput.value = userApiKey;
+            const userApiKey = 'AIzaSyBbEsfDqt5ojPAJoo70Nozro4LacKk__4k';
             
-            const actingTips = ["상대방의 대사를 듣는 것이 연기의 시작입니다.", "당신의 캐릭터가 이 씬에서 무엇을 원하는지 명확히 하세요.", "미리 계획된 감정보단, 순간에 대한 자연스러운 반응이 중요합니다.", "신체 언어는 대사만큼이나 강력한 메시지를 전달합니다."];
             const startIconSVG = `<svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
             const stopIconSVG = `<svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h12v12H6z"/></svg>`;
             startRehearsalBtn.innerHTML = startIconSVG;
             stopRehearsalBtn.innerHTML = stopIconSVG;
 
             function initializeApp() {
-                actingTip.textContent = actingTips[Math.floor(Math.random() * actingTips.length)];
+                actingTip.textContent = "배우 오디션 실전 마스터";
                 teleprompterText.style.fontSize = `${currentFontSize}px`;
+                startRehearsalBtn.disabled = true;
+                videoContainer.classList.remove('hidden'); 
             }
 
             function showNotification(message, isError = false, duration = 3000) {
                 notification.textContent = message;
-                notification.className = `fixed top-5 right-5 text-white px-6 py-3 rounded-lg shadow-lg transition-all duration-300 z-50 ${isError ? 'bg-accent-red' : 'bg-green-500'}`;
-                setTimeout(() => { notification.classList.add('hidden'); }, duration);
+                notification.classList.remove('opacity-0');
+                notification.classList.add(isError ? 'bg-accent-red' : 'bg-green-500');
+                notification.classList.remove(isError ? 'bg-green-500' : 'bg-accent-red');
+
+                setTimeout(() => {
+                    notification.classList.add('opacity-0');
+                }, duration);
             }
             
             async function setupCamera() {
@@ -299,10 +332,10 @@
                     mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                     videoFeed.srcObject = mediaStream;
                     setupMessage.classList.add('hidden');
-                    videoContainer.classList.remove('hidden');
+                    videoFeed.classList.remove('hidden');
                     videoContainer.classList.add('video-glow');
                     controls.classList.remove('hidden');
-                    topControls.classList.remove('hidden');
+                    unifiedControls.classList.remove('hidden'); 
                     
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     analyser = audioContext.createAnalyser();
@@ -322,6 +355,8 @@
                     console.error("카메라/마이크 접근 오류:", error);
                     let errorMessage = `<p class="text-red-500 font-semibold">카메라/마이크 접근 권한이 거부되었습니다.</p><p class="text-sm text-text-secondary mt-2">이 앱을 사용하려면 권한이 필요합니다. 브라우저 설정을 확인해주세요.</p><button id="retrySetup" class="mt-4 px-6 py-2 font-semibold btn-secondary">다시 시도</button>`;
                     setupMessage.innerHTML = errorMessage;
+                    setupMessage.classList.remove('hidden');
+                    videoFeed.classList.add('hidden');
                     document.getElementById('retrySetup')?.addEventListener('click', setupCamera);
                 }
             }
@@ -373,9 +408,8 @@
 
             function startRehearsal() {
                  if (isTeleprompterPreviewing) {
-                    toggleTeleprompterPreview(); // Stop preview if it's running
-                }
-                 if (!userApiKey) { showNotification('Google AI API 키를 입력하고 저장해주세요.', true); return; }
+                     toggleTeleprompterPreview(); // Stop preview if it's running
+                 }
                 startRehearsalBtn.disabled = true;
                 let count = 10;
                 countdown.textContent = count;
@@ -392,6 +426,7 @@
                         startRehearsalBtn.classList.add('hidden');
                         stopRehearsalBtn.classList.remove('hidden');
                         scriptInput.disabled = true;
+                        contextInput.disabled = true;
                         uploadBtn.disabled = true;
                         if(teleprompterToggle.checked) startTeleprompterScroll(false); // false means it's the real deal, not a preview
                         startPerformanceAnalysis();
@@ -406,15 +441,28 @@
                 loading.classList.remove('hidden');
                 
                 try {
-                    const aiAnalysisResult = await getRealAiAnalysis(scriptInput.value, performanceData);
-                    displayAuditionSheet(aiAnalysisResult);
+                    const script = scriptInput.value.trim();
+                    const context = contextInput.value.trim();
+                    let scriptAnalysisResult = null;
+
+                    if (script) {
+                        loadingText.textContent = "1/2: 대본 심층 분석 중...";
+                        scriptAnalysisResult = await getScriptAnalysis(script, context);
+                    }
+                    
+                    loadingText.textContent = "2/2: 퍼포먼스 평가 중...";
+                    const performanceAnalysisResult = await getPerformanceAnalysis(script, context, performanceData, scriptAnalysisResult);
+                    
+                    displayAuditionSheet(performanceAnalysisResult, scriptAnalysisResult);
                     feedbackReport.classList.remove('hidden');
+
                 } catch (error) {
                     console.error("AcTi 분석 오류:", error);
                     showNotification(`분석 중 오류가 발생했습니다: ${error.message}`, true, 5000);
                     resetForNewRehearsal();
                 } finally {
                     loading.classList.add('hidden');
+                    loadingText.textContent = "AcTi가 당신의 연기를 분석하고 있습니다...";
                 }
             }
 
@@ -427,14 +475,42 @@
                 rehearsalStage.classList.remove('hidden');
                 stopRehearsalBtn.classList.add('hidden');
                 startRehearsalBtn.classList.remove('hidden');
+                startRehearsalBtn.disabled = true;
                 scriptInput.disabled = false;
+                contextInput.disabled = false;
                 uploadBtn.disabled = false;
                 scriptInput.value = '';
+                contextInput.value = '';
                 updateTeleprompterText();
             }
 
-            async function getRealAiAnalysis(script, performance) {
-                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${userApiKey}`;
+            async function getScriptAnalysis(script, context) {
+                 const systemPrompt = `You are 'AcTi', a world-class acting coach, screenwriter, and director AI. Your analysis must be detailed, insightful, and professional, providing a sincere and deep guide for an actor. Analyze the script deeply and provide your insights in the specified JSON format. Your primary focus is on the writer's intent and the script's core elements.
+
+                **Analysis Sections:**
+                - **directorsView:** Provide a highly detailed, professional-grade analysis from a director's and writer's perspective, as if you were teaching a masterclass. Each section must be a thorough, multi-sentence paragraph.
+                  - **writerIntent**: Go beyond a simple summary. Analyze the *dramaturgical function* of the scene. What is its fundamental purpose in the narrative? What specific emotional journey is the audience meant to experience? What truth about the characters or the human condition is the writer trying to illuminate through this specific moment?
+                  - **coreTheme**: Identify the core themes (e.g., love, betrayal, regret, hope). Do not just list them. Explain *how* these themes are woven into the fabric of the scene through dialogue, subtext, actions, and symbolism. Discuss any recurring motifs or symbolic objects.
+                - **sceneOverview**:
+                  - For 'sceneFunction', provide a detailed paragraph. Explain the scene's purpose in the overall story, what it reveals about the characters, and how it moves the plot forward.
+                  - For 'conflictSummary', write a comprehensive paragraph describing the central conflict in detail.
+                
+                - **General**: ALL text output MUST be in Korean.`;
+                const userQuery = `Analyze this script and provide a deep analysis of its core components. Consider the following context provided by the actor:\n\n[Actor's Context]\n${context || '제공되지 않음'}\n\n[Script]\n---\n${script}\n---`;
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {type: 'OBJECT', properties: { sceneOverview: {type: 'OBJECT', properties: { sceneFunction: { type: 'STRING' }, conflictSummary: { type: 'STRING' }}}, directorsView: {type: 'OBJECT', properties: {writerIntent: { type: 'STRING' }, coreTheme: { type: 'STRING' }}}}}
+                    }
+                };
+                 const result = await callGeminiAPI(payload);
+                 return JSON.parse(result.candidates[0].content.parts[0].text);
+            }
+
+
+            async function getPerformanceAnalysis(script, context, performance, scriptAnalysis) {
                 const isScriptless = !script.trim();
                 const { mean: avgVolume, stdDev: volumeVariability } = analyzeData(performance.volume);
                 const { mean: avgMotion } = analyzeData(performance.motion);
@@ -443,13 +519,11 @@
                 const systemPrompt = `당신은 세계 최고의 캐스팅 디렉터이자 연기 코치인 'AcTi'입니다. 당신의 분석은 업계에서 가장 통찰력 있고, 상세하며, 배우의 커리어를 바꿀 만큼 강력한 것으로 정평이 나 있습니다. 당신의 임무는 배우의 연기를 단순히 평가하는 것을 넘어, 마스터클래스 수준의 심층 분석을 통해 잠재력을 극대화하는 것입니다.
 
 [중요 규칙]
-1.  **깊이와 분량:** 절대로 한두 문장의 피상적인 피드백을 제공해서는 안 됩니다. 각 세부 항목에 대한 분석은 매우 풍부하고 구체적이어야 합니다.
-2.  **엄격한 형식 준수:** 모든 세부 항목의 피드백은 반드시 **'[문제] → [근거] → [제안]'** 형식을 따라야 합니다.
-    * **[문제]:** 전문 연기 용어를 사용하여 핵심적인 문제점을 명확히 기술합니다.
-    * **[근거]:** 대사가 있다면 해당 대사를 "앵커"로 인용하거나, 연기 중 특정 순간을 구체적으로 묘사하여 문제의 근거를 제시합니다.
-    * **[제안]:** 배우가 즉시 실행할 수 있는 2-3개 이상의 구체적인 행동 동사(예: 준비호흡, 시선 고정, 속도 감속)를 사용하여 해결책을 제시합니다.
+1.  **깊이와 분량:** 각 세부 항목에 대한 분석은 매우 풍부하고 구체적이어야 합니다.
+2.  **엄격한 형식 준수:** 모든 피드백은 반드시 '[문제] → [근거] → [제안]' 형식을 따라야 합니다. **모든** 상세 분석 항목('technicalControl', 'emotionalAuthenticity' 등)에 포함된 **모든** 피드백 객체에는 'category' 키가 **반드시** 포함되어야 합니다. 이 키의 값은 해당 피드백이 속하는 세부 평가 항목의 이름(예: '발성·호흡 안정성', '미세표정·뉘앙스')이어야 합니다.
 3.  **배우의 언어 사용:** "움직임 평균 0.21"과 같은 기술적 수치는 절대 노출하지 마십시오. 모든 데이터를 배우의 연기력에 대한 질적 평가로 완벽하게 번역하여 설명해야 합니다.
 4.  **전체 항목 분석:** 아래 5대 평가 축의 모든 세부 항목에 대해 상세한 분석을 제공해야 합니다. 누락은 절대 허용되지 않습니다.
+5.  **점수 규칙:** rubricScores의 score는 반드시 0, 1, 2, 3, 4, 5 중 하나의 정수여야 합니다.
 
 [5대 평가 축 및 18개 세부 항목]
 A. 기술(Voice/Body/Camera): 발성·호흡 안정성, 딕션 명확도, 페이싱·리듬, 자세·긴장도, 제스처 유효성, 시선 처리, 프레이밍 활용
@@ -458,15 +532,23 @@ C. 해석·캐릭터 구현: 서브텍스트 구현, 목표/장애/행동, 비�
 D. 상호작용·듣기: 능동적 듣기, 리액션 타이밍, 무대 밖 순간 유지
 E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 적합도/확장성`;
 
-                const userPrompt = `다음 대본과 퍼포먼스 데이터를 바탕으로 배우의 연기를 심층적으로 분석하고, 5가지 핵심 기준과 지정된 출력 형식에 맞춰 '오디션 평가 시트'를 작성해주세요:\n\n[대본]\n${isScriptless ? '제공되지 않음 (즉흥 연기)' : script}\n\n[퍼포먼스 데이터 해석]\n${performanceSummary}`;
+                const userPrompt = `사전에 분석된 아래 '대본 분석 결과'와 배우가 직접 입력한 '장면 상황 설명'을 바탕으로, 배우의 '퍼포먼스 데이터'를 심층적으로 분석하고, 5가지 핵심 기준과 지정된 출력 형식에 맞춰 '오디션 평가 시트'를 작성해주세요:\n\n[사전 대본 분석 결과]\n${JSON.stringify(scriptAnalysis)}\n\n[배우가 입력한 장면 상황 설명]\n${context || '제공되지 않음'}\n\n[배우 퍼포먼스 데이터 해석]\n${performanceSummary}`;
                 
-                const feedbackFormat = { type: "OBJECT", properties: { problem: { type: "STRING", description: "핵심 문제점을 전문적으로 기술"}, evidence: { type: "STRING", description: "대사 인용('앵커') 또는 특정 순간을 묘사"}, suggestion: { type: "STRING", description: "2-3개 이상의 구체적이고 실행 가능한 행동 제안"} } };
+                const feedbackFormat = { 
+                    type: "OBJECT", 
+                    properties: { 
+                        category: { type: "STRING", description: "예: 발성·호흡 안정성, 딕션 명확도 등 세부 평가 항목명" },
+                        problem: { type: "STRING" }, 
+                        evidence: { type: "STRING" }, 
+                        suggestion: { type: "STRING" } 
+                    } 
+                };
                 const schema = {
                     type: "OBJECT",
                     properties: {
                         finalGrade: { type: "STRING", description: "A(즉시 캐스팅) / B(콜백·단기 코칭 후) / C(재촬영·재코칭) 중 하나" },
-                        overallReview: { type: "STRING", description: "연기에 대한 2-3문장의 핵심 총평" },
-                        rubricScores: { type: "ARRAY", items: { type: "OBJECT", properties: { axis: { type: "STRING" }, score: { type: "NUMBER", description: "0-5점 척도" }, summary: { type: "STRING", description: "점수에 대한 서술 등급 (예: 의도-행동-감정이 선명하고 일관)" } } } },
+                        overallReview: { type: "STRING" },
+                        rubricScores: { type: "ARRAY", items: { type: "OBJECT", properties: { axis: { type: "STRING" }, score: { type: "NUMBER", description: "0-5점 척도 정수" }, summary: { type: "STRING" } } } },
                         detailedBreakdown: {
                             type: "OBJECT",
                             properties: {
@@ -476,30 +558,43 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
                                 interactionAndListening: { type: "ARRAY", items: feedbackFormat },
                             }
                         },
-                        onSetAlerts: { type: "ARRAY", items: {type: "OBJECT", properties: { alertType: {type: "STRING", description: "딕션 말끝 먹힘 / 시선 이탈 / 말-표정 불일치 중 하나"}, directorChecklist: {type: "STRING", description: "해당 알림에 대한 감독의 현장용 체크리스트 제안"} } } },
-                        grandCritique: {type: "STRING", description: "모든 분석을 종합하여 감독이 최종적으로 제공하는 종합 연기 평가. 배우의 현재 상태와 나아갈 방향을 제시하는 깊이 있는 피드백."}
+                        onSetAlerts: { type: "ARRAY", items: {type: "OBJECT", properties: { alertType: {type: "STRING"}, directorChecklist: {type: "STRING"} } } },
+                        grandCritique: {type: "STRING"}
                     }
                 };
-                if (isScriptless) delete schema.properties.detailedBreakdown.properties.interpretationAndCharacterization;
+                if (isScriptless || !scriptAnalysis) {
+                    delete schema.properties.detailedBreakdown.properties.interpretationAndCharacterization;
+                }
 
                 const payload = { systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ parts: [{ text: userPrompt }] }], generationConfig: { responseMimeType: "application/json", responseSchema: schema } };
                 
-                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                 const result = await callGeminiAPI(payload);
+                 return JSON.parse(result.candidates[0].content.parts[0].text);
+            }
+            
+            async function callGeminiAPI(payload) {
+                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${userApiKey}`;
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
                 if (!response.ok) {
-                    const errorBody = await response.json();
-                    throw new Error(errorBody.error?.message || `API 요청 실패 (HTTP ${response.status})`);
+                   const errorBody = await response.json();
+                   throw new Error(errorBody.error?.message || `API Error: ${response.status}`);
                 }
-                const data = await response.json();
-                return JSON.parse(data.candidates[0].content.parts[0].text);
+                return response.json();
             }
 
-            function displayAuditionSheet(result) {
-                const { finalGrade, overallReview, rubricScores, detailedBreakdown, onSetAlerts, grandCritique } = result;
+            function displayAuditionSheet(performanceResult, scriptResult) {
+                const { finalGrade, overallReview, rubricScores, detailedBreakdown, onSetAlerts, grandCritique } = performanceResult;
+
                 if (!detailedBreakdown) {
-                    console.error("detailedBreakdown is missing in the API response", result);
-                    showNotification("분석 결과를 처리하는 중 오류가 발생했습니다.", true);
+                    showNotification("분석 결과에 오류가 있습니다 (detailedBreakdown 누락).", true);
                     return;
                 }
+                
                 const gradeInfo = {
                     'A': { text: '즉시 캐스팅', color: 'bg-green-500 text-black', icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`},
                     'B': { text: '콜백 대상', color: 'bg-blue-500 text-white', icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>` },
@@ -508,17 +603,20 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
 
                 const createCoachingCard = (item) => `
                     <div class="coaching-card p-4 rounded-lg mt-3">
-                        <div class="flex items-start">
-                            <span class="text-red-500 font-bold mr-3 text-lg">P</span>
-                            <p class="text-sm text-text-primary flex-1">${item.problem}</p>
-                        </div>
-                         <div class="flex items-start mt-2">
-                             <span class="text-text-tertiary font-bold mr-3 text-lg">E</span>
-                            <p class="text-xs text-text-tertiary flex-1">${item.evidence}</p>
-                        </div>
-                         <div class="flex items-start mt-2">
-                            <span class="text-green-500 font-bold mr-3 text-lg">S</span>
-                            <p class="text-sm text-text-primary flex-1">${item.suggestion}</p>
+                        <h5 class="font-semibold text-text-primary mb-2">${item.category}</h5>
+                        <div class="space-y-2 pl-2 border-l-2 border-accent-secondary">
+                            <div class="flex items-start">
+                                <span class="text-red-500 font-bold mr-3 text-sm shrink-0 w-10">문제</span>
+                                <p class="text-sm text-text-primary flex-1">${item.problem}</p>
+                            </div>
+                            <div class="flex items-start mt-2">
+                                <span class="text-text-tertiary font-bold mr-3 text-sm shrink-0 w-10">근거</span>
+                                <p class="text-sm text-text-secondary flex-1">${item.evidence}</p>
+                            </div>
+                            <div class="flex items-start mt-2">
+                                <span class="text-green-500 font-bold mr-3 text-sm shrink-0 w-10">제안</span>
+                                <p class="text-sm text-text-primary flex-1">${item.suggestion}</p>
+                            </div>
                         </div>
                     </div>`;
 
@@ -527,28 +625,44 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
                     return `
                         <div class="report-card">
                             <details class="accordion-item" open>
-                                <summary class="accordion-header flex justify-between items-center p-4">
+                                <summary class="accordion-header flex justify-between items-center p-4 list-none">
                                     <div class="flex items-center space-x-3">
-                                        <span class="text-yellow-400 text-2xl">${icon}</span>
+                                        <span class="text-2xl">${icon}</span>
                                         <h3 class="text-lg font-semibold text-text-primary">${title}</h3>
-                                        <div class="relative group">
-                                           <svg class="w-4 h-4 text-text-tertiary cursor-pointer" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
-                                           <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg p-2 shadow-lg z-10">
-                                               <strong class="text-red-400">P:</strong> Problem (문제)<br>
-                                               <strong class="text-gray-400">E:</strong> Evidence (근거)<br>
-                                               <strong class="text-green-400">S:</strong> Suggestion (제안)
-                                           </div>
-                                        </div>
                                     </div>
                                     <svg class="accordion-arrow w-6 h-6 text-text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                 </summary>
-                                <div class="accordion-content open px-4 pb-4">
+                                <div class="accordion-content px-4 pb-4">
                                     ${data.map(createCoachingCard).join('')}
                                 </div>
                             </details>
                         </div>`;
                 };
                 
+                const scriptAnalysisHTML = scriptResult ? `
+                    <div class="report-card p-4 sm:p-6">
+                        <h3 class="text-lg font-semibold text-accent-primary mb-4">대본 심층 분석</h3>
+                        <div class="space-y-3">
+                            <div class="coaching-card p-4">
+                                <h4 class="font-semibold text-text-primary mb-1">장면의 목표와 기능</h4>
+                                <p class="text-sm text-text-secondary">${scriptResult.sceneOverview.sceneFunction}</p>
+                            </div>
+                             <div class="coaching-card p-4">
+                                <h4 class="font-semibold text-text-primary mb-1">핵심 갈등 구조</h4>
+                                <p class="text-sm text-text-secondary">${scriptResult.sceneOverview.conflictSummary}</p>
+                            </div>
+                            <div class="coaching-card p-4">
+                                <h4 class="font-semibold text-text-primary mb-1">작가의 의도</h4>
+                                <p class="text-sm text-text-secondary">${scriptResult.directorsView.writerIntent}</p>
+                            </div>
+                             <div class="coaching-card p-4">
+                                <h4 class="font-semibold text-text-primary mb-1">핵심 주제와 상징</h4>
+                                <p class="text-sm text-text-secondary">${scriptResult.directorsView.coreTheme}</p>
+                            </div>
+                        </div>
+                    </div>
+                ` : '';
+
                 const chartData = {
                     labels: (rubricScores || []).map(item => item.axis.split('·')[0]),
                     datasets: [{
@@ -583,14 +697,16 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
                         </div>
                         <p class="text-sm text-text-secondary text-center italic border-t border-border-color pt-4">"${overallReview}"</p>
                     </div>
+                    
+                    ${scriptAnalysisHTML}
 
                     <div class="report-card p-4 sm:p-6">
                          <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold text-accent-primary">5대 핵심 역량 대시보드</h3>
-                            <button id="toggleChartBtn" class="text-xs btn-secondary px-2 py-1">설명 보기</button>
-                        </div>
+                             <h3 class="text-lg font-semibold text-accent-primary">5대 핵심 역량 대시보드</h3>
+                             <button id="toggleChartBtn" class="text-xs btn-secondary px-2 py-1">설명 보기</button>
+                         </div>
                          <div id="chartContainer" class="w-full max-w-md mx-auto">
-                            <canvas id="rubricChart"></canvas>
+                             <canvas id="rubricChart"></canvas>
                          </div>
                          <div id="rubricListContainer" class="hidden space-y-3 mt-4">
                             ${(rubricScores || []).map(item => `
@@ -602,7 +718,7 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
                                     <p class="text-xs text-text-tertiary">${item.summary}</p>
                                 </div>
                             `).join('')}
-                        </div>
+                         </div>
                     </div>
                     
                     ${createSectionHTML('기술 (Voice/Body/Camera)', '🎤', detailedBreakdown.technicalControl)}
@@ -615,9 +731,9 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
                         <div class="space-y-3">
                         ${(onSetAlerts || []).map(item => `
                              <div class="flex items-start p-3 rounded-lg bg-bg-primary">
-                                <div class="w-5 h-5 mr-3 flex-shrink-0 text-yellow-400 mt-1">⚠️</div>
-                                <p class="text-sm text-text-secondary"><strong class="font-semibold">${item.alertType}:</strong> ${item.directorChecklist}</p>
-                            </div>
+                                 <div class="w-5 h-5 mr-3 flex-shrink-0 text-yellow-400 mt-1">⚠️</div>
+                                 <p class="text-sm text-text-secondary"><strong class="font-semibold">${item.alertType}:</strong> ${item.directorChecklist}</p>
+                             </div>
                         `).join('')}
                         </div>
                     </div>
@@ -653,17 +769,7 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
                     document.getElementById('rubricListContainer').classList.toggle('hidden');
                     e.target.textContent = e.target.textContent === '설명 보기' ? '차트 보기' : '설명 보기';
                 });
-                document.querySelectorAll('.accordion-header').forEach(header => {
-                    header.addEventListener('click', (e) => {
-                        if(e.target.closest('button')) return;
-                        const detail = header.parentElement;
-                        const content = header.nextElementSibling;
-                        detail.classList.toggle('open');
-                        content.classList.toggle('open');
-                    });
-                });
                 
-                // Save functionality
                 document.getElementById('saveJpgBtn').addEventListener('click', () => {
                     showNotification('리포트를 이미지로 저장 중입니다...', false);
                     html2canvas(document.getElementById('feedbackReport'), { backgroundColor: '#F0F5F2', useCORS: true, scale: 2 }).then(canvas => {
@@ -677,16 +783,16 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
                      showNotification('리포트를 PDF로 저장 중입니다...', false);
                      const { jsPDF } = window.jspdf;
                      html2canvas(document.getElementById('feedbackReport'), { backgroundColor: '#F0F5F2', useCORS: true, scale: 2 }).then(canvas => {
-                        const imgData = canvas.toDataURL('image/png');
-                        const pdf = new jsPDF({ orientation: 'p', unit: 'px', format: [canvas.width, canvas.height] });
-                        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-                        pdf.save('AcTi_Report.pdf');
+                         const imgData = canvas.toDataURL('image/png');
+                         const pdf = new jsPDF({ orientation: 'p', unit: 'px', format: [canvas.width, canvas.height] });
+                         pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                         pdf.save('AcTi_Report.pdf');
                     });
                 });
             }
 
             function analyzeData(data) {
-                if (data.length < 2) return { mean: 0, stdDev: 0 };
+                if (!data || data.length < 2) return { mean: 0, stdDev: 0 };
                 const mean = data.reduce((a, b) => a + b, 0) / data.length;
                 const stdDev = Math.sqrt(data.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b, 0) / data.length);
                 return { mean, stdDev };
@@ -694,8 +800,9 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
             
             async function handleFileUpload(file) {
                 let text = '';
-                if (file.type === 'text/plain') text = await file.text();
-                else if (file.name.endsWith('.srt')) {
+                if (file.type === 'text/plain') {
+                    text = await file.text();
+                } else if (file.name.endsWith('.srt')) {
                     const srtContent = await file.text();
                     text = srtContent.replace(/(^\d+$)|(\d{2}:\d{2}:\d{2},\d{3}\s+-->\s+\d{2}:\d{2}:\d{2},\d{3}$)|(<[^>]*>)/gm, '').replace(/^\s*[\r\n]/gm, '').trim();
                 } else if (file.type === 'application/pdf') {
@@ -713,7 +820,10 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
                     };
                     reader.readAsArrayBuffer(file);
                     return;
-                } else { showNotification('지원하지 않는 파일 형식입니다. (PDF, TXT, SRT)', true); return; }
+                } else { 
+                    showNotification('지원하지 않는 파일 형식입니다. (PDF, TXT, SRT)', true); 
+                    return; 
+                }
                 processExtractedText(text);
             }
 
@@ -722,7 +832,10 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
                 reformatSpinner.classList.remove('hidden');
                 try {
                     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${userApiKey}`;
-                    const payload = { systemInstruction: { parts: [{ text: "당신은 전문 스크립트 에디터입니다. 당신의 임무는 주어진 텍스트를 배우가 보기 편한 '촬영용 대본' 형식으로 재배열하는 것입니다. 다음 규칙을 반드시 준수하십시오:\n1. 캐릭터 이름이 있다면 줄을 바꿔 대문자로 표기합니다.\n2. 각 캐릭터의 대사와 지문은 의미 단위에 맞춰 자연스럽게 줄바꿈을 적용하여 가독성을 극대화합니다. 절대로 긴 문장을 한 줄로 붙여서는 안 됩니다.\n3. **절대로** 서론, 설명, 구분선(---) 등 대본 이외의 텍스트를 추가하지 마십시오.\n4. **절대로** 원본 텍스트에 없는 캐릭터 이름이나 내용을 창작하지 마십시오.\n오직 주어진 내용만을 재구성하여, 최종 결과물은 줄바꿈이 적용된 깔끔한 대본이어야 합니다." }] }, contents: [{ parts: [{ text: `다음 텍스트를 재배열해주세요:\n\n---\n${text}\n---` }] }] };
+                    const payload = { 
+                        systemInstruction: { parts: [{ text: "당신은 전문 스크립트 에디터입니다. 당신의 임무는 주어진 텍스트를 배우가 보기 편한 '촬영용 대본' 형식으로 재배열하는 것입니다. 다음 규칙을 반드시 준수하십시오:\n1. 캐릭터 이름이 있다면 줄을 바꿔 대문자로 표기합니다.\n2. 각 캐릭터의 대사와 지문은 의미 단위에 맞춰 자연스럽게 줄바꿈을 적용하여 가독성을 극대화합니다. 절대로 긴 문장을 한 줄로 붙여서는 안 됩니다.\n3. **절대로** 서론, 설명, 구분선(---) 등 대본 이외의 텍스트를 추가하지 마십시오.\n4. **절대로** 원본 텍스트에 없는 캐릭터 이름이나 내용을 창작하지 마십시오.\n오직 주어진 내용만을 재구성하여, 최종 결과물은 줄바꿈이 적용된 깔끔한 대본이어야 합니다." }] }, 
+                        contents: [{ parts: [{ text: `다음 텍스트를 재배열해주세요:\n\n---\n${text}\n---` }] }] 
+                    };
                     const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                     if (!response.ok) throw new Error('API Reformat Failed');
                     const data = await response.json();
@@ -732,47 +845,35 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
                     scriptInput.value = text;
                 } finally {
                     reformatSpinner.classList.add('hidden');
+                    startRehearsalBtn.disabled = scriptInput.value.trim().length === 0;
                 }
             }
-
-            startSetupBtn.addEventListener('click', setupCamera);
-            startRehearsalBtn.addEventListener('click', startRehearsal);
-            stopRehearsalBtn.addEventListener('click', stopAndAnalyze);
-            saveApiKeyBtn.addEventListener('click', () => {
-                userApiKey = apiKeyInput.value;
-                localStorage.setItem('acti-api-key', userApiKey);
-                showNotification('API 키가 저장되었습니다.', false);
-            });
-            uploadBtn.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files[0]) handleFileUpload(e.target.files[0]);
-                e.target.value = '';
-            });
-            helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
-            closeHelpModalBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
-            helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
-
-            // Teleprompter Logic
+            
             function updateTeleprompterText() {
+                teleprompterText.style.transform = `translateY(0px)`;
+                // Set padding dynamically based on video container height
+                const videoHeight = videoContainer.clientHeight;
+                teleprompterText.style.paddingTop = `${videoHeight / 2}px`;
+                teleprompterText.style.paddingBottom = `${videoHeight / 2}px`;
                 teleprompterText.textContent = scriptInput.value;
             }
 
             function startTeleprompterScroll(isPreview) {
                 stopTeleprompterScroll(); // Stop any previous scroll
                 let scrollPosition = 0;
-                const scrollSpeed = scrollSpeedSlider.value;
-                if (scrollSpeed == 0) return;
+                let scrollSpeed = scrollSpeedSlider.value;
                 
                 const textHeight = teleprompterText.scrollHeight;
                 const containerHeight = teleprompterOverlay.clientHeight;
                 if (textHeight <= containerHeight) return;
-
-                const scrollInterval = 110 - (scrollSpeed * 10);
+                
+                // Speed mapping: 1 (slowest) to 20 (fastest)
+                const scrollInterval = 210 - (scrollSpeed * 10);
 
                 teleprompterIntervalId = setInterval(() => {
                     scrollPosition += 1;
                     teleprompterText.style.transform = `translateY(-${scrollPosition}px)`;
-                    if (scrollPosition > textHeight) {
+                    if (scrollPosition > textHeight - containerHeight / 2) {
                         stopTeleprompterScroll();
                         if (isPreview) {
                            isTeleprompterPreviewing = false;
@@ -805,7 +906,21 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
                     isTeleprompterPreviewing = true;
                 }
             }
+
+            // Event Listeners
+            startSetupBtn.addEventListener('click', setupCamera);
+            startRehearsalBtn.addEventListener('click', startRehearsal);
+            stopRehearsalBtn.addEventListener('click', stopAndAnalyze);
             
+            uploadBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files[0]) handleFileUpload(e.target.files[0]);
+                e.target.value = '';
+            });
+            helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
+            closeHelpModalBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
+            helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
+
             scrollSpeedSlider.addEventListener('input', () => {
                 if (isTeleprompterPreviewing) {
                     startTeleprompterScroll(true);
@@ -816,7 +931,8 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
             
             teleprompterToggle.addEventListener('change', () => {
                 const isEnabled = teleprompterToggle.checked;
-                teleprompterOverlay.classList.toggle('hidden', !isEnabled);
+                teleprompterOverlay.classList.toggle('opacity-0', !isEnabled);
+                teleprompterOverlay.classList.toggle('pointer-events-none', !isEnabled);
                 teleprompterSettings.classList.toggle('hidden', !isEnabled);
                 if (isEnabled) {
                     updateTeleprompterText()
@@ -836,6 +952,11 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
             decreaseFontSizeBtn.addEventListener('click', () => {
                 currentFontSize = Math.max(12, currentFontSize - 2);
                 teleprompterText.style.fontSize = `${currentFontSize}px`;
+            });
+
+            scriptInput.addEventListener('input', () => {
+                startRehearsalBtn.disabled = scriptInput.value.trim().length === 0;
+                updateTeleprompterText();
             });
 
             initializeApp();
