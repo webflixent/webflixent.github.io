@@ -199,11 +199,15 @@
 
                     <div class="relative w-full">
                         <div id="videoContainer" class="mb-6 bg-black rounded-xl overflow-hidden aspect-video w-full">
-                             <div id="setupMessage" class="w-full h-full flex flex-col items-center justify-center">
-                                 <p class="text-lg text-white">카메라와 마이크 접근을 허용해주세요.</p>
-                                 <button id="startSetup" class="mt-4 px-6 py-2 font-semibold btn-primary">카메라 켜기</button>
+                             <div id="setupMessage" class="w-full h-full flex flex-col items-center justify-center space-y-4">
+                                 <p class="text-lg text-white">어떻게 시작할까요?</p>
+                                 <div class="flex space-x-4">
+                                     <button id="startLiveBtn" class="px-6 py-2 font-semibold btn-primary">라이브 카메라 시작</button>
+                                     <button id="uploadVideoBtn" class="px-6 py-2 font-semibold btn-secondary">영상 파일 업로드</button>
+                                 </div>
+                                 <input type="file" id="videoFileInput" class="hidden" accept="video/*">
                              </div>
-                            <video id="videoFeed" autoplay playsinline muted class="w-full h-full object-cover hidden"></video>
+                            <video id="videoFeed" playsinline class="w-full h-full object-cover hidden"></video>
                             <div id="countdown" class="countdown-overlay"></div>
                             <div id="teleprompterOverlay" class="teleprompter-overlay opacity-0 pointer-events-none">
                                 <div class="teleprompter-content">
@@ -229,10 +233,10 @@
                             </div>
 
                             <div>
-                                <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt,.srt">
+                                <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt,.srt,image/*">
                                 <button id="uploadBtn" class="w-full px-4 py-2 text-sm font-semibold btn-secondary flex items-center justify-center space-x-2">
                                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                                     <span>파일 업로드 (PDF, TXT, SRT)</span>
+                                     <span>파일 업로드 (PDF, TXT, SRT, 이미지)</span>
                                 </button>
                             </div>
                         </div>
@@ -266,11 +270,12 @@
             const videoFeed = document.getElementById('videoFeed');
             const videoContainer = document.getElementById('videoContainer');
             const setupMessage = document.getElementById('setupMessage');
-            const startSetupBtn = document.getElementById('startSetup');
+            const startLiveBtn = document.getElementById('startLiveBtn');
+            const uploadVideoBtn = document.getElementById('uploadVideoBtn');
+            const videoFileInput = document.getElementById('videoFileInput');
             const controls = document.getElementById('controls');
             const unifiedControls = document.getElementById('unifiedControls'); 
             const rehearsalStage = document.getElementById('rehearsalStage');
-            const videoAndControls = document.getElementById('videoAndControls');
             const feedbackReport = document.getElementById('feedbackReport');
             const loading = document.getElementById('loading');
             const loadingText = document.getElementById('loadingText');
@@ -301,6 +306,7 @@
             let analysisLoopId, teleprompterIntervalId;
             let currentFontSize = 24;
             let isTeleprompterPreviewing = false;
+            let isLiveMode = true;
             
             const userApiKey = 'AIzaSyBbEsfDqt5ojPAJoo70Nozro4LacKk__4k';
             
@@ -313,7 +319,6 @@
                 actingTip.textContent = "배우 오디션 실전 마스터";
                 teleprompterText.style.fontSize = `${currentFontSize}px`;
                 startRehearsalBtn.disabled = true;
-                videoContainer.classList.remove('hidden'); 
             }
 
             function showNotification(message, isError = false, duration = 3000) {
@@ -326,21 +331,30 @@
                     notification.classList.add('opacity-0');
                 }, duration);
             }
+
+            function setupForAnalysis() {
+                setupMessage.classList.add('hidden');
+                videoFeed.classList.remove('hidden');
+                videoContainer.classList.add('video-glow');
+                controls.classList.remove('hidden');
+                unifiedControls.classList.remove('hidden');
+            }
             
             async function setupCamera() {
+                isLiveMode = true;
                 try {
                     mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                     videoFeed.srcObject = mediaStream;
-                    setupMessage.classList.add('hidden');
-                    videoFeed.classList.remove('hidden');
-                    videoContainer.classList.add('video-glow');
-                    controls.classList.remove('hidden');
-                    unifiedControls.classList.remove('hidden'); 
+                    videoFeed.muted = true; // Mute live feed to prevent echo
+                    videoFeed.play();
+
+                    setupForAnalysis();
                     
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     analyser = audioContext.createAnalyser();
                     source = audioContext.createMediaStreamSource(mediaStream);
                     source.connect(analyser);
+                    
                     analyser.fftSize = 256;
                     const bufferLength = analyser.frequencyBinCount;
                     dataArray = new Uint8Array(bufferLength);
@@ -353,12 +367,56 @@
                     };
                 } catch (error) {
                     console.error("카메라/마이크 접근 오류:", error);
-                    let errorMessage = `<p class="text-red-500 font-semibold">카메라/마이크 접근 권한이 거부되었습니다.</p><p class="text-sm text-text-secondary mt-2">이 앱을 사용하려면 권한이 필요합니다. 브라우저 설정을 확인해주세요.</p><button id="retrySetup" class="mt-4 px-6 py-2 font-semibold btn-secondary">다시 시도</button>`;
+                    let errorMessage = `<p class="text-red-500 font-semibold">카메라/마이크 접근 권한이 거부되었습니다.</p><p class="text-sm text-text-secondary mt-2">이 앱을 사용하려면 권한이 필요합니다. 브라우저 설정을 확인해주세요.</p><div class="flex space-x-4 mt-4"><button id="retrySetup" class="px-6 py-2 font-semibold btn-secondary">다시 시도</button></div>`;
                     setupMessage.innerHTML = errorMessage;
-                    setupMessage.classList.remove('hidden');
-                    videoFeed.classList.add('hidden');
                     document.getElementById('retrySetup')?.addEventListener('click', setupCamera);
                 }
+            }
+
+            function handleVideoUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                isLiveMode = false;
+                const videoURL = URL.createObjectURL(file);
+                videoFeed.srcObject = null;
+                videoFeed.src = videoURL;
+                videoFeed.muted = false;
+
+                setupForAnalysis();
+
+                videoFeed.oncanplay = () => {
+                     if (!audioContext) { // Initialize audio context only once
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        analyser = audioContext.createAnalyser();
+                        try {
+                             source = audioContext.createMediaElementSource(videoFeed);
+                             source.connect(analyser);
+                             analyser.connect(audioContext.destination); // So user can hear the video
+                        } catch (e) {
+                            console.error("Error connecting audio source:", e);
+                            showNotification("오디오 분석을 시작할 수 없습니다.", true);
+                            return;
+                        }
+                        
+                        analyser.fftSize = 256;
+                        const bufferLength = analyser.frequencyBinCount;
+                        dataArray = new Uint8Array(bufferLength);
+                    }
+                }
+               
+                videoFeed.onloadedmetadata = () => {
+                    const motionCanvas = document.createElement('canvas');
+                    motionCanvas.width = videoFeed.videoWidth;
+                    motionCanvas.height = videoFeed.videoHeight;
+                    motionContext = motionCanvas.getContext('2d', { willReadFrequently: true });
+                };
+
+                videoFeed.onended = () => {
+                    if (!stopRehearsalBtn.classList.contains('hidden')) {
+                        stopAndAnalyze();
+                    }
+                };
             }
             
             function playTickSound() {
@@ -380,11 +438,13 @@
             function startPerformanceAnalysis() {
                 performanceData = { volume: [], motion: [] };
                 function analysisLoop() {
-                    analyser.getByteFrequencyData(dataArray);
-                    let sum = dataArray.reduce((a, b) => a + b, 0);
-                    performanceData.volume.push(sum / dataArray.length);
+                    if (analyser && dataArray) {
+                        analyser.getByteFrequencyData(dataArray);
+                        let sum = dataArray.reduce((a, b) => a + b, 0);
+                        performanceData.volume.push(sum / dataArray.length);
+                    }
 
-                    if (motionContext) {
+                    if (motionContext && videoFeed.readyState >= 2) {
                         motionContext.drawImage(videoFeed, 0, 0, motionContext.canvas.width, motionContext.canvas.height);
                         const currentImageData = motionContext.getImageData(0, 0, motionContext.canvas.width, motionContext.canvas.height).data;
                         if (lastImageData) {
@@ -394,7 +454,7 @@
                             }
                             performanceData.motion.push(diff / (currentImageData.length * 0.75));
                         }
-                        lastImageData = currentImageData;
+                        lastImageData = new Uint8ClampedArray(currentImageData);
                     }
                     analysisLoopId = requestAnimationFrame(analysisLoop);
                 }
@@ -408,35 +468,52 @@
 
             function startRehearsal() {
                  if (isTeleprompterPreviewing) {
-                     toggleTeleprompterPreview(); // Stop preview if it's running
+                     toggleTeleprompterPreview(); 
                  }
                 startRehearsalBtn.disabled = true;
-                let count = 10;
-                countdown.textContent = count;
-                countdown.classList.add('visible');
-                playTickSound();
-                const timer = setInterval(() => {
-                    count--;
-                    countdown.textContent = count > 0 ? count : '▶';
-                    if (count >= 0) playTickSound();
-                    
-                    if (count < 0) {
-                        clearInterval(timer);
-                        countdown.classList.remove('visible');
-                        startRehearsalBtn.classList.add('hidden');
-                        stopRehearsalBtn.classList.remove('hidden');
-                        scriptInput.disabled = true;
-                        contextInput.disabled = true;
-                        uploadBtn.disabled = true;
-                        if(teleprompterToggle.checked) startTeleprompterScroll(false); // false means it's the real deal, not a preview
-                        startPerformanceAnalysis();
-                        startRehearsalBtn.disabled = false;
+
+                const startTheShow = () => {
+                    if(!isLiveMode) {
+                        videoFeed.play();
+                        // Make sure audio context is resumed
+                        if (audioContext && audioContext.state === 'suspended') {
+                            audioContext.resume();
+                        }
                     }
-                }, 1000);
+                    startRehearsalBtn.classList.add('hidden');
+                    stopRehearsalBtn.classList.remove('hidden');
+                    scriptInput.disabled = true;
+                    contextInput.disabled = true;
+                    uploadBtn.disabled = true;
+                    if(teleprompterToggle.checked) startTeleprompterScroll(false);
+                    startPerformanceAnalysis();
+                    startRehearsalBtn.disabled = false;
+                }
+
+                if (isLiveMode) {
+                    let count = 10;
+                    countdown.textContent = count;
+                    countdown.classList.add('visible');
+                    playTickSound();
+                    const timer = setInterval(() => {
+                        count--;
+                        countdown.textContent = count > 0 ? count : '▶';
+                        if (count >= 0) playTickSound();
+                        
+                        if (count < 0) {
+                            clearInterval(timer);
+                            countdown.classList.remove('visible');
+                            startTheShow();
+                        }
+                    }, 1000);
+                } else {
+                    startTheShow();
+                }
             }
 
             async function stopAndAnalyze() {
                 stopPerformanceAnalysis();
+                if(!isLiveMode && videoFeed) videoFeed.pause();
                 rehearsalStage.classList.add('hidden');
                 loading.classList.remove('hidden');
                 
@@ -473,6 +550,13 @@
                 feedbackReport.innerHTML = '';
                 feedbackReport.classList.add('hidden');
                 rehearsalStage.classList.remove('hidden');
+                unifiedControls.classList.add('hidden');
+                controls.classList.add('hidden');
+                videoFeed.classList.add('hidden');
+                videoFeed.src = '';
+                videoFeed.srcObject = null;
+                setupMessage.classList.remove('hidden');
+
                 stopRehearsalBtn.classList.add('hidden');
                 startRehearsalBtn.classList.remove('hidden');
                 startRehearsalBtn.disabled = true;
@@ -482,20 +566,17 @@
                 scriptInput.value = '';
                 contextInput.value = '';
                 updateTeleprompterText();
+                isLiveMode = true;
+                 if (audioContext && audioContext.state !== 'closed') {
+                    audioContext.close();
+                }
+                audioContext = null;
             }
 
             async function getScriptAnalysis(script, context) {
                  const systemPrompt = `You are 'AcTi', a world-class acting coach, screenwriter, and director AI. Your analysis must be detailed, insightful, and professional, providing a sincere and deep guide for an actor. Analyze the script deeply and provide your insights in the specified JSON format. Your primary focus is on the writer's intent and the script's core elements.
-
-                **Analysis Sections:**
-                - **directorsView:** Provide a highly detailed, professional-grade analysis from a director's and writer's perspective, as if you were teaching a masterclass. Each section must be a thorough, multi-sentence paragraph.
-                  - **writerIntent**: Go beyond a simple summary. Analyze the *dramaturgical function* of the scene. What is its fundamental purpose in the narrative? What specific emotional journey is the audience meant to experience? What truth about the characters or the human condition is the writer trying to illuminate through this specific moment?
-                  - **coreTheme**: Identify the core themes (e.g., love, betrayal, regret, hope). Do not just list them. Explain *how* these themes are woven into the fabric of the scene through dialogue, subtext, actions, and symbolism. Discuss any recurring motifs or symbolic objects.
-                - **sceneOverview**:
-                  - For 'sceneFunction', provide a detailed paragraph. Explain the scene's purpose in the overall story, what it reveals about the characters, and how it moves the plot forward.
-                  - For 'conflictSummary', write a comprehensive paragraph describing the central conflict in detail.
                 
-                - **General**: ALL text output MUST be in Korean.`;
+                - **General**: ALL text output MUST be in Korean. Do not use any markdown formatting like **.`;
                 const userQuery = `Analyze this script and provide a deep analysis of its core components. Consider the following context provided by the actor:\n\n[Actor's Context]\n${context || '제공되지 않음'}\n\n[Script]\n---\n${script}\n---`;
                 const payload = {
                     contents: [{ parts: [{ text: userQuery }] }],
@@ -512,32 +593,41 @@
 
             async function getPerformanceAnalysis(script, context, performance, scriptAnalysis) {
                 const isScriptless = !script.trim();
-                const { mean: avgVolume, stdDev: volumeVariability } = analyzeData(performance.volume);
-                const { mean: avgMotion } = analyzeData(performance.motion);
-                const performanceSummary = `배우는 ${avgMotion > 0.5 ? '신체를 적극적으로 활용하는 동적인 연기' : '움직임을 절제하고 내면에 집중하는 정적인 연기'}를 선보였습니다. 음성 표현은 ${volumeVariability > 10 ? '감정의 기복을 드러내는 다이나믹한' : '차분하고 안정적인'} 톤을 유지했습니다.`;
+                const { mean: avgVolume, stdDev: volumeVariability, isSilent } = analyzeData(performance.volume);
+                const { mean: avgMotion, isStatic } = analyzeData(performance.motion);
+
+                let performanceSummary;
+                if (isSilent && isStatic) {
+                    performanceSummary = "[Performance Data] Voice: Inactive (Average Volume: Low). Motion: Inactive (Average Motion: Low). [Analysis Guideline] The actor remained still and silent throughout the performance. The analysis must be based on this fact. Do not invent actions or speech that did not occur.";
+                } else {
+                     performanceSummary = `[Performance Data] Voice: ${isSilent ? 'Mostly Inactive' : 'Active'}. Motion: ${isStatic ? 'Mostly Static' : 'Dynamic'}. [Analysis Guideline] The actor's performance was characterized by ${isStatic ? 'minimal movement' : 'physical engagement'} and ${isSilent ? 'periods of silence' : 'consistent vocal delivery'}.`;
+                }
                 
-                const systemPrompt = `당신은 세계 최고의 캐스팅 디렉터이자 연기 코치인 'AcTi'입니다. 당신의 분석은 업계에서 가장 통찰력 있고, 상세하며, 배우의 커리어를 바꿀 만큼 강력한 것으로 정평이 나 있습니다. 당신의 임무는 배우의 연기를 단순히 평가하는 것을 넘어, 마스터클래스 수준의 심층 분석을 통해 잠재력을 극대화하는 것입니다.
+                const systemPrompt = `You are 'AcTi', a world-class acting coach and casting director AI. Your analysis must be insightful, detailed, and grounded in the data provided.
 
-[중요 규칙]
-1.  **깊이와 분량:** 각 세부 항목에 대한 분석은 매우 풍부하고 구체적이어야 합니다.
-2.  **엄격한 형식 준수:** 모든 피드백은 반드시 '[문제] → [근거] → [제안]' 형식을 따라야 합니다. **모든** 상세 분석 항목('technicalControl', 'emotionalAuthenticity' 등)에 포함된 **모든** 피드백 객체에는 'category' 키가 **반드시** 포함되어야 합니다. 이 키의 값은 해당 피드백이 속하는 세부 평가 항목의 이름(예: '발성·호흡 안정성', '미세표정·뉘앙스')이어야 합니다.
-3.  **배우의 언어 사용:** "움직임 평균 0.21"과 같은 기술적 수치는 절대 노출하지 마십시오. 모든 데이터를 배우의 연기력에 대한 질적 평가로 완벽하게 번역하여 설명해야 합니다.
-4.  **전체 항목 분석:** 아래 5대 평가 축의 모든 세부 항목에 대해 상세한 분석을 제공해야 합니다. 누락은 절대 허용되지 않습니다.
-5.  **점수 규칙:** rubricScores의 score는 반드시 0, 1, 2, 3, 4, 5 중 하나의 정수여야 합니다.
+[Golden Rule]
+Your entire analysis MUST be a direct and logical consequence of the provided [Performance Data]. NEVER invent actions, speech, or emotions that are not supported by this data. If the data indicates silence and stillness, your analysis must reflect a performance of silence and stillness. Do not use the script to guess what the actor *might* have done. Analyze what they *actually* did based on the data. For example, if the data is "Voice: Inactive, Motion: Inactive", do NOT say "the actor's diction was clear" or "the subtle tension in their body was palpable". Instead, state that "the actor chose a completely static and silent delivery, which makes a detailed analysis of vocal and physical technique impossible".
 
-[5대 평가 축 및 18개 세부 항목]
-A. 기술(Voice/Body/Camera): 발성·호흡 안정성, 딕션 명확도, 페이싱·리듬, 자세·긴장도, 제스처 유효성, 시선 처리, 프레이밍 활용
-B. 감정의 진정성·표현력: 멀티모달 감정 일치도, 미세표정·뉘앙스, 감정 흐름·전환
-C. 해석·캐릭터 구현: 서브텍스트 구현, 목표/장애/행동, 비트 인지·전환
-D. 상호작용·듣기: 능동적 듣기, 리액션 타이밍, 무대 밖 순간 유지
-E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 적합도/확장성`;
+[Other Important Rules]
+1.  **Formatting:** ALL text output must be in Korean. Do NOT use any markdown formatting like **.
+2.  **Strict JSON Structure:** Every feedback object within the detailed breakdown arrays MUST include a 'category' key, specifying which sub-category it belongs to (e.g., '발성·호흡 안정성').
+3.  **Data Translation:** Do not mention technical data like "average motion 0.21". Translate all data into qualitative descriptions of performance.
+4.  **Complete Analysis:** Provide a detailed analysis for all required sections.
+5.  **Scoring:** All rubric scores must be an integer from 0 to 5.
 
-                const userPrompt = `사전에 분석된 아래 '대본 분석 결과'와 배우가 직접 입력한 '장면 상황 설명'을 바탕으로, 배우의 '퍼포먼스 데이터'를 심층적으로 분석하고, 5가지 핵심 기준과 지정된 출력 형식에 맞춰 '오디션 평가 시트'를 작성해주세요:\n\n[사전 대본 분석 결과]\n${JSON.stringify(scriptAnalysis)}\n\n[배우가 입력한 장면 상황 설명]\n${context || '제공되지 않음'}\n\n[배우 퍼포먼스 데이터 해석]\n${performanceSummary}`;
+[5 Evaluation Axes & Sub-categories]
+A. Technical (Voice/Body/Camera): 발성·호흡 안정성, 딕션 명확도, 페이싱·리듬, 자세·긴장도, 제스처 유효성, 시선 처리, 프레이밍 활용
+B. Emotional Authenticity: 멀티모달 감정 일치도, 미세표정·뉘앙스, 감정 흐름·전환
+C. Interpretation & Characterization: 서브텍스트 구현, 목표/장애/행동, 비트 인지·전환
+D. Interaction & Listening: 능동적 듣기, 리액션 타이밍, 무대 밖 순간 유지
+E. Overall Performance & Potential: 테이크 간 일관성 (추정), 캐스팅 적합도/확장성`;
+
+                const userPrompt = `Based on the pre-analyzed script, the actor's context, and the following performance data, generate a comprehensive audition evaluation sheet in the specified JSON format. Adhere strictly to all rules in the system prompt.\n\n[Pre-Analyzed Script]\n${JSON.stringify(scriptAnalysis)}\n\n[Actor's Context]\n${context || 'Not provided'}\n\n[Performance Data Interpretation]\n${performanceSummary}`;
                 
                 const feedbackFormat = { 
                     type: "OBJECT", 
                     properties: { 
-                        category: { type: "STRING", description: "예: 발성·호흡 안정성, 딕션 명확도 등 세부 평가 항목명" },
+                        category: { type: "STRING", description: "e.g., 발성·호흡 안정성, 딕션 명확도 etc." },
                         problem: { type: "STRING" }, 
                         evidence: { type: "STRING" }, 
                         suggestion: { type: "STRING" } 
@@ -792,22 +882,33 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
             }
 
             function analyzeData(data) {
-                if (!data || data.length < 2) return { mean: 0, stdDev: 0 };
+                if (!data || data.length < 2) return { mean: 0, stdDev: 0, isStatic: true, isSilent: true };
                 const mean = data.reduce((a, b) => a + b, 0) / data.length;
                 const stdDev = Math.sqrt(data.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b, 0) / data.length);
-                return { mean, stdDev };
+                const isStatic = mean < 0.1; 
+                const isSilent = mean < 1;
+                return { mean, stdDev, isStatic, isSilent };
             }
             
             async function handleFileUpload(file) {
+                if (file.type.startsWith('image/')) {
+                    await extractTextFromImage(file);
+                    return;
+                }
+
                 let text = '';
                 if (file.type === 'text/plain') {
                     text = await file.text();
+                    await processExtractedText(text);
                 } else if (file.name.endsWith('.srt')) {
                     const srtContent = await file.text();
                     text = srtContent.replace(/(^\d+$)|(\d{2}:\d{2}:\d{2},\d{3}\s+-->\s+\d{2}:\d{2}:\d{2},\d{3}$)|(<[^>]*>)/gm, '').replace(/^\s*[\r\n]/gm, '').trim();
+                    await processExtractedText(text);
                 } else if (file.type === 'application/pdf') {
                     const reader = new FileReader();
                     reader.onload = async (e) => {
+                        scriptInput.value = 'PDF 파일에서 텍스트를 추출하는 중...';
+                        reformatSpinner.classList.remove('hidden');
                         const typedarray = new Uint8Array(e.target.result);
                         const pdf = await pdfjsLib.getDocument(typedarray).promise;
                         let pdfText = '';
@@ -816,16 +917,55 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
                             const content = await page.getTextContent();
                             pdfText += content.items.map(item => item.str).join(' ');
                         }
-                        processExtractedText(pdfText);
+                        await processExtractedText(pdfText);
                     };
                     reader.readAsArrayBuffer(file);
-                    return;
                 } else { 
-                    showNotification('지원하지 않는 파일 형식입니다. (PDF, TXT, SRT)', true); 
-                    return; 
+                    showNotification('지원하지 않는 파일 형식입니다. (PDF, TXT, SRT, 이미지)', true); 
                 }
-                processExtractedText(text);
             }
+            
+            async function extractTextFromImage(file) {
+                scriptInput.value = '이미지에서 텍스트를 추출하는 중...';
+                reformatSpinner.classList.remove('hidden');
+                try {
+                    const base64Data = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+
+                    const payload = {
+                        contents: [{
+                            parts: [
+                                { text: "Extract text from this image. Respond only with the extracted text in Korean." },
+                                {
+                                    inlineData: {
+                                        mimeType: file.type,
+                                        data: base64Data
+                                    }
+                                }
+                            ]
+                        }]
+                    };
+                    
+                    const result = await callGeminiAPI(payload);
+                    if (result.candidates && result.candidates.length > 0) {
+                        const extractedText = result.candidates[0].content.parts[0].text;
+                        await processExtractedText(extractedText);
+                    } else {
+                        throw new Error("No text found in image.");
+                    }
+
+                } catch (error) {
+                    console.error("OCR Error:", error);
+                    showNotification('이미지에서 텍스트를 추출하는 데 실패했습니다.', true);
+                    scriptInput.value = ''; // Clear the textarea on failure
+                    reformatSpinner.classList.add('hidden');
+                }
+            }
+
 
             async function processExtractedText(text) {
                 scriptInput.value = 'AcTi가 대본을 재배열하는 중...';
@@ -908,7 +1048,9 @@ E. 종합 퍼포먼스·잠재력: 테이크 간 일관성 (추정), 캐스팅 �
             }
 
             // Event Listeners
-            startSetupBtn.addEventListener('click', setupCamera);
+            startLiveBtn.addEventListener('click', setupCamera);
+            uploadVideoBtn.addEventListener('click', () => videoFileInput.click());
+            videoFileInput.addEventListener('change', handleVideoUpload);
             startRehearsalBtn.addEventListener('click', startRehearsal);
             stopRehearsalBtn.addEventListener('click', stopAndAnalyze);
             
