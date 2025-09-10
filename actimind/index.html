@@ -344,7 +344,6 @@
             window.location.reload();
         });
         
-        // [MODIFIED] Clear 버튼 클릭 시 새로운 미션을 받아오도록 수정
         clearBtn.addEventListener('click', async () => {
             while (chatContainer.firstChild && chatContainer.firstChild !== typingIndicator) {
                 chatContainer.removeChild(chatContainer.firstChild);
@@ -354,7 +353,7 @@
             isConversationStarted = false;
             currentMode = 'chat';
             userInput.placeholder = "무엇이 널 가로막고 있지?";
-            await fetchAndSetNewMission(); // 새로운 미션 불러오기
+            await fetchAndSetNewMission(); 
         });
 
         saveBtn.addEventListener('click', () => {
@@ -485,10 +484,11 @@
             scriptTextarea.value = '';
         });
 
-        // [MODIFIED] 새로운 미션을 받아오는 함수 추가
+        // [MODIFIED] 새로운 미션을 받아오는 함수 수정
         async function fetchAndSetNewMission() {
             missionText.textContent = "새로운 미션을 구상 중...";
-            const missionPrompt = [{ text: "Master K로서, 배우가 오늘 하루 자신의 한계를 시험하고, 관성을 깨뜨릴 수 있는 구체적이고 실천 가능한 '오늘의 미션'을 하나 제시하라. 단순한 관찰이 아닌, '몸으로 직접 해보는' 미션이어야 한다." }];
+            // [BUG FIX] 미션의 길이가 길어지는 문제를 해결하기 위해, 프롬프트에 길이 제한을 명시합니다.
+            const missionPrompt = [{ text: "Master K로서, 배우가 오늘 하루 자신의 한계를 시험하고, 관성을 깨뜨릴 수 있는 구체적이고 실천 가능한 '오늘의 미션'을 하나 제시하라. 단순한 관찰이 아닌, '몸으로 직접 해보는' 미션이어야 한다. 가장 중요한 규칙: 미션은 반드시 1~2줄의 짧고 강렬한 문장이어야 한다." }];
             const newMission = await callGeminiAPI(missionPrompt);
             missionText.textContent = newMission;
         }
