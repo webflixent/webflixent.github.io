@@ -190,13 +190,15 @@
                  </div>
             </div>
     
-            <div class="flex items-center bg-gray-100 rounded-lg border border-gray-300">
-                <input type="text" id="user-input" class="flex-1 bg-transparent placeholder-gray-500 px-4 py-3 focus:outline-none" placeholder="">
-                 <label for="file-upload" class="p-3 cursor-pointer hover:bg-gray-200 rounded-full">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.49"></path></svg>
-                </label>
-                <input type="file" id="file-upload" class="hidden">
-                <button id="send-btn" class="bg-indigo-800 hover:bg-indigo-900 text-white font-bold px-6 py-3 rounded-r-lg transition-colors">전송</button>
+            <div class="flex items-center gap-2">
+                <div class="relative flex-1">
+                    <input type="text" id="user-input" class="w-full bg-gray-100 placeholder-gray-500 pl-4 pr-12 py-3 focus:outline-none border border-gray-300 rounded-lg" placeholder="">
+                    <label for="file-upload" class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer hover:opacity-75">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.49"></path></svg>
+                    </label>
+                    <input type="file" id="file-upload" class="hidden">
+                </div>
+                <button id="send-btn" class="bg-indigo-800 hover:bg-indigo-900 text-white font-bold px-5 py-3 rounded-lg transition-colors flex-shrink-0">전송</button>
             </div>
         </div>
         
@@ -699,6 +701,7 @@
 
 </body>
 </html>
+
 
 
 
