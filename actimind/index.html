@@ -28,6 +28,7 @@
             height: 100vh; 
             height: var(--app-height, 100vh);
             width: 100vw;
+            position: relative;
         }
         @media (min-width: 640px) {
             .app-container {
@@ -37,6 +38,7 @@
                 border-radius: 1rem;
                 box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
                 border: 1px solid #e5e7eb;
+                overflow: hidden;
             }
         }
         #chat-container::-webkit-scrollbar {
@@ -83,11 +85,42 @@
             background-color: #F3F4F6;
             border-color: #9CA3AF;
         }
+        .modal {
+            display: none;
+            position: absolute;
+            z-index: 50;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.flex {
+            display: flex;
+        }
         .modal-content {
             background-color: #FFFFFF;
+            padding: 2rem;
+            border: 1px solid #e5e7eb;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 0.75rem;
+            position: relative;
         }
         .close-btn {
             color: #6B7280;
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #000;
         }
     </style>
 </head>
@@ -119,7 +152,7 @@
         </div>
 
 
-        <div id="chat-container" class="flex-1 overflow-y-auto p-4 bg-gray-100 flex flex-col gap-4">
+        <div id="chat-container" class="flex-1 min-h-0 overflow-y-auto p-4 bg-gray-100 flex flex-col gap-4">
             <div id="typing-indicator" class="typing-indicator">
                 <span class="dot"></span><span class="dot"></span><span class="dot"></span>
             </div>
@@ -129,35 +162,34 @@
             <div class="mb-4 p-3 bg-white rounded-lg border border-gray-200">
                  <h3 class="text-sm font-bold text-gray-500 mb-2 text-center">집중 훈련</h3>
                  <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                     <button id="emotion-dive-btn" class="training-btn py-2 rounded-lg text-sm">🎭 감정의 심연</button>
-                     <button id="character-interview-btn" class="training-btn py-2 rounded-lg text-sm">🎙️ 인물의 가면</button>
-                     <button id="script-talk-btn" class="training-btn py-2 rounded-lg text-sm">📄 대본 토크</button>
-                     <button id="improvisation-btn" class="training-btn py-2 rounded-lg text-sm">🏃‍♂️ 즉흥 연기</button>
+                      <button id="emotion-dive-btn" class="training-btn py-2 rounded-lg text-sm">🎭 감정의 심연</button>
+                      <button id="character-interview-btn" class="training-btn py-2 rounded-lg text-sm">🎙️ 인물의 가면</button>
+                      <button id="script-talk-btn" class="training-btn py-2 rounded-lg text-sm">📄 대본 토크</button>
+                      <button id="improvisation-btn" class="training-btn py-2 rounded-lg text-sm">🏃‍♂️ 즉흥 연기</button>
                  </div>
             </div>
     
             <div class="flex items-center bg-gray-100 rounded-lg border border-gray-300">
-                <input type="text" id="user-input" class="flex-1 bg-transparent placeholder-gray-500 px-4 py-3 focus:outline-none">
+                <input type="text" id="user-input" class="flex-1 bg-transparent placeholder-gray-500 px-4 py-3 focus:outline-none" placeholder="">
                  <label for="file-upload" class="p-3 cursor-pointer hover:bg-gray-200 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.49"></path></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.49"></path></svg>
                 </label>
                 <input type="file" id="file-upload" class="hidden">
                 <button id="send-btn" class="bg-indigo-800 hover:bg-indigo-900 text-white font-bold px-6 py-3 rounded-r-lg transition-colors">전송</button>
             </div>
         </div>
-    </div>
-
-    <!-- Script Talk Modal -->
-    <div id="script-modal" class="modal">
-        <div class="modal-content border border-gray-300">
-            <span id="close-modal-btn" class="close-btn">&times;</span>
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-indigo-900">대본 토크</h2>
-            </div>
-            <p class="text-gray-600 mb-4">대본을 텍스트로 붙여넣거나, 메인 화면의 클립(📎) 아이콘을 눌러 <strong>대본을 찍은 이미지 파일</strong>을 올려라.</p>
-            <textarea id="script-textarea" class="w-full h-64 bg-gray-100 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-300" placeholder="이곳에 대본을 입력..."></textarea>
-            <div class="mt-6 flex justify-end">
-                <button id="start-talk-btn" class="bg-indigo-800 hover:bg-indigo-900 text-white font-bold py-2 px-6 rounded-lg transition-colors">토크 시작</button>
+        
+        <div id="script-modal" class="modal">
+            <div class="modal-content">
+                <span id="close-modal-btn" class="close-btn">&times;</span>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-indigo-900">대본 토크</h2>
+                </div>
+                <p class="text-gray-600 mb-4">대본을 텍스트로 붙여넣거나, 메인 화면의 클립(📎) 아이콘을 눌러 <strong>대본을 찍은 이미지 파일</strong>을 올려라.</p>
+                <textarea id="script-textarea" class="w-full h-64 bg-gray-100 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 border border-gray-300" placeholder="이곳에 대본을 입력..."></textarea>
+                <div class="mt-6 flex justify-end">
+                    <button id="start-talk-btn" class="bg-indigo-800 hover:bg-indigo-900 text-white font-bold py-2 px-6 rounded-lg transition-colors">토크 시작</button>
+                </div>
             </div>
         </div>
     </div>
@@ -198,15 +230,58 @@
         let currentMode = 'chat';
         let characterName = '';
         let isConversationStarted = false;
+        
+        // State variables for script analysis context
+        let currentScript = '';
+        let uploadedImageParts = null;
 
         const systemPrompt = `
-# 페르소나: Master K
-(이하 생략...)
+# 페르소나: Master K (마인드 코치)
+
+## 1. 나의 정체성
+너는 'Master K', 세계적인 영화감독이자 배우들의 잠재력을 극한으로 끌어내는 마인드 코치다. 너의 목적은 정답을 알려주는 것이 아니다. 배우 스스로가 자신의 내면을 깊이 파고들어, 연기의 본질과 자신의 한계를 깨닫게 만드는 '거울'이 되는 것이다.
+
+## 2. 대화의 원칙
+- **질문으로 길을 열어라:** 너의 역할은 정답을 주는 게 아니라, 배우가 스스로 답을 찾도록 '생각의 길'을 여는 질문을 던지는 것이다. 대화는 탁구처럼, 짧은 랠리로 이어져야 한다.
+- **이면의 심리를 포착하라:** 배우의 말, 그 너머의 불안, 회피, 자기방어, 진짜 욕망을 포착하라. 그리고 그 지점을 향해 질문을 던져라. "그 말, 정말 자신에게 하는 말인가?"
+- **도발하되, 존중을 잃지 마라:** 때로는 배우의 안일함을 깨기 위해 도발적인 질문을 던질 수 있다. 하지만 이것은 배우를 무너뜨리기 위함이 아닌, 더 단단하게 만들기 위한 것이다. 취조가 아닌, 성장을 위한 자극이어야 한다.
+    - (X) 나쁜 예: "그래서?" "어쩌라고?" -> 이런 무의미하고 공격적인 질문은 금지.
+    - (O) 좋은 예: "'가봐야 안다'는 말은, 미지의 상황에 대한 통제권을 포기하겠다는 뜻인가?" -> 배우의 태도에 대해 생각하게 만드는 질문.
+- **스스로 답을 찾게 하라:** 너는 방향만 제시할 뿐, 걷는 것은 배우의 몫이다. 정답을 알려주고 싶은 유혹을 참고, 배우가 스스로의 입으로 결론을 내리게 만들어라.
+
+## 3. 배우의 질문에 대한 원칙
+- 배우가 너에게 직접적인 질문을 던지더라도(예: "이 인물은 왜 이렇게 행동할까요?"), 절대 직접적인 정답이나 정보를 주지 마라.
+- 대신, 그 질문을 배우에게 되돌려줘라. 그 질문의 근원을 파고들거나, 답을 스스로 찾도록 유도하는 더 깊은 질문을 던져라.
+    - (User) "이 인물은 왜 슬픈 걸까요?"
+    - (Bad AI) "그 인물은 과거의 상처 때문에 슬픈 거야."
+    - (Good AI) "좋은 질문이군. **너는** 왜 그가 슬프다고 생각하지? 대본의 어떤 지점이 널 그 생각으로 이끌었나?"
+
+## 4. 화법 (Speech Style)
+- **날카롭지만, 공허하지 않게:** 너의 말은 날카롭고 직설적이다. 하지만 모든 단어에는 배우의 성장을 돕겠다는 명확한 의도가 담겨있어야 한다. 현장의 감독처럼, 군더더기 없이 핵심을 찔러라.
+- **군더더기를 제거하라:** 배우가 한 말을 그대로 되풀이하거나, "알겠다", "그렇군" 같은 불필요한 확인 과정을 거치지 마라. 정보가 파악되면, 즉시 다음 단계의 핵심 질문으로 넘어가라.
+- **반말 사용:** 배우를 제자처럼 대하며, 일관되게 반말을 사용한다.
+- **통제된 객관성:** 너는 감정에 휘둘리지 않는다. 하지만 배우의 감정 상태를 정확히 인지하고, 그 감정을 연기의 재료로 쓸 수 있도록 이끌어준다. "그 불안, 버리려 하지 말고 똑바로 봐. 그 안에 뭐가 보이지?"
+
+## 5. 유일한 목표
+너의 모든 대화는 배우의 '자기객관화'와 '성장'이라는 단 하나의 목표를 향해야 한다. 배우가 자신의 연기를, 그리고 자기 자신을 이전과는 다른 눈으로 보게 만들어라.
 `;
         
         const scriptAnalysisSystemPrompt = `
 # 페르소나: Master K (대본 분석 모드)
-(이하 생략...)
+
+## 1. 나의 정체성
+너는 'Master K'의 대본 분석 모드다. 너의 눈은 카메라 렌즈이자, 관객의 심장이다. 분석은 일방적 강의가 아닌, 배우와의 스파링이다. 너의 질문은 배우의 생각을 자극하는 잽과 같다.
+
+## 2. 대본 분석 원칙: 상황부터 파악하라
+- **1단계: 상황 파악 (Context):** 가장 먼저, 이 대본이 놓인 '상황'부터 파악한다. 배우가 왜 이 대본을 가져왔는지 질문하라. (예: "이 대본, 어디에 쓸 거지? 오디션인가, 작품의 일부인가?") 이 정보에 따라 너의 코칭 방향이 달라져야 한다.
+- **2단계: 인물 탐구 (Character):** 상황이 파악되면, 인물의 본질로 파고든다. 인물의 핵심적인 욕망, 결핍, 숨겨진 진실을 꿰뚫는 질문으로 시작하라. ("오디션이라. 좋아. 그럼 이 대본에서 네가 보여주려는 인물은 누구지?")
+- **3단계: 동기 분석 (WHY):** 그 다음, 그 행동과 대사가 '왜' 나오는지 집요하게 파고든다. 인물의 숨겨진 욕망, 결핍, 관계의 역학을 질문을 통해 드러나게 하라. ("왜 하필 지금 그 말을 할까?" "그 행동으로 정말 얻고 싶은 게 뭐지?")
+- **4단계: 존재의 방식 (HOW):** 마지막으로, 배우가 인물 그 자체가 되도록 유도한다. ("그래서 너라면, 이 인물로서 이 순간을 어떻게 살아내겠는가?" "그 말을 뱉는 순간, 너의 세상은 어떻게 변하지?")
+
+## 3. 대화의 원칙
+- 위의 분석 원칙에 따라 대화를 진행한다. 배우가 길을 잃을 때만, 핵심을 찌르는 한두 문장의 힌트를 던져준다.
+- 배우의 답변이 표면적이라고 판단되면, 더 깊은 본질을 향한 질문을 던져라.
+- **군더더기를 제거하라:** 배우가 한 말을 그대로 되풀이하거나, "알겠다", "그렇군" 같은 불필요한 확인 과정을 거치지 마라. 정보가 파악되면, 즉시 다음 단계의 핵심 질문으로 넘어가라.
 `;
         
         function fileToBase64(file) {
@@ -218,44 +293,63 @@
             });
         }
         
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
         async function callGeminiAPI(parts, useScriptAnalysisPrompt = false) {
-            const API_KEY = "AIzaSyBbEsfDqt5ojPAJoo70Nozro4LacKk__4k";
+            const API_KEY = ""; // NOTE: API key is intentionally left blank.
             const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
             
-            try {
-                const contentParts = Array.isArray(parts) ? parts : [{ text: parts }];
-                const currentSystemPrompt = useScriptAnalysisPrompt ? scriptAnalysisSystemPrompt : systemPrompt;
+            let attempt = 0;
+            const maxRetries = 4;
+            let delay = 1000;
 
-                const payload = {
-                    contents: [{ role: "user", parts: contentParts }],
-                    systemInstruction: {
-                        parts: [{ text: currentSystemPrompt }]
-                    },
-                };
+            while (attempt < maxRetries) {
+                try {
+                    const contentParts = Array.isArray(parts) ? parts : [{ text: parts }];
+                    const currentSystemPrompt = useScriptAnalysisPrompt ? scriptAnalysisSystemPrompt : systemPrompt;
 
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                    const payload = {
+                        contents: [{ role: "user", parts: contentParts }],
+                        systemInstruction: {
+                            parts: [{ text: currentSystemPrompt }]
+                        },
+                    };
 
-                if (!response.ok) {
-                    const errText = await response.text();
-                    throw new Error(`API 응답 오류: ${response.status} - ${errText}`);
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.status === 503) {
+                        throw new Error('503 Service Unavailable'); 
+                    }
+
+                    if (!response.ok) {
+                        const errText = await response.text();
+                        throw new Error(`API 응답 오류: ${response.status} - ${errText}`);
+                    }
+                    
+                    const result = await response.json();
+                    
+                    const candidateText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (candidateText) {
+                        return candidateText.replace(/\*\*/g, '');
+                    } else {
+                        return "AI로부터 유효한 답변을 받지 못했다. 응답 구조를 확인해라.";
+                    }
+                } catch (error) {
+                    attempt++;
+                    if (error.message.includes('503') && attempt < maxRetries) {
+                        await sleep(delay);
+                        delay *= 2; 
+                    } else {
+                        console.error("API 호출 중 치명적인 오류 발생:", error);
+                        return "네트워크 연결이 불안정하거나 AI 모델에 문제가 발생했다.";
+                    }
                 }
-                
-                const result = await response.json();
-                
-                const candidateText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (candidateText) {
-                    return candidateText.replace(/\*\*/g, '');
-                } else {
-                     return "AI로부터 유효한 답변을 받지 못했다. 응답 구조를 확인해라.";
-                }
-            } catch (error) {
-                console.error("API 호출 중 치명적인 오류 발생:", error);
-                return "네트워크 연결이 불안정하거나, API 키에 문제가 있는 것 같다.";
             }
+            return "AI 모델이 현재 과부하 상태다. 잠시 후에 다시 시도해봐라.";
         }
         
         function addMessage(text, sender) {
@@ -304,27 +398,54 @@
             let aiText = '';
             
             switch (currentMode) {
-                 case 'scriptAnalysis_ongoing':
-                 case 'characterInterview_ongoing':
+                case 'scriptAnalysis_ongoing':
+                    if (text.toLowerCase() === "종료") {
+                        aiText = "오늘은 여기까지. 언제든 다시 돌아와 너의 한계에 도전해라.";
+                        currentMode = 'chat';
+                        currentScript = '';
+                        uploadedImageParts = null;
+                        characterName = '';
+                        userInput.placeholder = "";
+                        aiText = await callGeminiAPI([{ text: aiText }]); 
+                    } else {
+                        let promptParts = [];
+                        const useScriptPrompt = true;
+
+                        if (currentScript) { // Text-based script analysis
+                            const nextQuestionPrompt = `---분석할 대본---\n${currentScript}\n---대본 끝---\n\n(대본 분석 중) 위 대본에 대해 배우가 방금 '${text}'라고 답했다. 네 페르소나와 분석 원칙에 따라, 다음 단계로 넘어가거나 현재 단계를 더 깊이 파고드는 질문을 던져.`;
+                            promptParts.push({ text: nextQuestionPrompt });
+                        } else if (uploadedImageParts) { // Image-based script analysis
+                            const nextQuestionPrompt = `(대본 분석 중) 이 이미지 속 대본에 대해 배우가 방금 '${text}'라고 답했다. 이미지 내용을 다시 참조하여, 네 페르소나와 분석 원칙에 따라 다음 질문을 던져.`;
+                            promptParts.push({ text: nextQuestionPrompt });
+                            promptParts.push(uploadedImageParts);
+                        } else {
+                            // Fallback if state is broken
+                            aiText = "분석할 대본 정보가 사라졌다. 다시 시작해줘.";
+                            break;
+                        }
+                        aiText = await callGeminiAPI(promptParts, useScriptPrompt);
+                    }
+                    break;
+                case 'characterInterview_ongoing':
                     if (text.toLowerCase() === "종료") {
                         aiText = "오늘은 여기까지. 언제든 다시 돌아와 너의 한계에 도전해라.";
                         currentMode = 'chat';
                         characterName = '';
-                        userInput.placeholder = "무엇이 널 가로막고 있지?";
-                        aiText = await callGeminiAPI([{ text: aiText }]); 
+                        currentScript = '';
+                        uploadedImageParts = null;
+                        userInput.placeholder = "";
+                        aiText = await callGeminiAPI([{ text: aiText }]);
                     } else {
-                         const useScriptPrompt = currentMode === 'scriptAnalysis_ongoing';
-                         const nextQuestionPrompt = useScriptPrompt
-                            ? `(대본 분석 중) 배우가 방금 '${text}'라고 답했다. 분석 3단계 원칙에 따라, 다음 단계로 넘어가거나 현재 단계를 더 깊이 파고드는 질문을 던져.`
-                            : `('${characterName}' 인터뷰 중) 배우가 방금 '${text}'라고 답했다. 그 답변의 위선을 파고드는 다음 질문을 던져.`;
-                        aiText = await callGeminiAPI([{ text: nextQuestionPrompt }], useScriptPrompt);
+                        const nextQuestionPrompt = `('${characterName || text}' 인터뷰 중) 배우가 방금 '${text}'라고 답했다. 그 답변의 위선을 파고드는 다음 질문을 던져.`;
+                        if (!characterName) characterName = text;
+                        aiText = await callGeminiAPI([{ text: nextQuestionPrompt }]);
                     }
                     break;
                 
-                case 'chat':
-                default:
-                    aiText = await callGeminiAPI([{ text: text }]);
-                    break;
+                 case 'chat':
+                 default:
+                     aiText = await callGeminiAPI([{ text: text }]);
+                     break;
             }
 
             typingIndicator.style.display = 'none';
@@ -336,7 +457,6 @@
         userInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault(); 
-                handleSend();
             }
         });
 
@@ -351,24 +471,48 @@
             addMessage("무엇이 널, 이곳까지 오게 했지?", 'ai');
             missionContainer.style.display = 'block';
             isConversationStarted = false;
+            
+            // Fully reset state
             currentMode = 'chat';
-            userInput.placeholder = "무엇이 널 가로막고 있지?";
+            currentScript = '';
+            uploadedImageParts = null;
+            characterName = '';
+
+            userInput.placeholder = "";
             await fetchAndSetNewMission(); 
         });
 
         saveBtn.addEventListener('click', () => {
-            addMessage("대화 내용이 곧 이미지로 저장됩니다.", "ai");
-            html2canvas(chatContainer, {
-                backgroundColor: '#F3F4F6', 
-                onclone: (doc, el) => {
-                    el.style.padding = '1.5rem';
-                }
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `actors-mind-coach-${new Date().toISOString().slice(0,10)}.jpg`;
-                link.href = canvas.toDataURL('image/jpeg', 0.95);
-                link.click();
-            });
+            const tempMessageWrapper = document.createElement('div');
+            tempMessageWrapper.className = 'chat-bubble-wrapper justify-start';
+            const tempMessageBubble = document.createElement('div');
+            tempMessageBubble.className = 'chat-bubble chat-bubble-ai';
+            tempMessageBubble.textContent = "대화 내용이 곧 이미지로 저장됩니다...";
+            tempMessageWrapper.appendChild(tempMessageBubble);
+            chatContainer.insertBefore(tempMessageWrapper, typingIndicator);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            setTimeout(() => {
+                html2canvas(chatContainer, {
+                    backgroundColor: '#F3F4F6', 
+                    onclone: (doc, el) => {
+                        el.style.padding = '1.5rem';
+                        const clonedTempWrapper = el.querySelector('.chat-bubble-wrapper:last-of-type');
+                         if (clonedTempWrapper && clonedTempWrapper.textContent.includes("이미지로 저장됩니다")) {
+                            clonedTempWrapper.remove();
+                        }
+                    }
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `actors-mind-coach-${new Date().toISOString().slice(0,10)}.jpg`;
+                    link.href = canvas.toDataURL('image/jpeg', 0.95);
+                    link.click();
+                    
+                    if(tempMessageWrapper) {
+                       tempMessageWrapper.remove();
+                    }
+                });
+            }, 100);
         });
 
         emotionDiveBtn.addEventListener('click', async () => {
@@ -391,7 +535,8 @@
             typingIndicator.style.display = 'none';
             addMessage(response, 'ai');
             currentMode = 'characterInterview_ongoing'; 
-            userInput.placeholder = "캐릭터의 이름을 말해.";
+            characterName = '';
+            userInput.placeholder = "캐릭터의 이름을 말해. ('종료' 입력)";
             userInput.focus();
         });
         
@@ -428,9 +573,13 @@
                     typingIndicator.style.display = 'flex';
                     const base64Data = await fileToBase64(file);
                     const parts = [
-                        { text: "이 이미지는 배우가 분석을 원하는 대본이다. 이미지 속 텍스트를 인식하여 대본의 내용을 파악한 뒤, '대본 분석 3단계 원칙'의 1단계(WHAT)에 해당하는 첫 질문을 던져라. 대본 토크를 시작한다." },
+                        { text: "이 이미지는 배우가 분석을 원하는 대본이다. Master K로서, 이 대본을 처음 받아 든 배우에게, **이 대본이 어떤 상황에 쓰일 것인지(오디션, 작품 등) 묻는 첫 질문**을 던져라. 분석은 배우의 '상황'을 이해하는 것에서 시작되어야 한다." },
                         { inlineData: { mimeType: file.type, data: base64Data } }
                     ];
+
+                    currentScript = ''; // Reset text script
+                    uploadedImageParts = { inlineData: { mimeType: file.type, data: base64Data } }; // Store image data
+
                     const aiResponse = await callGeminiAPI(parts, true);
                     typingIndicator.style.display = 'none';
                     addMessage(aiResponse, 'ai');
@@ -449,11 +598,10 @@
         });
 
         function openModal() {
-            scriptModal.style.display = "block";
-            scriptTextarea.focus();
+            scriptModal.classList.add('flex');
         }
         function closeModal() {
-            scriptModal.style.display = "none";
+            scriptModal.classList.remove('flex');
         }
         scriptTalkBtn.addEventListener('click', openModal);
         closeModalBtn.addEventListener('click', closeModal);
@@ -472,10 +620,12 @@
                 return;
             }
             
+            currentScript = script; // Store the script
+            uploadedImageParts = null; // Reset image data
+
             closeModal();
-            addMessage("[대본을 전송했다]", 'user');
             typingIndicator.style.display = 'flex';
-            const prompt = `다음은 배우가 분석을 원하는 대본이다. \n\n---대본 시작---\n${script}\n---대본 종료---\n\nMaster K로서, '대본 분석 3단계 원칙'의 1단계(WHAT)에 해당하는 첫 질문을 던져라. 대본 토크를 시작한다.`;
+            const prompt = `다음은 배우가 분석을 원하는 대본이다. \n\n---대본 시작---\n${script}\n---대본 종료---\n\nMaster K로서, 이 대본을 처음 받아 든 배우에게, **이 대본이 어떤 상황에 쓰일 것인지(오디션, 작품 등) 묻는 첫 질문**을 던져라. 분석은 배우의 '상황'을 이해하는 것에서 시작되어야 한다.`;
             const aiResponse = await callGeminiAPI([{ text: prompt }], true);
             typingIndicator.style.display = 'none';
             addMessage(aiResponse, 'ai');
@@ -484,10 +634,8 @@
             scriptTextarea.value = '';
         });
 
-        // [MODIFIED] 새로운 미션을 받아오는 함수 수정
         async function fetchAndSetNewMission() {
             missionText.textContent = "새로운 미션을 구상 중...";
-            // [BUG FIX] 미션의 길이가 길어지는 문제를 해결하기 위해, 프롬프트에 길이 제한을 명시합니다.
             const missionPrompt = [{ text: "Master K로서, 배우가 오늘 하루 자신의 한계를 시험하고, 관성을 깨뜨릴 수 있는 구체적이고 실천 가능한 '오늘의 미션'을 하나 제시하라. 단순한 관찰이 아닌, '몸으로 직접 해보는' 미션이어야 한다. 가장 중요한 규칙: 미션은 반드시 1~2줄의 짧고 강렬한 문장이어야 한다." }];
             const newMission = await callGeminiAPI(missionPrompt);
             missionText.textContent = newMission;
@@ -495,14 +643,12 @@
 
         window.addEventListener('load', async () => {
             controlBar.style.display = 'flex';
-            userInput.placeholder = "무엇이 널 가로막고 있지?";
-            typingIndicator.style.display = 'flex';
+            userInput.placeholder = "";
             
-            const greeting = await callGeminiAPI([{ text: "Master K로서, 당신의 스튜디오에 처음 들어선 배우에게 던지는 첫 마디. 그들의 각오를 시험하고, 이곳이 평범한 곳이 아님을 직감하게 만드는 한 문장." }]);
-            await fetchAndSetNewMission();
-
-            typingIndicator.style.display = 'none';
+            const greeting = "무엇이 널, 이곳까지 오게 했지?";
             addMessage(greeting, 'ai');
+            
+            await fetchAndSetNewMission();
         });
     })();
     </script>
