@@ -276,18 +276,23 @@
         const startTalkBtn = document.getElementById('start-talk-btn');
         const fileUploadInput = document.getElementById('file-upload');
         
-        // Mode buttons
         const actorModeBtn = document.getElementById('actor-mode-btn');
         const lifeModeBtn = document.getElementById('life-mode-btn');
         const choiceModeBtn = document.getElementById('choice-mode-btn');
 
-        let currentMode = 'chat'; // Legacy mode for specific trainings
-        let chatMode = 'actor'; // 'actor', 'life', 'choice'
-        let characterName = '';
-        let isConversationStarted = false;
+        let currentMode = 'chat'; 
+        let chatMode = 'actor'; 
+        let isConversationStarted = false; 
+        
+        let chatHistories = {
+            actor: [],
+            life: [],
+            choice: []
+        };
         
         let currentScript = '';
         let uploadedImageParts = null;
+        let characterName = '';
 
         const actorSystemPrompt = `
 # 페르소나: Master K (마인드 코치 - 배우 마인드 모드)
@@ -427,7 +432,7 @@
             return "AI 모델이 현재 과부하 상태다. 잠시 후에 다시 시도해봐라.";
         }
         
-        function addMessage(text, sender) {
+        function addMessage(text, sender, addToHistory = true) {
             const wrapper = document.createElement('div');
             wrapper.className = `chat-bubble-wrapper ${sender === 'ai' ? 'justify-start' : 'justify-end'}`;
 
@@ -438,9 +443,13 @@
             wrapper.appendChild(bubble);
             chatContainer.insertBefore(wrapper, typingIndicator);
             chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            if(addToHistory) {
+                chatHistories[chatMode].push({ type: 'text', text, sender });
+            }
         }
 
-        function addImageMessage(imageDataUrl) {
+        function addImageMessage(imageDataUrl, addToHistory = true) {
             const wrapper = document.createElement('div');
             wrapper.className = 'chat-bubble-wrapper justify-end';
 
@@ -451,9 +460,14 @@
             wrapper.appendChild(img);
             chatContainer.insertBefore(wrapper, typingIndicator);
             chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            if(addToHistory) {
+                chatHistories[chatMode].push({ type: 'image', data: imageDataUrl, sender: 'user' });
+            }
         }
 
         function checkConversationStart() {
+            // This logic might need adjustment with persistent chat
             if (!isConversationStarted) {
                 missionContainer.style.display = 'none';
                 isConversationStarted = true;
@@ -465,44 +479,53 @@
 
             chatMode = newMode;
             
-            // Update button styles
             [actorModeBtn, lifeModeBtn, choiceModeBtn].forEach(btn => {
                 btn.classList.remove('mode-btn-active');
             });
             document.getElementById(`${newMode}-mode-btn`).classList.add('mode-btn-active');
 
-            // Clear chat and reset state
             while (chatContainer.firstChild && chatContainer.firstChild !== typingIndicator) {
                 chatContainer.removeChild(chatContainer.firstChild);
             }
             
+            if (chatHistories[newMode].length > 0) {
+                chatHistories[newMode].forEach(msg => {
+                    if (msg.type === 'image') {
+                        addImageMessage(msg.data, false);
+                    } else {
+                        addMessage(msg.text, msg.sender, false);
+                    }
+                });
+                missionContainer.style.display = (newMode === 'actor' && chatHistories[newMode].length <= 2) ? 'block' : 'none';
+
+            } else {
+                typingIndicator.style.display = 'flex';
+                let welcomeMessage = "";
+                switch(newMode) {
+                    case 'actor':
+                        welcomeMessage = "무엇이 널, 이곳까지 오게 했지?";
+                        missionContainer.style.display = 'block';
+                        isConversationStarted = false;
+                        await fetchAndSetNewMission();
+                        break;
+                    case 'life':
+                        welcomeMessage = "그래, 이번엔 어떤 삶의 매듭을 풀어볼까?";
+                        missionContainer.style.display = 'none';
+                        break;
+                    case 'choice':
+                        welcomeMessage = "선택의 기로에 섰나. 좋아. 어떤 선택지 사이에 서있지?";
+                        missionContainer.style.display = 'none';
+                        break;
+                }
+                typingIndicator.style.display = 'none';
+                addMessage(welcomeMessage, 'ai');
+            }
+
             currentMode = 'chat';
             currentScript = '';
             uploadedImageParts = null;
             characterName = '';
             userInput.placeholder = "";
-            missionContainer.style.display = 'none';
-            isConversationStarted = true;
-
-            typingIndicator.style.display = 'flex';
-
-            let welcomeMessage = "";
-            switch(newMode) {
-                case 'actor':
-                    welcomeMessage = "무엇이 널, 이곳까지 오게 했지?";
-                    missionContainer.style.display = 'block';
-                    await fetchAndSetNewMission();
-                    break;
-                case 'life':
-                    welcomeMessage = "그래, 이번엔 어떤 삶의 매듭을 풀어볼까?";
-                    break;
-                case 'choice':
-                    welcomeMessage = "선택의 기로에 섰나. 좋아. 어떤 선택지 사이에 서있지?";
-                    break;
-            }
-            
-            typingIndicator.style.display = 'none';
-            addMessage(welcomeMessage, 'ai');
         }
 
         actorModeBtn.addEventListener('click', () => switchMode('actor'));
@@ -525,16 +548,16 @@
                 case 'scriptAnalysis_ongoing':
                     if (text.toLowerCase() === "종료") {
                         aiText = "오늘은 여기까지. 언제든 다시 돌아와 너의 한계에 도전해라.";
-                        await switchMode('actor'); // Revert to actor mode after finishing
-                        addMessage(aiText, 'ai'); // Add message after switching
+                        addMessage(aiText, 'ai');
+                        await switchMode('actor'); 
                         typingIndicator.style.display = 'none';
                         return;
                     } else {
                         let promptParts = [];
-                        if (currentScript) { // Text-based script analysis
+                        if (currentScript) { 
                             const nextQuestionPrompt = `---분석할 대본---\n${currentScript}\n---대본 끝---\n\n(대본 분석 중) 위 대본에 대해 배우가 방금 '${text}'라고 답했다. 네 페르소나와 분석 원칙에 따라, 다음 단계로 넘어가거나 현재 단계를 더 깊이 파고드는 질문을 던져.`;
                             promptParts.push({ text: nextQuestionPrompt });
-                        } else if (uploadedImageParts) { // Image-based script analysis
+                        } else if (uploadedImageParts) { 
                             const nextQuestionPrompt = `(대본 분석 중) 이 이미지 속 대본에 대해 배우가 방금 '${text}'라고 답했다. 이미지 내용을 다시 참조하여, 네 페르소나와 분석 원칙에 따라 다음 질문을 던져.`;
                             promptParts.push({ text: nextQuestionPrompt });
                             promptParts.push(uploadedImageParts);
@@ -548,8 +571,8 @@
                 case 'characterInterview_ongoing':
                     if (text.toLowerCase() === "종료") {
                          aiText = "오늘은 여기까지. 언제든 다시 돌아와 너의 한계에 도전해라.";
-                         await switchMode('actor'); // Revert to actor mode after finishing
                          addMessage(aiText, 'ai');
+                         await switchMode('actor'); 
                          typingIndicator.style.display = 'none';
                          return;
                     } else {
@@ -574,6 +597,7 @@
         userInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault(); 
+                // handleSend(); // Enter key 전송 기능을 다시 비활성화했습니다.
             }
         });
 
@@ -582,14 +606,32 @@
         });
         
         clearBtn.addEventListener('click', async () => {
-            await switchMode('actor');
-            // switchMode already clears the chat, so we just reset the greeting.
+            chatHistories[chatMode] = [];
+            
             while (chatContainer.firstChild && chatContainer.firstChild !== typingIndicator) {
                 chatContainer.removeChild(chatContainer.firstChild);
             }
-            addMessage("무엇이 널, 이곳까지 오게 했지?", 'ai');
-            missionContainer.style.display = 'block';
-            await fetchAndSetNewMission();
+
+            typingIndicator.style.display = 'flex';
+            let welcomeMessage = "";
+            switch(chatMode) {
+                case 'actor':
+                    welcomeMessage = "무엇이 널, 이곳까지 오게 했지?";
+                    missionContainer.style.display = 'block';
+                    isConversationStarted = false;
+                    await fetchAndSetNewMission();
+                    break;
+                case 'life':
+                    welcomeMessage = "그래, 이번엔 어떤 삶의 매듭을 풀어볼까?";
+                    missionContainer.style.display = 'none';
+                    break;
+                case 'choice':
+                    welcomeMessage = "선택의 기로에 섰나. 좋아. 어떤 선택지 사이에 서있지?";
+                    missionContainer.style.display = 'none';
+                    break;
+            }
+            typingIndicator.style.display = 'none';
+            addMessage(welcomeMessage, 'ai');
         });
 
         saveBtn.addEventListener('click', () => {
@@ -794,4 +836,5 @@
 
 </body>
 </html>
+
 
