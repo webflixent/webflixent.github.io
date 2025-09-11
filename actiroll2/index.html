@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AcTi 롤모델 - AI 배우 분석 리포트</title>
     <!-- 홈 화면 아이콘 설정 -->
-    <link rel="apple-touch-icon" href="actiroll4.png">
-    <link rel="icon" type="image/png" href="actiroll4.png">
+    <link rel="apple-touch-icon" href="actiroll.png">
+    <link rel="icon" type="image/png" href="actiroll.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -59,16 +59,16 @@
     <header class="p-6 md:p-8 border-b sticky top-0 bg-[var(--bg-main)] z-10" style="border-color: var(--border-color);">
         <div class="container mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <img src="actiroll4.png" alt="AcTi Logo" class="h-10 w-10 rounded-full object-cover bg-stone-200 border border-stone-300">
-                <h1 class="text-2xl md:text-3xl tracking-wider">AcTi 롤모델</h1>
+                 <img src="actiroll.png" alt="AcTi Logo" class="h-10 w-10 rounded-full object-cover bg-stone-200 border border-stone-300">
+                 <h1 class="text-2xl md:text-3xl tracking-wider">AcTi 롤모델</h1>
             </div>
             <div class="flex items-center space-x-2 md:space-x-4">
-                <button id="save-jpg-button" title="리포트 저장하기" class="accent-bg text-white rounded-full p-2.5 hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                </button>
-                <button id="qna-button" title="AcTi Q&A" class="accent-bg text-white rounded-full p-2.5 hover:opacity-90 transition-opacity">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                </button>
+                 <button id="save-jpg-button" title="리포트 저장하기" class="accent-bg text-white rounded-full p-2.5 hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                 </button>
+                 <button id="qna-button" title="AcTi Q&A" class="accent-bg text-white rounded-full p-2.5 hover:opacity-90 transition-opacity">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                 </button>
             </div>
         </div>
     </header>
@@ -89,17 +89,17 @@
         <!-- Loading Section -->
         <section id="loading-section" class="hidden text-center transition-opacity duration-500">
             <div class="flex flex-col items-center justify-center min-h-[50vh]">
-                <div class="w-16 h-16 border-4 border-stone-200 rounded-full animate-spin" style="border-top-color: var(--accent-color);"></div>
-                <h3 class="text-3xl mt-8">AcTi가 배우를 분석하고 있습니다...</h3>
-                <p id="loading-status" class="mt-2">잠시만 기다려주세요.</p>
+                 <div class="w-16 h-16 border-4 border-stone-200 rounded-full animate-spin" style="border-top-color: var(--accent-color);"></div>
+                 <h3 class="text-3xl mt-8">AcTi가 배우를 분석하고 있습니다...</h3>
+                 <p id="loading-status" class="mt-2">잠시만 기다려주세요.</p>
             </div>
         </section>
 
         <!-- ERROR Display Section -->
         <section id="error-section" class="hidden my-8 transition-opacity duration-500">
              <div class="max-w-2xl mx-auto bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg" role="alert">
-                <strong class="font-bold font-serif" id="error-title">분석 오류!</strong>
-                <p id="error-message">오류가 발생했습니다.</p>
+                 <strong class="font-bold font-serif" id="error-title">분석 오류!</strong>
+                 <p id="error-message">오류가 발생했습니다.</p>
              </div>
         </section>
 
@@ -116,10 +116,10 @@
                 <button id="close-qna-modal" class="p-2 -mr-2 text-2xl leading-none text-stone-500 hover:text-stone-800">&times;</button>
             </header>
             <div id="qna-chatbox" class="flex-1 p-4 overflow-y-auto space-y-4">
-                <div class="flex items-start gap-3">
+                 <div class="flex items-start gap-3">
                     <div class="accent-bg text-white text-sm rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center font-bold">A</div>
                     <div class="bg-white rounded-lg p-3 max-w-lg shadow-sm border ai-generated-content" style="border-color: var(--border-color);">
-                        <p class="text-sm">안녕하세요! 배우 분석이나 연기에 대해 궁금한 점이 있다면 무엇이든 물어보세요.</p>
+                        <p class="text-sm">배우 분석이나 연기에 대해 궁금한 점을 질문해주세요.</p>
                     </div>
                 </div>
             </div>
@@ -136,8 +136,10 @@
     
     <script>
         // --- CONFIGURATION ---
-        const API_KEY = "AIzaSyBbEsfDqt5ojPAJoo70Nozro4LacKk__4k";
-        const GOOGLE_CX_ID = "a6991c88ccc1b45eb";
+        // 제공해주신 API 키를 적용했습니다.
+        const API_KEY = "AIzaSyBbEsfDqt5ojPAJoo70Nozro4LacKk__4k"; 
+        // Google Custom Search is no longer used for images.
+        // const GOOGLE_CX_ID = "a6991c88ccc1b45eb"; 
 
         // --- DOM ELEMENTS ---
         const searchSection = document.getElementById('search-section');
@@ -159,16 +161,15 @@
         // Initial state
         saveJpgButton.disabled = true;
 
-        /**
-         * Fetches a resource with an exponential backoff retry mechanism.
-         */
         async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
             for (let i = 0; i < retries; i++) {
                 try {
                     const response = await fetch(url, options);
                     if (response.status >= 500 && response.status < 600) {
+                        // 503 오류를 포함한 5xx대 서버 오류 시 재시도합니다.
                         throw new Error(`Server error: ${response.status}`);
                     }
+                    // 성공 또는 4xx대 클라이언트 오류는 즉시 반환합니다.
                     return response;
                 } catch (error) {
                     if (i === retries - 1) {
@@ -176,24 +177,23 @@
                          throw error;
                     }
                     await new Promise(res => setTimeout(res, delay));
-                    delay *= 2;
+                    delay *= 2; // 지연 시간을 두 배로 늘립니다.
                 }
             }
         }
 
-        // --- DYNAMIC AI REPORT GENERATION ---
+        // --- DYNAMIC AI REPORT GENERATION (STABILITY IMPROVED) ---
         async function generateAIReport(actorName) {
-            if (!API_KEY) {
-                throw new Error("API 키가 설정되지 않았습니다.");
-            }
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
             const systemPrompt = `당신은 '배우가 배우를 연구하는' 관점을 지닌 세계 최고의 연기 코치입니다. 당신의 임무는 단순한 정보 요약이 아니라, 배우 지망생이 주어진 배우를 '롤모델'로서 철저히 분석하고, 그의 연기 기술과 커리어 전략을 자신의 것으로 만들 수 있도록 돕는 것입니다. 최신 뉴스를 검색하는 것이 아니라, 그의 연기 본질과 성장 과정을 분석하여 '따라 배울 점'을 명확히 제시해야 합니다. 최종 결과물은 다른 설명 없이 오직 리포트 내용이 담긴 단일 HTML 문자열이어야 합니다. <h2>, <h3>, <p>, <ul>, <li>, <strong> 같은 태그를 사용하여 내용을 구조화하세요. 전체 응답은 이 HTML 문자열이어야 하며, 마크다운 형식(\`\`\`)으로 감싸지 마세요. 보고서 전체에서 'AI'라는 단어 대신 'AcTi'를 사용하세요. 리포트에는 반드시 다음의 관점이 포함되어야 합니다: 1. **롤모델로서의 핵심 가치**: 왜 이 배우를 롤모델로 삼아야 하는가? 그의 어떤 점이 다른 배우와 차별화되는가? 2. **'훔치고 싶은' 연기 기술**: 그의 대표적인 연기 테크닉(시선 처리, 목소리 톤, 감정의 완급 조절 등)을 구체적인 작품 장면을 예로 들어 분석하고, 어떻게 훈련해야 하는지 설명. 3. **현명한 커리어 설계**: 그의 필모그래피가 어떻게 그의 페르소나를 구축했는지, 그리고 작품 선택의 기준이 무엇인지 분석하여, 배우 지망생이 자신의 커리어를 어떻게 설계해야 할지에 대한 통찰을 제공. 4. **내면을 지배하는 연기 철학**: 그의 인터뷰나 행보를 통해 드러난 연기에 대한 태도와 마인드셋을 분석하고, 이것이 그의 연기에 어떻게 반영되는지 설명. 5. **나만의 것으로 만드는 Action Plan**: '이 배우처럼 되기 위해' 내일부터 당장 실천할 수 있는 구체적이고 단계적인 훈련 방법을 제시. (예: 특정 영화의 독백 100번 따라하기, 그의 인터뷰 영상 필사하기 등)`;
             const userQuery = `'${actorName}' 배우에 대한 롤모델 분석 리포트를 HTML 형식으로 생성해줘.`;
+            
+            // REMOVED 'tools' to prevent google_search errors and improve stability.
             const payload = {
                 contents: [{ parts: [{ text: userQuery }] }],
-                tools: [{ "google_search": {} }],
                 systemInstruction: { parts: [{ text: systemPrompt }] },
             };
+            
             const response = await fetchWithRetry(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (!response.ok) {
                 const errorBody = await response.json();
@@ -207,48 +207,61 @@
             return result.candidates[0].content.parts[0].text;
         }
 
+        // --- NEW IMAGE FETCHING LOGIC (Wikipedia/Wikidata) ---
         async function fetchActorImage(actorName) {
-            const placeholderUrl = `https://placehold.co/160x160/E5E0D9/4E443C?text=${encodeURIComponent(actorName)}`;
-            if (!API_KEY || !GOOGLE_CX_ID) {
-                console.warn("API 키 또는 CX ID가 없어 이미지 검색을 건너뜁니다.");
-                return placeholderUrl;
-            }
-
-            const query = encodeURIComponent(`${actorName} 배우 공식 프로필`);
-            const url = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${GOOGLE_CX_ID}&q=${query}&searchType=image&num=1&imgSize=large`;
+            const encodedName = encodeURIComponent(actorName);
+            const placeholderUrl = `https://placehold.co/160x160/E5E0D9/4E443C?text=${encodedName}`;
 
             try {
-                const searchResponse = await fetchWithRetry(url);
-                const searchData = await searchResponse.json();
-                if (!searchResponse.ok) { throw new Error(searchData.error.message); }
-
-                if (searchData.items && searchData.items.length > 0) {
-                    const imageUrl = searchData.items[0].link;
-                    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(imageUrl)}`;
-
+                // 1. Try Wikipedia Summary Thumbnail (ko & en)
+                for (const lang of ['ko', 'en']) {
                     try {
-                        const imageResponse = await fetch(proxyUrl);
-                        if (!imageResponse.ok) {
-                            console.warn(`Failed to fetch image from proxy for ${actorName}. Status: ${imageResponse.status}`);
-                            return placeholderUrl;
+                        const wikiUrl = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodedName}`;
+                        const response = await fetch(wikiUrl);
+                        if (!response.ok) continue;
+                        const data = await response.json();
+                        if (data.originalimage?.source) {
+                            console.log(`Found image via Wikipedia (${lang}):`, data.originalimage.source);
+                            return data.originalimage.source;
                         }
-                        const imageBlob = await imageResponse.blob();
-                        if (!imageBlob.type.startsWith('image/')) {
-                             console.warn(`Proxied content for ${actorName} is not an image. Type: ${imageBlob.type}`);
-                             return placeholderUrl;
-                        }
-                        return URL.createObjectURL(imageBlob);
-                    } catch (imageError) {
-                        console.error(`Error fetching or creating blob for ${actorName}'s image:`, imageError);
-                        return placeholderUrl;
+                    } catch (e) {
+                        console.warn(`Wikipedia (${lang}) summary fetch failed:`, e);
                     }
                 }
+
+                // 2. Try Wikidata P18 -> Wikimedia Commons URL
+                try {
+                    // First, get Wikidata QID from Wikipedia title
+                    const wikidataSite = 'kowiki'; // Prioritize Korean Wikipedia link
+                    const qidApiUrl = `https://www.wikidata.org/w/api.php?action=wbgetentities&sites=${wikidataSite}&titles=${encodedName}&format=json&props=claims&origin=*`;
+                    const qidResponse = await fetch(qidApiUrl);
+                    const qidData = await qidResponse.json();
+                    const qid = Object.keys(qidData.entities)[0];
+
+                    if (qid && qid !== '-1') {
+                        const entity = qidData.entities[qid];
+                        const imageClaim = entity.claims?.P18; // P18 is the property for 'image'
+                        if (imageClaim && imageClaim.length > 0) {
+                            const fileName = imageClaim[0].mainsnak.datavalue.value;
+                            const commonsUrl = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}`;
+                             console.log(`Found image via Wikidata/Commons:`, commonsUrl);
+                            return commonsUrl;
+                        }
+                    }
+                } catch (e) {
+                     console.warn('Wikidata fetch failed:', e);
+                }
+                
+                // 3. Final fallback
+                console.log('All image sources failed, using placeholder.');
                 return placeholderUrl;
-            } catch (searchError) {
-                console.error(`Error searching for image for ${actorName}:`, searchError);
+
+            } catch (error) {
+                console.error(`Error fetching image for ${actorName}:`, error);
                 return placeholderUrl;
             }
         }
+
 
         async function generateReport(actorName) {
             searchSection.style.display = 'none';
@@ -263,8 +276,12 @@
             }, 1500);
 
             try {
-                const reportHtml = await generateAIReport(actorName);
+                loadingStatus.textContent = "프로필 사진 검색 중...";
                 const imageUrl = await fetchActorImage(actorName);
+                
+                loadingStatus.textContent = "리포트 생성 중...";
+                const reportHtml = await generateAIReport(actorName);
+
                 clearInterval(interval);
                 loadingSection.classList.add('hidden');
                 displayReport(actorName, imageUrl, reportHtml);
@@ -282,7 +299,7 @@
                 <div id="report-to-capture" class="bg-white rounded-lg shadow-xl p-8 md:p-12 border fade-in-up" style="border-color: var(--border-color);">
                     <button id="back-to-search" class="accent-bg text-white text-sm font-medium py-2 px-4 rounded-full mb-8 hover:opacity-90 transition-opacity">← 다른 배우 분석하기</button>
                     <header class="text-center mb-12">
-                        <img src="${imageUrl}" alt="${actorName}" class="w-40 h-40 object-cover rounded-full mx-auto mb-4 shadow-lg border-4" style="border-color: var(--border-color);">
+                        <img src="${imageUrl}" alt="${actorName}" class="w-40 h-40 object-cover rounded-full mx-auto mb-4 shadow-lg border-4" style="border-color: var(--border-color);" onerror="this.onerror=null;this.src='https://placehold.co/160x160/E5E0D9/4E443C?text=${encodeURIComponent(actorName)}';">
                         <h1 class="text-5xl mb-2 font-serif">${actorName}</h1>
                         <h2 class="text-2xl text-stone-500 font-serif tracking-widest mt-2">롤모델 분석 REPORT</h2>
                     </header>
@@ -304,68 +321,39 @@
             });
         }
 
-        // --- SAVE REPORT AS JPG (STABLE VERSION) ---
+        // --- SAVE REPORT AS JPG ---
         async function saveReportAsJpg() {
             const reportElement = document.getElementById('report-to-capture');
             if (!reportElement) return;
-
-            showErrorModal('리포트 이미지 생성 중...', true);
+            
             saveJpgButton.disabled = true;
-
-            // --- KEY FIX: Temporarily remove animation class to prevent blank captures ---
-            const wasAnimated = reportElement.classList.contains('fade-in-up');
-            if (wasAnimated) {
-                reportElement.classList.remove('fade-in-up');
-            }
-
-            // A short delay to allow the DOM to update after class removal.
-            await new Promise(resolve => setTimeout(resolve, 100));
-            window.scrollTo(0, 0);
+            const originalBackgroundColor = reportElement.style.backgroundColor;
+            reportElement.style.backgroundColor = 'white';
 
             try {
                 const canvas = await html2canvas(reportElement, {
-                    scale: 2.5,
-                    useCORS: true,
-                    backgroundColor: '#FFFFFF',
-                    logging: false
+                    scale: 2,
+                    useCORS: true, 
+                    allowTaint: true,
+                    backgroundColor: '#ffffff'
                 });
-
-                // This is the stable download method from the user's sample code.
                 const link = document.createElement('a');
-                const actorName = searchInput.value.trim().replace(/\s+/g, '_') || 'AcTi_Report';
-                link.download = `AcTi_Report_${actorName}.jpg`;
+                link.download = `AcTi_Report_${searchInput.value.trim()}.jpg`;
                 link.href = canvas.toDataURL('image/jpeg', 0.95);
-                
-                document.body.appendChild(link);
                 link.click();
-                document.body.removeChild(link);
-
-                const generatingModal = document.getElementById('generating-indicator');
-                if (generatingModal) document.body.removeChild(generatingModal);
-
-                showErrorModal("다운로드가 시작되었습니다. 갤러리를 확인해주세요.");
-
             } catch (err) {
                 console.error("JPG 저장 중 오류 발생:", err);
-                const generatingModal = document.getElementById('generating-indicator');
-                if (generatingModal) document.body.removeChild(generatingModal);
-                showErrorModal("이미지 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
+                alert("리포트를 이미지로 저장하는 데 실패했습니다. 외부 이미지는 보안 정책상 포함되지 않을 수 있습니다.");
             } finally {
-                // Restore the animation class if it was removed.
-                if (wasAnimated) {
-                    reportElement.classList.add('fade-in-up');
-                }
+                reportElement.style.backgroundColor = originalBackgroundColor;
                 saveJpgButton.disabled = false;
             }
         }
         
         // --- Q&A MODAL ---
         async function getQnaResponse(question) {
-             if (!API_KEY) {
-                return "<p>죄송합니다. API 키가 설정되지 않아 답변을 생성할 수 없습니다.</p>";
-            }
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
-            const systemPrompt = "당신은 'AcTi'라는 이름을 가진 연기 전문 코치입니다. 배우 지망생의 질문에 대해 핵심적인 내용만 간결하고 명확하게 답변하세요. 불필요한 인사말('안녕하세요', '질문해주셨군요' 등)이나 응원 문구('응원하겠습니다' 등)는 절대 사용하지 마세요. 당신의 이름은 'AcTi'이며, 'AI'라는 단어는 사용하지 마세요. 답변은 항상 한국어로, 전문가적인 조언을 담아야 합니다. 최종 결과물은 오직 답변 내용이 담긴 단일 HTML 문자열이어야 하며, <p>, <ul>, <li>, <strong> 태그를 사용하여 구조화하세요. 마크다운 형식(**)은 절대 사용하지 마세요.";
+            const systemPrompt = "당신은 'AcTi'라는 이름을 가진 연기 전문 코치입니다. 배우 지망생의 질문에 대해 다른 인사나 마무리 멘트 없이 핵심적인 답변만 간결하고 전문적으로 제공하세요. 당신의 이름은 'AcTi'이며, 'AI'라는 단어는 절대 사용하지 마세요. 답변은 항상 한국어로 제공해야 합니다. 최종 결과물은 다른 설명 없이 오직 답변 내용이 담긴 단일 HTML 문자열이어야 합니다. <p>, <ul>, <li>, <strong> 태그를 사용하여 가독성 좋게 내용을 구조화하고, 섹션을 구분해주세요. 마크다운 형식(**)은 절대 사용하지 마세요.";
             const payload = {
                 contents: [{ parts: [{ text: question }] }],
                 systemInstruction: { parts: [{ text: systemPrompt }] },
@@ -385,8 +373,8 @@
             const isUser = sender === 'user';
             const messageHtml = isUser ? `
                 <div class="flex items-start gap-3 justify-end">
-                    <div class="accent-bg text-white rounded-lg p-3 max-w-lg shadow-sm">
-                        <p class="text-sm">${message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>
+                    <div class="bg-accent-color text-white rounded-lg p-3 max-w-lg shadow-sm">
+                        <p class="text-sm"><strong class="font-bold text-white/80">Q.</strong> ${message}</p>
                     </div>
                 </div>` : 
                 `<div class="flex items-start gap-3">
@@ -397,30 +385,6 @@
                 </div>`;
             qnaChatbox.innerHTML += messageHtml;
             qnaChatbox.scrollTop = qnaChatbox.scrollHeight;
-        }
-
-        function showErrorModal(message, isIndicator = false) {
-            // Remove any existing modals first
-            const existingModal = document.querySelector('.alert-modal');
-            if (existingModal) document.body.removeChild(existingModal);
-
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 alert-modal';
-            if (isIndicator) modal.id = 'generating-indicator';
-
-            modal.innerHTML = `
-                <div class="bg-white rounded-lg p-8 shadow-lg text-center w-11/12 max-w-sm">
-                    <h3 class="text-xl font-bold mb-4 font-serif">${isIndicator ? '안내' : '알림'}</h3>
-                    <p>${message}</p>
-                    ${!isIndicator ? '<button class="mt-6 accent-bg text-white py-2 px-6 rounded-full">확인</button>' : ''}
-                </div>
-            `;
-            document.body.appendChild(modal);
-            if (!isIndicator) {
-                modal.querySelector('button').addEventListener('click', () => {
-                    document.body.removeChild(modal);
-                });
-            }
         }
 
         // --- EVENT LISTENERS ---
@@ -461,14 +425,7 @@
             qnaInput.focus();
         });
 
-        window.addEventListener('DOMContentLoaded', () => {
-            if (!API_KEY || !GOOGLE_CX_ID) {
-                showErrorModal("API 키가 설정되지 않았습니다. 분석 기능이 작동하지 않을 수 있습니다. 스크립트에서 API_KEY와 GOOGLE_CX_ID 변수를 설정해주세요.");
-            }
-        });
-
     </script>
 </body>
 </html>
-
 
