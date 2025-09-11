@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    
+    <!-- 홈 화면 앱 모드 설정 (주소창 숨기기) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="대순영어">
+
     <title>대순영어 (AI Ver.)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -28,15 +34,17 @@
         .sentence-block {
             cursor: grab;
             transition: all 0.2s ease-in-out;
-            touch-action: none;
+            touch-action: none; /* 터치 이벤트 직접 제어 */
         }
         .sentence-block:active {
             cursor: grabbing;
+        }
+        .dragging { 
+            opacity: 0.5; 
             transform: scale(1.05);
+            z-index: 1000;
             box-shadow: 0 0 25px rgba(124, 58, 237, 0.6);
         }
-        .block-tray, .autopsy-table { min-height: 100px; }
-        .dragging { opacity: 0.5; transform: scale(1.05); }
         
         .neon-blue { box-shadow: 0 0 5px #60a5fa, 0 0 10px #60a5fa; }
         .neon-red { box-shadow: 0 0 5px #f87171, 0 0 10px #f87171; }
@@ -366,29 +374,89 @@
         }
         
         function addDragListeners() {
-            document.querySelectorAll('.sentence-block').forEach(block => {
-                block.addEventListener('dragstart', e => {
-                    draggedBlock = e.target.closest('.sentence-block');
-                    setTimeout(() => draggedBlock.classList.add('dragging'), 0);
-                });
-                block.addEventListener('dragend', () => {
-                    draggedBlock.classList.remove('dragging');
-                    draggedBlock = null;
-                });
+            const blocks = document.querySelectorAll('.sentence-block');
+            blocks.forEach(block => {
+                // Mouse Events
+                block.addEventListener('dragstart', handleDragStart);
+                block.addEventListener('dragend', handleDragEnd);
+
+                // Touch Events
+                block.addEventListener('touchstart', handleTouchStart, { passive: false });
+                block.addEventListener('touchmove', handleTouchMove, { passive: false });
+                block.addEventListener('touchend', handleTouchEnd);
             });
+
             [blockTray, autopsyTable].forEach(container => {
+                // Mouse Events
                 container.addEventListener('dragover', e => e.preventDefault());
-                container.addEventListener('drop', e => {
-                    e.preventDefault();
-                    const dropZone = e.target.closest('.block-tray, .autopsy-table');
-                    if (dropZone && draggedBlock) {
-                        dropZone.appendChild(draggedBlock);
-                    }
-                    autopsyPlaceholder.style.opacity = (autopsyTable.querySelectorAll('.sentence-block').length === 0) ? 1 : 0;
-                });
+                container.addEventListener('drop', handleDrop);
             });
         }
         
+        // --- Drag and Drop Handlers ---
+        function handleDragStart(e) {
+            draggedBlock = e.target;
+            setTimeout(() => e.target.classList.add('dragging'), 0);
+        }
+
+        function handleDragEnd(e) {
+            if (draggedBlock) {
+                draggedBlock.classList.remove('dragging');
+            }
+            draggedBlock = null;
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const dropZone = e.target.closest('.block-tray, .autopsy-table');
+            if (dropZone && draggedBlock) {
+                dropZone.appendChild(draggedBlock);
+                autopsyPlaceholder.style.opacity = (autopsyTable.querySelectorAll('.sentence-block').length === 0) ? 1 : 0;
+            }
+        }
+        
+        // --- Touch Handlers ---
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            draggedBlock = e.target.closest('.sentence-block');
+            draggedBlock.classList.add('dragging');
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        }
+
+        function handleTouchMove(e) {
+            if (!draggedBlock) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            const x = touch.clientX;
+            const y = touch.clientY;
+            draggedBlock.style.transform = `translate(${x - touchStartX}px, ${y - touchStartY}px)`;
+        }
+
+        function handleTouchEnd(e) {
+            if (!draggedBlock) return;
+            
+            draggedBlock.style.transform = '';
+            draggedBlock.classList.remove('dragging');
+
+            const touch = e.changedTouches[0];
+            const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+            const dropZone = dropTarget ? dropTarget.closest('.block-tray, .autopsy-table') : null;
+            
+            if (dropZone) {
+                dropZone.appendChild(draggedBlock);
+            } else {
+                 blockTray.appendChild(draggedBlock); // Return to tray if dropped outside
+            }
+            autopsyPlaceholder.style.opacity = (autopsyTable.querySelectorAll('.sentence-block').length === 0) ? 1 : 0;
+            draggedBlock = null;
+        }
+
+
         function checkAnswer() {
             const placedBlocks = Array.from(autopsyTable.querySelectorAll('.sentence-block'));
             const isAnswerCorrect = (() => {
