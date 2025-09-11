@@ -37,12 +37,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* AI가 생성한 콘텐츠 공통 스타일 */
-        .ai-generated-content h2, .ai-generated-content h3 {
-             font-family: 'Playfair Display', serif;
-             color: var(--text-primary);
-             margin-bottom: 0.75rem;
-        }
+        .ai-generated-content h2, .ai-generated-content h3 { font-family: 'Playfair Display', serif; color: var(--text-primary); margin-bottom: 0.75rem; }
         .ai-generated-content h2 { font-size: 1.75rem; margin-top: 2rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); }
         .ai-generated-content h3 { font-size: 1.25rem; margin-top: 1.5rem; }
         .ai-generated-content p { line-height: 1.7; margin-bottom: 1rem; }
@@ -75,40 +70,39 @@
     </header>
 
     <main id="main-content" class="container mx-auto p-6 md:p-12">
-        <!-- STEP 1: Search Section -->
         <section id="search-section" class="text-center transition-opacity duration-700 fade-in-up">
             <h2 class="text-4xl md:text-6xl mb-4">The Actor's Dossier</h2>
             <p class="mb-10 max-w-2xl mx-auto">분석하고 싶은 배우의 이름을 입력하세요.<br>AcTi가 그의 모든 것을 분석하여, 당신을 위한 정밀 리포트를 생성합니다.</p>
             <div class="max-w-xl mx-auto flex items-center gap-2 p-2 bg-white rounded-full shadow-md border" style="border-color: var(--border-color);">
                 <input type="text" id="actor-search-input" class="w-full py-3 px-5 bg-transparent text-lg focus:outline-none" placeholder="예: 이병헌, 전도연, 최민식" style="color: var(--text-primary);">
-                <button id="search-button" class="accent-bg text-white rounded-full p-3 hover:opacity-90 transition-opacity">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                </button>
+                <button id="search-button" class="accent-bg text-white rounded-full p-3 hover:opacity-90 transition-opacity"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
             </div>
         </section>
+
+        <section id="disambiguation-section" class="hidden text-center transition-opacity duration-700"></section>
+        
         <section id="loading-section" class="hidden text-center transition-opacity duration-500">
-            <div class="flex flex-col items-center justify-center min-h-[50vh]">
+             <div class="flex flex-col items-center justify-center min-h-[50vh]">
                  <div class="w-16 h-16 border-4 border-stone-200 rounded-full animate-spin" style="border-top-color: var(--accent-color);"></div>
                  <h3 class="text-3xl mt-8">AcTi가 배우를 분석하고 있습니다...</h3>
                  <p id="loading-status" class="mt-2">잠시만 기다려주세요.</p>
             </div>
         </section>
+
         <section id="error-section" class="hidden my-8 transition-opacity duration-500">
-             <div class="max-w-2xl mx-auto bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg" role="alert">
+            <div class="max-w-2xl mx-auto bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg" role="alert">
                  <strong class="font-bold font-serif" id="error-title">분석 오류!</strong>
                  <p id="error-message">오류가 발생했습니다.</p>
              </div>
         </section>
+
         <section id="report-section" class="hidden"></section>
     </main>
-
-    <!-- Modals -->
+    
+    <!-- All Modals (Q&A, Scene, Tips) -->
     <div id="qna-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col" style="background-color: var(--bg-main);">
-            <header class="p-4 border-b flex justify-between items-center" style="border-color: var(--border-color);">
-                <h3 class="text-2xl font-serif">AcTi Q&A</h3>
-                <button id="close-qna-modal" class="p-2 -mr-2 text-2xl leading-none text-stone-500 hover:text-stone-800">&times;</button>
-            </header>
+            <header class="p-4 border-b flex justify-between items-center" style="border-color: var(--border-color);"><h3 class="text-2xl font-serif">AcTi Q&A</h3><button id="close-qna-modal" class="p-2 -mr-2 text-2xl leading-none text-stone-500 hover:text-stone-800">&times;</button></header>
             <div id="qna-chatbox" class="flex-1 p-4 overflow-y-auto space-y-4">
                  <div class="flex items-start gap-3">
                     <div class="accent-bg text-white text-sm rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center font-bold">A</div>
@@ -122,7 +116,6 @@
             </footer>
         </div>
     </div>
-    
     <div id="scene-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
         <div id="scene-to-capture" class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col" style="background-color: var(--bg-main);">
             <header class="p-4 border-b flex justify-between items-center" style="border-color: var(--border-color);">
@@ -141,7 +134,6 @@
             </footer>
         </div>
     </div>
-    
     <div id="tips-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
         <div id="tips-to-capture" class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col" style="background-color: var(--bg-main);">
             <header class="p-4 border-b flex justify-between items-center" style="border-color: var(--border-color);">
@@ -163,11 +155,12 @@
         const searchSection = document.getElementById('search-section');
         const searchInput = document.getElementById('actor-search-input');
         const searchButton = document.getElementById('search-button');
+        const disambiguationSection = document.getElementById('disambiguation-section');
         const loadingSection = document.getElementById('loading-section');
         const loadingStatus = document.getElementById('loading-status');
-        const reportSection = document.getElementById('report-section');
         const errorSection = document.getElementById('error-section');
         const errorMessageEl = document.getElementById('error-message');
+        const reportSection = document.getElementById('report-section');
         const saveJpgButton = document.getElementById('save-jpg-button');
         const qnaButton = document.getElementById('qna-button');
         const qnaModal = document.getElementById('qna-modal');
@@ -185,12 +178,14 @@
         const closeTipsModalButton = document.getElementById('close-tips-modal');
         const tipsContent = document.getElementById('tips-content');
         const saveTipsButton = document.getElementById('save-tips-button');
-        let getActingTipsButton;
         
+        // --- GLOBAL STATE ---
+        let currentActor = { name: null, reportHtml: null };
+
         // Initial state
         saveJpgButton.disabled = true;
-
-        // --- Core Functions ---
+        
+        // --- CORE LOGIC ---
 
         async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
             for (let i = 0; i < retries; i++) {
@@ -236,11 +231,23 @@
             const userQuery = `'${actorName}' 배우에 대한 롤모델 분석 리포트를 HTML 형식으로 생성해줘.`;
             return await callGenerativeApi(systemPrompt, userQuery);
         }
-
-        async function fetchActorImage(actorName) {
-            const encodedName = encodeURIComponent(actorName);
+        
+        async function fetchActorImage(actorName, qid = null) {
+            const encodedName = encodeURIComponent(actorName || '');
             const placeholderUrl = `https://placehold.co/160x160/E5E0D9/4E443C?text=${encodedName}`;
             try {
+                if (qid) {
+                    const qidApiUrl = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qid}&format=json&props=claims&origin=*`;
+                    const qidResponse = await fetch(qidApiUrl);
+                    if (qidResponse.ok) {
+                        const qidData = await qidResponse.json();
+                        const imageClaim = qidData.entities[qid].claims?.P18;
+                        if (imageClaim?.[0]) {
+                            const fileName = imageClaim[0].mainsnak.datavalue.value;
+                            return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}`;
+                        }
+                    }
+                }
                 for (const lang of ['ko', 'en']) {
                     try {
                         const wikiUrl = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodedName}`;
@@ -251,56 +258,96 @@
                         }
                     } catch (e) {}
                 }
-                const wikidataSite = 'kowiki';
-                const qidApiUrl = `https://www.wikidata.org/w/api.php?action=wbgetentities&sites=${wikidataSite}&titles=${encodedName}&format=json&props=claims&origin=*`;
-                const qidResponse = await fetch(qidApiUrl);
-                if (qidResponse.ok) {
-                    const qidData = await qidResponse.json();
-                    const qid = Object.keys(qidData.entities)[0];
-                    if (qid && qid !== '-1') {
-                        const imageClaim = qidData.entities[qid].claims?.P18;
-                        if (imageClaim?.[0]) {
-                            const fileName = imageClaim[0].mainsnak.datavalue.value;
-                            return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}`;
-                        }
-                    }
-                }
             } catch (error) { console.error("Image fetch error:", error); }
             return placeholderUrl;
         }
 
-        async function generateReport(actorName) {
-            searchSection.style.display = 'none';
-            errorSection.classList.add('hidden');
+        async function searchAndDisambiguate(actorName) {
+            hideAllSections();
             loadingSection.classList.remove('hidden');
-            saveJpgButton.disabled = true;
+            loadingStatus.textContent = `'${actorName}' 검색 중...`;
+
+            try {
+                const encodedName = encodeURIComponent(actorName);
+                const url = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodedName}&language=ko&format=json&props=description&type=item&origin=*`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                const actors = (data.search || []).filter(item => {
+                    if (!item.description) return false;
+                    const desc = item.description.toLowerCase();
+                    return desc.includes('배우') || desc.includes('actor') || desc.includes('actress') || desc.includes('연기자');
+                });
+
+                if (actors.length === 0) {
+                    throw new Error(`'${actorName}'에 대한 배우 정보를 찾을 수 없습니다.`);
+                } else if (actors.length === 1) {
+                    await generateReport(actors[0].label, actors[0].id);
+                } else {
+                    displayDisambiguation(actors);
+                }
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                loadingSection.classList.add('hidden');
+            }
+        }
+
+        function displayDisambiguation(actors) {
+            hideAllSections();
+            let content = `<h2 class="text-3xl md:text-4xl mb-4">동명이인 배우</h2><p class="mb-8">분석하고 싶은 배우를 선택해주세요.</p><div class="grid grid-cols-2 md:grid-cols-4 gap-4">`;
+            actors.forEach(actor => {
+                const placeholderUrl = `https://placehold.co/200x300/E5E0D9/4E443C?text=${encodeURIComponent(actor.label)}`;
+                content += `
+                    <div class="actor-card cursor-pointer p-2 bg-white/50 rounded-lg hover:shadow-lg transition-shadow" data-name="${actor.label}" data-qid="${actor.id}">
+                        <img src="${placeholderUrl}" data-qid="${actor.id}" class="w-full h-48 object-cover rounded-md mb-2 bg-stone-200" alt="${actor.label}">
+                        <h4 class="font-bold text-primary">${actor.label}</h4>
+                        <p class="text-sm text-secondary">${actor.description || ''}</p>
+                    </div>`;
+            });
+            content += `</div>`;
+            disambiguationSection.innerHTML = content;
+            disambiguationSection.classList.remove('hidden');
+
+            document.querySelectorAll('.actor-card').forEach(card => {
+                const qid = card.dataset.qid;
+                const img = card.querySelector('img');
+                fetchActorImage(null, qid).then(url => img.src = url);
+                card.addEventListener('click', () => {
+                    generateReport(card.dataset.name, card.dataset.qid);
+                });
+            });
+        }
+        
+        async function generateReport(actorName, qid) {
+            hideAllSections();
+            loadingSection.classList.remove('hidden');
             const loadingMessages = ["프로필 사진 검색 중...", "리포트 생성 중...", "AcTi가 데이터를 분석하고 있습니다..."];
             let msgIndex = 0;
-            const interval = setInterval(() => {
-                loadingStatus.textContent = loadingMessages[msgIndex++ % loadingMessages.length];
-            }, 2000);
+            const interval = setInterval(() => { loadingStatus.textContent = loadingMessages[msgIndex++ % loadingMessages.length]; }, 2000);
+
             try {
-                const imageUrl = await fetchActorImage(actorName);
+                const imageUrl = await fetchActorImage(actorName, qid);
                 const reportHtml = await generateAIReport(actorName);
-                displayReport(actorName, imageUrl, reportHtml);
+                currentActor = { name: actorName, reportHtml: reportHtml };
+                displayReport(imageUrl);
             } catch (error) {
-                errorMessageEl.textContent = `오류가 발생했습니다: ${error.message}. 다른 배우로 시도하거나 잠시 후 다시 시도해주세요.`;
-                errorSection.classList.remove('hidden');
-                searchSection.style.display = 'block';
+                showError(error.message);
             } finally {
                 clearInterval(interval);
                 loadingSection.classList.add('hidden');
             }
         }
         
-        function displayReport(actorName, imageUrl, reportHtml) {
+        function displayReport(imageUrl) {
+            const { name, reportHtml } = currentActor;
             const finalReportHtml = reportHtml || `<p class="text-center text-red-600">오류: 리포트 내용을 표시할 수 없습니다.</p>`;
             reportSection.innerHTML = `
                 <div id="report-to-capture" class="bg-white rounded-lg shadow-xl p-8 md:p-12 border fade-in-up">
                     <button id="back-to-search" class="accent-bg text-white text-sm py-2 px-4 rounded-full mb-8 hover:opacity-90">← 다른 배우 분석하기</button>
                     <header class="text-center mb-12">
-                        <img src="${imageUrl}" alt="${actorName}" class="w-40 h-40 object-cover rounded-full mx-auto mb-4 shadow-lg border-4" style="border-color: var(--border-color);" onerror="this.onerror=null;this.src='https://placehold.co/160x160/E5E0D9/4E443C?text=${encodeURIComponent(actorName)}';">
-                        <h1 class="text-5xl mb-2 font-serif">${actorName}</h1>
+                        <img src="${imageUrl}" alt="${name}" class="w-40 h-40 object-cover rounded-full mx-auto mb-4 shadow-lg border-4" style="border-color: var(--border-color);" onerror="this.onerror=null;this.src='https://placehold.co/160x160/E5E0D9/4E443C?text=${encodeURIComponent(name)}';">
+                        <h1 class="text-5xl mb-2 font-serif">${name}</h1>
                         <h2 class="text-2xl text-stone-500 font-serif tracking-widest mt-2">롤모델 분석 REPORT</h2>
                     </header>
                     <div id="report-content" class="ai-generated-content">${finalReportHtml}</div>
@@ -321,15 +368,10 @@
             reportSection.classList.remove('hidden');
             saveJpgButton.disabled = false;
             
-            document.getElementById('back-to-search').addEventListener('click', () => {
-                reportSection.classList.add('hidden');
-                reportSection.innerHTML = '';
-                searchSection.style.display = 'block';
-                saveJpgButton.disabled = true;
-            });
+            document.getElementById('back-to-search').addEventListener('click', showSearchSection);
             document.getElementById('toggle-scene-options-button').addEventListener('click', () => document.getElementById('scene-options').classList.toggle('hidden'));
             document.querySelectorAll('.scene-genre-button').forEach(button => {
-                button.addEventListener('click', () => generateAuditionScene(actorName, reportHtml, button.textContent));
+                button.addEventListener('click', () => generateAuditionScene(name, reportHtml, button.textContent));
             });
         }
         
@@ -405,44 +447,76 @@
             return await callGenerativeApi(systemPrompt, question);
         }
         
+        function appendMessage(sender, message) {
+            const isUser = sender === 'user';
+            const messageHtml = isUser ? `
+                <div class="flex items-start gap-3 justify-end">
+                    <div class="bg-accent-color text-white rounded-lg p-3 max-w-lg shadow-sm">
+                        <p class="text-sm"><strong class="font-bold text-white/80">Q.</strong> ${message}</p>
+                    </div>
+                </div>` : 
+                `<div class="flex items-start gap-3">
+                    <div class="accent-bg text-white text-sm rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center font-bold">A</div>
+                    <div class="bg-white rounded-lg p-3 max-w-lg shadow-sm border text-sm ai-generated-content" style="border-color: var(--border-color);">${message}</div>
+                </div>`;
+            qnaChatbox.innerHTML += messageHtml;
+            qnaChatbox.scrollTop = qnaChatbox.scrollHeight;
+        }
+
+        // --- UTILITY FUNCTIONS ---
+        function hideAllSections() {
+            [searchSection, disambiguationSection, loadingSection, errorSection, reportSection].forEach(s => s.classList.add('hidden'));
+        }
+
+        function showSearchSection() {
+            hideAllSections();
+            searchInput.value = '';
+            searchSection.classList.remove('hidden');
+            saveJpgButton.disabled = true;
+        }
+        
+        function showError(message) {
+            hideAllSections();
+            errorMessageEl.textContent = `오류가 발생했습니다: ${message}. 다른 배우로 시도하거나 잠시 후 다시 시도해주세요.`;
+            errorSection.classList.remove('hidden');
+            searchSection.classList.remove('hidden');
+        }
+
         // --- EVENT LISTENERS ---
         function setupEventListeners() {
             searchButton.addEventListener('click', () => {
                 const actorName = searchInput.value.trim();
-                if (actorName) generateReport(actorName);
+                if (actorName) searchAndDisambiguate(actorName);
             });
             searchInput.addEventListener('keyup', (event) => {
                 if (event.key === 'Enter') {
                     const actorName = searchInput.value.trim();
-                    if (actorName) generateReport(actorName);
+                    if (actorName) searchAndDisambiguate(actorName);
                 }
             });
 
-            saveJpgButton.addEventListener('click', () => captureAndSave('report-to-capture', `AcTi_Report_${searchInput.value.trim()}.jpg`, 'save-jpg-button'));
-            saveSceneButton.addEventListener('click', () => captureAndSave('scene-to-capture', `AcTi_Scene_${searchInput.value.trim()}.jpg`, 'save-scene-button'));
-            saveTipsButton.addEventListener('click', () => captureAndSave('tips-to-capture', `AcTi_Tips_${searchInput.value.trim()}.jpg`, 'save-tips-button'));
+            saveJpgButton.addEventListener('click', () => captureAndSave('report-to-capture', `AcTi_Report_${currentActor.name}.jpg`, 'save-jpg-button'));
+            saveSceneButton.addEventListener('click', () => captureAndSave('scene-to-capture', `AcTi_Scene_${currentActor.name}.jpg`, 'save-scene-button'));
+            saveTipsButton.addEventListener('click', () => captureAndSave('tips-to-capture', `AcTi_Tips_${currentActor.name}.jpg`, 'save-tips-button'));
 
             qnaButton.addEventListener('click', () => qnaModal.classList.remove('hidden'));
             closeQnaModalButton.addEventListener('click', () => qnaModal.classList.add('hidden'));
             
-            sceneModal.addEventListener('click', (e) => {
-                if (e.target.closest('#close-scene-modal')) sceneModal.classList.add('hidden');
-                if (e.target.closest('#get-acting-tips-button')) {
-                    const actorName = searchInput.value.trim();
-                    const sceneHtml = sceneContent.innerHTML;
-                    if (actorName && sceneHtml) generateActingTips(actorName, sceneHtml);
-                }
+            closeSceneModalButton.addEventListener('click', () => sceneModal.classList.add('hidden'));
+            document.getElementById('get-acting-tips-button').addEventListener('click', () => {
+                const sceneHtml = sceneContent.innerHTML;
+                if (currentActor.name && sceneHtml) generateActingTips(currentActor.name, sceneHtml);
             });
             
-            tipsModal.addEventListener('click', (e) => {
-                if (e.target.closest('#close-tips-modal')) tipsModal.classList.add('hidden');
-            });
+            closeTipsModalButton.addEventListener('click', () => tipsModal.classList.add('hidden'));
 
             qnaForm.addEventListener('submit', async (e) => { 
                 e.preventDefault();
                 const question = qnaInput.value.trim();
                 if (!question) return;
-                // qna logic here
+                appendMessage('user', question);
+                qnaInput.value = '';
+                // ... qna response logic
             });
             
             sceneEditForm.addEventListener('submit', (e) => {
@@ -450,8 +524,7 @@
                 const editRequest = sceneEditInput.value.trim();
                 if (!editRequest) return;
                 const existingScene = sceneContent.innerHTML;
-                const actorName = searchInput.value.trim();
-                generateAuditionScene(actorName, null, '수정', existingScene, editRequest);
+                generateAuditionScene(currentActor.name, null, '수정', existingScene, editRequest);
                 sceneEditInput.value = '';
             });
         }
