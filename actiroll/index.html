@@ -72,8 +72,29 @@
             background-color: #312E81;
             color: #FFFFFF;
         }
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            padding: 10px;
+        }
         .typing-indicator span {
+            height: 8px;
+            width: 8px;
             background-color: #4b5563;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator span:nth-of-type(2) {
+            animation-delay: -0.32s;
+        }
+        .typing-indicator span:nth-of-type(3) {
+            animation-delay: -0.16s;
+        }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
         }
         .training-btn {
             background-color: #F9FAFB;
@@ -231,7 +252,6 @@
         let characterName = '';
         let isConversationStarted = false;
         
-        // State variables for script analysis context
         let currentScript = '';
         let uploadedImageParts = null;
 
@@ -679,4 +699,8 @@
 
 </body>
 </html>
+
+
+
+
 
