@@ -47,6 +47,12 @@
         .ai-generated-content strong { color: var(--text-primary); font-weight: 500; }
         .ai-generated-content p:last-child { margin-bottom: 0; }
         .ai-generated-content em { font-style: italic; color: var(--text-secondary); }
+
+        .finder-option-button.selected {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -59,6 +65,9 @@
                  <h1 class="text-2xl md:text-3xl tracking-wider">AcTi 롤모델</h1>
             </div>
             <div class="flex items-center space-x-2 md:space-x-4">
+                 <button id="finder-button" title="롤모델 찾기" class="accent-bg text-white rounded-full p-2.5 hover:opacity-90 transition-opacity">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 12.172 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"/><circle cx="12" cy="13" r="3"/></svg>
+                 </button>
                  <button id="save-jpg-button" title="리포트 저장하기" class="accent-bg text-white rounded-full p-2.5 hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                  </button>
@@ -79,18 +88,19 @@
             </div>
         </section>
 
+        <section id="finder-results-section" class="hidden text-center transition-opacity duration-700"></section>
         <section id="disambiguation-section" class="hidden text-center transition-opacity duration-700"></section>
         
         <section id="loading-section" class="hidden text-center transition-opacity duration-500">
-             <div class="flex flex-col items-center justify-center min-h-[50vh]">
+            <div class="flex flex-col items-center justify-center min-h-[50vh]">
                  <div class="w-16 h-16 border-4 border-stone-200 rounded-full animate-spin" style="border-top-color: var(--accent-color);"></div>
-                 <h3 class="text-3xl mt-8">AcTi가 배우를 분석하고 있습니다...</h3>
+                 <h3 class="text-3xl mt-8">AcTi가 분석 중입니다...</h3>
                  <p id="loading-status" class="mt-2">잠시만 기다려주세요.</p>
             </div>
         </section>
 
         <section id="error-section" class="hidden my-8 transition-opacity duration-500">
-            <div class="max-w-2xl mx-auto bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg" role="alert">
+             <div class="max-w-2xl mx-auto bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg" role="alert">
                  <strong class="font-bold font-serif" id="error-title">분석 오류!</strong>
                  <p id="error-message">오류가 발생했습니다.</p>
              </div>
@@ -99,7 +109,45 @@
         <section id="report-section" class="hidden"></section>
     </main>
     
-    <!-- All Modals (Q&A, Scene, Tips) -->
+    <!-- All Modals -->
+    <div id="finder-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col" style="background-color: var(--bg-main);">
+            <header class="p-4 border-b flex justify-between items-center" style="border-color: var(--border-color);"><h3 class="text-2xl font-serif">나의 롤모델 찾기</h3><button id="close-finder-modal" class="p-2 -mr-2 text-2xl leading-none text-stone-500 hover:text-stone-800">&times;</button></header>
+            <div class="flex-1 p-6 overflow-y-auto space-y-6">
+                <div>
+                    <h4 class="font-bold mb-2 text-primary">성별</h4>
+                    <div id="finder-gender" class="flex gap-2">
+                        <button class="finder-option-button w-full bg-white text-stone-700 py-2 rounded-full border hover:bg-stone-50" data-group="gender">남자</button>
+                        <button class="finder-option-button w-full bg-white text-stone-700 py-2 rounded-full border hover:bg-stone-50" data-group="gender">여자</button>
+                    </div>
+                </div>
+                 <div>
+                    <h4 class="font-bold mb-2 text-primary">연령대</h4>
+                    <div id="finder-age" class="grid grid-cols-3 gap-2">
+                        <button class="finder-option-button bg-white text-stone-700 py-2 rounded-full border hover:bg-stone-50" data-group="age">10대</button>
+                        <button class="finder-option-button bg-white text-stone-700 py-2 rounded-full border hover:bg-stone-50" data-group="age">20대</button>
+                        <button class="finder-option-button bg-white text-stone-700 py-2 rounded-full border hover:bg-stone-50" data-group="age">30대</button>
+                        <button class="finder-option-button bg-white text-stone-700 py-2 rounded-full border hover:bg-stone-50" data-group="age">40대</button>
+                        <button class="finder-option-button bg-white text-stone-700 py-2 rounded-full border hover:bg-stone-50" data-group="age">50대 이상</button>
+                    </div>
+                </div>
+                 <div>
+                    <h4 class="font-bold mb-2 text-primary">연기 스타일 (최대 3개 선택)</h4>
+                    <div id="finder-style" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                         <button class="finder-option-button bg-white text-stone-700 py-2 rounded-full border hover:bg-stone-50" data-group="style">메소드 연기</button>
+                         <button class="finder-option-button bg-white text-stone-700 py-2 rounded-full border hover:bg-stone-50" data-group="style">캐릭터 연기</button>
+                         <button class="finder-option-button bg-white text-stone-700 py-2 rounded-full border hover:bg-stone-50" data-group="style">자연스러운 생활 연기</button>
+                         <button class="finder-option-button bg-white text-stone-700 py-2 rounded-full border hover:bg-stone-50" data-group="style">강렬한 카리스마</button>
+                         <button class="finder-option-button bg-white text-stone-700 py-2 rounded-full border hover:bg-stone-50" data-group="style">코미디/희극 연기</button>
+                         <button class="finder-option-button bg-white text-stone-700 py-2 rounded-full border hover:bg-stone-50" data-group="style">선 굵은 액션 연기</button>
+                    </div>
+                </div>
+            </div>
+            <footer class="p-4 border-t bg-white text-center" style="border-color: var(--border-color);">
+                <button id="find-rolemodels-button" class="w-full accent-bg text-white rounded-full py-3 px-5 hover:opacity-90 transition-opacity">AcTi! 롤모델 추천해줘</button>
+            </footer>
+        </div>
+    </div>
     <div id="qna-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col" style="background-color: var(--bg-main);">
             <header class="p-4 border-b flex justify-between items-center" style="border-color: var(--border-color);"><h3 class="text-2xl font-serif">AcTi Q&A</h3><button id="close-qna-modal" class="p-2 -mr-2 text-2xl leading-none text-stone-500 hover:text-stone-800">&times;</button></header>
@@ -161,6 +209,7 @@
         const errorSection = document.getElementById('error-section');
         const errorMessageEl = document.getElementById('error-message');
         const reportSection = document.getElementById('report-section');
+        const finderResultsSection = document.getElementById('finder-results-section');
         const saveJpgButton = document.getElementById('save-jpg-button');
         const qnaButton = document.getElementById('qna-button');
         const qnaModal = document.getElementById('qna-modal');
@@ -178,15 +227,33 @@
         const closeTipsModalButton = document.getElementById('close-tips-modal');
         const tipsContent = document.getElementById('tips-content');
         const saveTipsButton = document.getElementById('save-tips-button');
+        const finderModal = document.getElementById('finder-modal');
+        const closeFinderModalButton = document.getElementById('close-finder-modal');
+        const finderButton = document.getElementById('finder-button');
+        const findRoleModelsButton = document.getElementById('find-rolemodels-button');
         
         // --- GLOBAL STATE ---
         let currentActor = { name: null, reportHtml: null };
-
-        // Initial state
         saveJpgButton.disabled = true;
         
-        // --- CORE LOGIC ---
+        // --- UTILITY FUNCTIONS ---
+        function hideAllSections() {
+            [searchSection, disambiguationSection, loadingSection, errorSection, reportSection, finderResultsSection].forEach(s => s.classList.add('hidden'));
+        }
+        function showSearchSection() {
+            hideAllSections();
+            searchInput.value = '';
+            searchSection.classList.remove('hidden');
+            saveJpgButton.disabled = true;
+        }
+        function showError(message) {
+            hideAllSections();
+            errorMessageEl.textContent = `오류가 발생했습니다: ${message}. 다른 배우로 시도하거나 잠시 후 다시 시도해주세요.`;
+            errorSection.classList.remove('hidden');
+            searchSection.classList.remove('hidden');
+        }
 
+        // --- CORE LOGIC ---
         async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
             for (let i = 0; i < retries; i++) {
                 try {
@@ -218,9 +285,7 @@
 
             if (!text || (candidate && candidate.finishReason && candidate.finishReason !== "STOP")) {
                  let reason = candidate?.finishReason || '알 수 없음';
-                 if (candidate?.finishReason === 'SAFETY') {
-                     reason = '안전 설정에 의해 차단됨';
-                 }
+                 if (candidate?.finishReason === 'SAFETY') { reason = '안전 설정에 의해 차단됨'; }
                  throw new Error(`콘텐츠 생성 실패 (사유: ${reason})`);
             }
             return text;
@@ -244,7 +309,14 @@
                         const imageClaim = qidData.entities[qid].claims?.P18;
                         if (imageClaim?.[0]) {
                             const fileName = imageClaim[0].mainsnak.datavalue.value;
-                            return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}`;
+                            const imageInfoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=File:${encodeURIComponent(fileName)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
+                            const imageInfoResponse = await fetch(imageInfoUrl);
+                            if (imageInfoResponse.ok) {
+                                const imageInfoData = await imageInfoResponse.json();
+                                const pages = imageInfoData.query.pages;
+                                const pageId = Object.keys(pages)[0];
+                                if (pageId !== "-1") return pages[pageId].imageinfo[0].url;
+                            }
                         }
                     }
                 }
@@ -266,79 +338,53 @@
             hideAllSections();
             loadingSection.classList.remove('hidden');
             loadingStatus.textContent = `'${actorName}' 검색 중...`;
-
             try {
                 const encodedName = encodeURIComponent(actorName);
                 const url = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodedName}&language=ko&format=json&props=description&type=item&origin=*`;
                 const response = await fetch(url);
                 const data = await response.json();
-                
                 const actors = (data.search || []).filter(item => {
                     if (!item.description) return false;
                     const desc = item.description.toLowerCase();
                     return desc.includes('배우') || desc.includes('actor') || desc.includes('actress') || desc.includes('연기자');
                 });
-
-                if (actors.length === 0) {
-                    throw new Error(`'${actorName}'에 대한 배우 정보를 찾을 수 없습니다.`);
-                } else if (actors.length === 1) {
-                    await generateReport(actors[0].label, actors[0].id);
-                } else {
-                    displayDisambiguation(actors);
-                }
-            } catch (error) {
-                showError(error.message);
-            } finally {
-                loadingSection.classList.add('hidden');
-            }
+                if (actors.length === 0) { throw new Error(`'${actorName}'에 대한 배우 정보를 찾을 수 없습니다.`); }
+                else if (actors.length === 1) { await generateReport(actors[0].label, actors[0].id); }
+                else { displayDisambiguation(actors); }
+            } catch (error) { showError(error.message); }
+            finally { loadingSection.classList.add('hidden'); }
         }
-
         function displayDisambiguation(actors) {
             hideAllSections();
             let content = `<h2 class="text-3xl md:text-4xl mb-4">동명이인 배우</h2><p class="mb-8">분석하고 싶은 배우를 선택해주세요.</p><div class="grid grid-cols-2 md:grid-cols-4 gap-4">`;
             actors.forEach(actor => {
                 const placeholderUrl = `https://placehold.co/200x300/E5E0D9/4E443C?text=${encodeURIComponent(actor.label)}`;
-                content += `
-                    <div class="actor-card cursor-pointer p-2 bg-white/50 rounded-lg hover:shadow-lg transition-shadow" data-name="${actor.label}" data-qid="${actor.id}">
-                        <img src="${placeholderUrl}" data-qid="${actor.id}" class="w-full h-48 object-cover rounded-md mb-2 bg-stone-200" alt="${actor.label}">
-                        <h4 class="font-bold text-primary">${actor.label}</h4>
-                        <p class="text-sm text-secondary">${actor.description || ''}</p>
-                    </div>`;
+                content += `<div class="actor-card cursor-pointer p-2 bg-white/50 rounded-lg hover:shadow-lg transition-shadow" data-name="${actor.label}" data-qid="${actor.id}"><img src="${placeholderUrl}" data-qid="${actor.id}" class="w-full h-48 object-cover rounded-md mb-2 bg-stone-200" alt="${actor.label}"><h4 class="font-bold text-primary">${actor.label}</h4><p class="text-sm text-secondary">${actor.description || ''}</p></div>`;
             });
             content += `</div>`;
             disambiguationSection.innerHTML = content;
             disambiguationSection.classList.remove('hidden');
-
             document.querySelectorAll('.actor-card').forEach(card => {
                 const qid = card.dataset.qid;
                 const img = card.querySelector('img');
                 fetchActorImage(null, qid).then(url => img.src = url);
-                card.addEventListener('click', () => {
-                    generateReport(card.dataset.name, card.dataset.qid);
-                });
+                card.addEventListener('click', () => { generateReport(card.dataset.name, card.dataset.qid); });
             });
         }
-        
         async function generateReport(actorName, qid) {
             hideAllSections();
             loadingSection.classList.remove('hidden');
             const loadingMessages = ["프로필 사진 검색 중...", "리포트 생성 중...", "AcTi가 데이터를 분석하고 있습니다..."];
             let msgIndex = 0;
             const interval = setInterval(() => { loadingStatus.textContent = loadingMessages[msgIndex++ % loadingMessages.length]; }, 2000);
-
             try {
                 const imageUrl = await fetchActorImage(actorName, qid);
                 const reportHtml = await generateAIReport(actorName);
                 currentActor = { name: actorName, reportHtml: reportHtml };
                 displayReport(imageUrl);
-            } catch (error) {
-                showError(error.message);
-            } finally {
-                clearInterval(interval);
-                loadingSection.classList.add('hidden');
-            }
+            } catch (error) { showError(error.message); }
+            finally { clearInterval(interval); loadingSection.classList.add('hidden'); }
         }
-        
         function displayReport(imageUrl) {
             const { name, reportHtml } = currentActor;
             const finalReportHtml = reportHtml || `<p class="text-center text-red-600">오류: 리포트 내용을 표시할 수 없습니다.</p>`;
@@ -367,25 +413,21 @@
                 </div>`;
             reportSection.classList.remove('hidden');
             saveJpgButton.disabled = false;
-            
             document.getElementById('back-to-search').addEventListener('click', showSearchSection);
             document.getElementById('toggle-scene-options-button').addEventListener('click', () => document.getElementById('scene-options').classList.toggle('hidden'));
             document.querySelectorAll('.scene-genre-button').forEach(button => {
                 button.addEventListener('click', () => generateAuditionScene(name, reportHtml, button.textContent));
             });
         }
-        
         async function captureAndSave(elementId, fileName, buttonId) {
             const elementToCapture = document.getElementById(elementId);
             const button = document.getElementById(buttonId);
             if (!elementToCapture || !button) return;
-            
             button.disabled = true;
             const originalButtonText = button.textContent;
             button.textContent = '이미지 생성 중...';
             const originalMaxHeight = elementToCapture.style.maxHeight;
             elementToCapture.style.maxHeight = 'none';
-
             try {
                 await new Promise(resolve => setTimeout(resolve, 100));
                 const canvas = await html2canvas(elementToCapture, { scale: 2, useCORS: true, backgroundColor: getComputedStyle(elementToCapture).getPropertyValue('background-color') });
@@ -393,22 +435,18 @@
                 link.download = fileName;
                 link.href = canvas.toDataURL('image/jpeg', 0.95);
                 link.click();
-            } catch (err) {
-                console.error("JPG 저장 오류:", err);
-                alert("이미지 저장에 실패했습니다.");
-            } finally {
+            } catch (err) { console.error("JPG 저장 오류:", err); alert("이미지 저장에 실패했습니다."); }
+            finally {
                 elementToCapture.style.maxHeight = originalMaxHeight;
                 button.disabled = false;
                 button.textContent = originalButtonText;
             }
         }
-        
         async function generateAuditionScene(actorName, reportHtml, genre, existingScene = null, editRequest = null) {
             sceneModal.classList.remove('hidden');
             sceneContent.innerHTML = `<div class="flex items-center justify-center h-full"><div class="w-12 h-12 border-4 border-stone-200 rounded-full animate-spin" style="border-top-color: var(--accent-color);"></div></div>`;
             saveSceneButton.disabled = true;
             let systemPrompt, userQuery;
-
             if (existingScene && editRequest) {
                 systemPrompt = `당신은 창의적인 시나리오 작가입니다. 주어진 대본을 사용자의 요청에 맞게 수정합니다. 반드시 이전 대본의 맥락과 형식을 유지하면서, 요청사항만 반영하여 완성된 전체 대본을 다시 제공해야 합니다. 최종 결과물은 다른 설명 없이 오직 완성된 대본 HTML 문자열이어야 합니다. 코드 블록 마커나 불필요한 설명을 절대 포함하지 마세요.`;
                 userQuery = `기존 대본:\n\n${existingScene}\n\n사용자 수정 요청: "${editRequest}"\n\n위 요청을 반영하여 전체 대본을 수정해주세요.`;
@@ -419,16 +457,12 @@
                 systemPrompt = `당신은 창의적인 시나리오 작가입니다. 배우 지망생을 위해, 특정 배우의 강점을 극대화할 수 있는 **1분~1분 30초 분량의 오디션용 장면**을 작성합니다. 최종 결과물은 실제 대본처럼 서식이 지정된, 순수한 단일 HTML 문자열이어야 합니다. 코드 블록 마커(\`\`\`)를 절대 포함하지 마세요. 다음 규칙을 엄격히 준수하세요: 1. **분량**: 대사량이 충분하여 배우가 1분 이상 연기할 수 있도록 작성해야 합니다. 2. **지문**: 대사 안의 연기 지문은 <em>(괄호 안에)</em> 이탤릭체로 작성하되, **길고 서술적인 설명은 피하고, 행동이나 감정의 핵심만 간결하게** 표현해야 합니다. (예: '<em>(잠시 침묵)</em>', '<em>(목소리가 살짝 떨리며)</em>'). 3. **언어**: 인물 설명과 이름은 오직 한글로만 작성하세요. 4. **대본 형식**: 인물 이름은 <strong> 태그를 사용하여 볼드체로, 대사는 다음 줄에 들여쓰기 된 형식으로 제공해야 합니다. (예: '<p><strong>김영감</strong></p><p style="padding-left: 1.5rem;">...대사...</p>'). 5. **줄바꿈**: 긴 대사는 의미 단위로 <br> 태그를 사용하여 가독성을 높여주세요.`;
                 userQuery = `다음은 '${actorName}' 배우에 대한 분석입니다. 이 분석을 바탕으로, **'${genre}' 스타일**을 강조하여 그의 연기력을 가장 잘 보여줄 수 있는 **1분~1분 30초 분량**의 오리지널 오디션 장면을 HTML 형식으로 작성해주세요.\n\n분석 내용: "${reportText}"`;
             }
-
             try {
                 const sceneHtml = await callGenerativeApi(systemPrompt, userQuery);
                 sceneContent.innerHTML = sceneHtml;
                 saveSceneButton.disabled = false;
-            } catch (error) {
-                sceneContent.innerHTML = `<p class="text-red-700 text-center">죄송합니다. 대본을 생성하는 중에 오류가 발생했습니다: ${error.message}</p>`;
-            }
+            } catch (error) { sceneContent.innerHTML = `<p class="text-red-700 text-center">죄송합니다. 대본을 생성하는 중에 오류가 발생했습니다: ${error.message}</p>`; }
         }
-        
         async function generateActingTips(actorName, sceneHtml) {
             tipsModal.classList.remove('hidden');
             tipsContent.innerHTML = `<div class="flex items-center justify-center h-full"><div class="w-12 h-12 border-4 border-stone-200 rounded-full animate-spin" style="border-top-color: var(--accent-color);"></div></div>`;
@@ -437,51 +471,60 @@
             try {
                 const tipsHtml = await callGenerativeApi(systemPrompt, userQuery);
                 tipsContent.innerHTML = tipsHtml;
-            } catch (error) {
-                tipsContent.innerHTML = `<p class="text-red-700 text-center">죄송합니다. 연기 팁을 생성하는 중에 오류가 발생했습니다: ${error.message}</p>`;
-            }
+            } catch (error) { tipsContent.innerHTML = `<p class="text-red-700 text-center">죄송합니다. 연기 팁을 생성하는 중에 오류가 발생했습니다: ${error.message}</p>`; }
         }
-        
         async function getQnaResponse(question) { 
             const systemPrompt = "당신은 'AcTi'라는 이름을 가진 연기 전문 코치입니다. 배우 지망생의 질문에 대해 다른 인사나 마무리 멘트 없이 핵심적인 답변만 간결하고 전문적으로 제공하세요. 당신의 이름은 'AcTi'이며, 'AI'라는 단어는 절대 사용하지 마세요. 답변은 항상 한국어로 제공해야 합니다. 최종 결과물은 다른 설명 없이 오직 답변 내용이 담긴 단일 HTML 문자열이어야 합니다. <p>, <ul>, <li>, <strong> 태그를 사용하여 가독성 좋게 내용을 구조화하고, 섹션을 구분해주세요. 마크다운 형식(**)은 절대 사용하지 마세요.";
             return await callGenerativeApi(systemPrompt, question);
         }
-        
         function appendMessage(sender, message) {
             const isUser = sender === 'user';
-            const messageHtml = isUser ? `
-                <div class="flex items-start gap-3 justify-end">
-                    <div class="bg-accent-color text-white rounded-lg p-3 max-w-lg shadow-sm">
-                        <p class="text-sm"><strong class="font-bold text-white/80">Q.</strong> ${message}</p>
-                    </div>
-                </div>` : 
-                `<div class="flex items-start gap-3">
-                    <div class="accent-bg text-white text-sm rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center font-bold">A</div>
-                    <div class="bg-white rounded-lg p-3 max-w-lg shadow-sm border text-sm ai-generated-content" style="border-color: var(--border-color);">${message}</div>
-                </div>`;
+            const messageHtml = isUser ? `<div class="flex items-start gap-3 justify-end"><div class="bg-accent-color text-white rounded-lg p-3 max-w-lg shadow-sm"><p class="text-sm"><strong class="font-bold text-white/80">Q.</strong> ${message}</p></div></div>` : `<div class="flex items-start gap-3"><div class="accent-bg text-white text-sm rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center font-bold">A</div><div class="bg-white rounded-lg p-3 max-w-lg shadow-sm border text-sm ai-generated-content" style="border-color: var(--border-color);">${message}</div></div>`;
             qnaChatbox.innerHTML += messageHtml;
             qnaChatbox.scrollTop = qnaChatbox.scrollHeight;
         }
-
-        // --- UTILITY FUNCTIONS ---
-        function hideAllSections() {
-            [searchSection, disambiguationSection, loadingSection, errorSection, reportSection].forEach(s => s.classList.add('hidden'));
-        }
-
-        function showSearchSection() {
+        async function findRoleModels() {
+            finderModal.classList.add('hidden');
             hideAllSections();
-            searchInput.value = '';
-            searchSection.classList.remove('hidden');
-            saveJpgButton.disabled = true;
+            loadingSection.classList.remove('hidden');
+            loadingStatus.textContent = `나의 성향을 분석하여 롤모델을 찾는 중...`;
+            const selectedGender = document.querySelector('#finder-gender .selected')?.textContent;
+            const selectedAge = document.querySelector('#finder-age .selected')?.textContent;
+            const selectedStyles = [...document.querySelectorAll('#finder-style .selected')].map(el => el.textContent);
+            const systemPrompt = `당신은 세계 최고의 캐스팅 디렉터 AcTi입니다. 사용자가 선택한 조건(성별, 연령대, 연기 스타일)에 맞는 대한민국 배우 5명을 추천합니다. 최종 결과는 다른 설명 없이 오직 JSON 배열 형식이어야 합니다. 각 객체는 'name'과 'description' 키를 가져야 합니다. 예: [{"name": "송강호", "description": "1967년생 대한민국 남자 배우"}, ...]`;
+            let userQuery = "다음 조건에 맞는 롤모델 배우 5명을 추천해줘:\n";
+            if (selectedGender) userQuery += `- 성별: ${selectedGender}\n`;
+            if (selectedAge) userQuery += `- 연령대: ${selectedAge}\n`;
+            if (selectedStyles.length > 0) userQuery += `- 연기 스타일: ${selectedStyles.join(', ')}\n`;
+            try {
+                const resultText = await callGenerativeApi(systemPrompt, userQuery);
+                const startIndex = resultText.indexOf('[');
+                const endIndex = resultText.lastIndexOf(']');
+                if (startIndex === -1 || endIndex === -1) { throw new Error("AcTi가 유효한 배우 목록을 생성하지 못했습니다."); }
+                const jsonString = resultText.substring(startIndex, endIndex + 1);
+                const actors = JSON.parse(jsonString);
+                displayFinderResults(actors);
+            } catch (error) { showError(`롤모델 추천 생성에 실패했습니다. ${error.message}`); }
+            finally { loadingSection.classList.add('hidden'); }
+        }
+        function displayFinderResults(actors) {
+            hideAllSections();
+            let content = `<h2 class="text-3xl md:text-4xl mb-4">AcTi 추천 롤모델</h2><p class="mb-8">나의 성향과 잘 맞는 롤모델 배우입니다.</p><div class="grid grid-cols-2 md:grid-cols-4 gap-4">`;
+            actors.forEach(actor => {
+                const placeholderUrl = `https://placehold.co/200x300/E5E0D9/4E443C?text=${encodeURIComponent(actor.name)}`;
+                content += `<div class="actor-card cursor-pointer p-2 bg-white/50 rounded-lg hover:shadow-lg transition-shadow" data-name="${actor.name}"><img src="${placeholderUrl}" class="w-full h-48 object-cover rounded-md mb-2 bg-stone-200" alt="${actor.name}"><h4 class="font-bold text-primary">${actor.name}</h4><p class="text-sm text-secondary">${actor.description || ''}</p></div>`;
+            });
+            content += `</div>`;
+            finderResultsSection.innerHTML = content;
+            finderResultsSection.classList.remove('hidden');
+            document.querySelectorAll('.actor-card').forEach(card => {
+                const img = card.querySelector('img');
+                const actorName = card.dataset.name;
+                fetchActorImage(actorName).then(url => img.src = url);
+                card.addEventListener('click', () => { searchAndDisambiguate(actorName); });
+            });
         }
         
-        function showError(message) {
-            hideAllSections();
-            errorMessageEl.textContent = `오류가 발생했습니다: ${message}. 다른 배우로 시도하거나 잠시 후 다시 시도해주세요.`;
-            errorSection.classList.remove('hidden');
-            searchSection.classList.remove('hidden');
-        }
-
         // --- EVENT LISTENERS ---
         function setupEventListeners() {
             searchButton.addEventListener('click', () => {
@@ -510,13 +553,39 @@
             
             closeTipsModalButton.addEventListener('click', () => tipsModal.classList.add('hidden'));
 
+            finderButton.addEventListener('click', () => finderModal.classList.remove('hidden'));
+            closeFinderModalButton.addEventListener('click', () => finderModal.classList.add('hidden'));
+            findRoleModelsButton.addEventListener('click', findRoleModels);
+
+            document.querySelectorAll('.finder-option-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const group = button.dataset.group;
+                    if (group === 'style') {
+                        const selectedCount = document.querySelectorAll(`#finder-style .selected`).length;
+                        if (button.classList.contains('selected')) {
+                            button.classList.remove('selected');
+                        } else if (selectedCount < 3) {
+                            button.classList.add('selected');
+                        }
+                    } else {
+                        document.querySelectorAll(`[data-group="${group}"]`).forEach(btn => btn.classList.remove('selected'));
+                        button.classList.add('selected');
+                    }
+                });
+            });
+
             qnaForm.addEventListener('submit', async (e) => { 
                 e.preventDefault();
                 const question = qnaInput.value.trim();
                 if (!question) return;
                 appendMessage('user', question);
                 qnaInput.value = '';
-                // ... qna response logic
+                try {
+                    const response = await getQnaResponse(question);
+                    appendMessage('acti', response);
+                } catch(error) {
+                    appendMessage('acti', `오류가 발생했습니다: ${error.message}`);
+                }
             });
             
             sceneEditForm.addEventListener('submit', (e) => {
