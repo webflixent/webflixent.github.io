@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="액터즈 마인드 코치">
-    <link rel="apple-touch-icon" href="https://placehold.co/180x180/312E81/F8F7F3?text=K">
+    <link rel="apple-touch-icon" href="actiactor.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -72,8 +72,29 @@
             background-color: #312E81;
             color: #FFFFFF;
         }
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            padding: 10px;
+        }
         .typing-indicator span {
+            height: 8px;
+            width: 8px;
             background-color: #4b5563;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator span:nth-of-type(2) {
+            animation-delay: -0.32s;
+        }
+        .typing-indicator span:nth-of-type(3) {
+            animation-delay: -0.16s;
+        }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
         }
         .training-btn {
             background-color: #F9FAFB;
@@ -128,8 +149,11 @@
 
     <div class="app-container bg-white">
         <div class="text-center p-4 border-b border-gray-200 bg-indigo-50">
-            <h1 class="text-2xl sm:text-3xl font-bold text-indigo-900">액터즈 마인드 코치</h1>
-            <p class="text-gray-500 mt-1 sm:mt-2 text-sm sm:text-base">개인 훈련 파트너, 'K'</p>
+            <div class="flex justify-center items-center gap-2">
+                <img src="actiactor.png" alt="ActiActor Logo" class="h-6 w-6">
+                <h1 class="text-2xl sm:text-3xl font-bold text-indigo-900">Acti Mind 코치</h1>
+            </div>
+            <p class="text-gray-500 mt-1 sm:mt-2 text-sm sm:text-base">마인드 디렉터 'K' 와의 상담</p>
         </div>
         
         <div class="p-4 flex-shrink-0">
@@ -169,13 +193,15 @@
                  </div>
             </div>
     
-            <div class="flex items-center bg-gray-100 rounded-lg border border-gray-300">
-                <input type="text" id="user-input" class="flex-1 bg-transparent placeholder-gray-500 px-4 py-3 focus:outline-none" placeholder="">
-                 <label for="file-upload" class="p-3 cursor-pointer hover:bg-gray-200 rounded-full">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.49"></path></svg>
-                </label>
-                <input type="file" id="file-upload" class="hidden">
-                <button id="send-btn" class="bg-indigo-800 hover:bg-indigo-900 text-white font-bold px-6 py-3 rounded-r-lg transition-colors">전송</button>
+            <div class="flex items-center gap-2">
+                <div class="relative flex-1">
+                    <input type="text" id="user-input" class="w-full bg-gray-100 placeholder-gray-500 pl-4 pr-12 py-3 focus:outline-none border border-gray-300 rounded-lg" placeholder="">
+                    <label for="file-upload" class="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer hover:opacity-75">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.49"></path></svg>
+                    </label>
+                    <input type="file" id="file-upload" class="hidden">
+                </div>
+                <button id="send-btn" class="bg-indigo-800 hover:bg-indigo-900 text-white font-bold px-5 py-3 rounded-lg transition-colors flex-shrink-0">전송</button>
             </div>
         </div>
         
@@ -231,7 +257,6 @@
         let characterName = '';
         let isConversationStarted = false;
         
-        // State variables for script analysis context
         let currentScript = '';
         let uploadedImageParts = null;
 
@@ -296,8 +321,8 @@
         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
         async function callGeminiAPI(parts, useScriptAnalysisPrompt = false) {
-            const API_KEY = ""; // NOTE: API key is intentionally left blank.
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+            const apiKey = "AIzaSyBbEsfDqt5ojPAJoo70Nozro4LacKk__4k";
+            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             
             let attempt = 0;
             const maxRetries = 4;
@@ -565,6 +590,7 @@
             const file = e.target.files[0];
             if (!file) return;
 
+            // Handle Images
             if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = async (event) => {
@@ -572,13 +598,14 @@
                     addImageMessage(imageDataUrl);
                     typingIndicator.style.display = 'flex';
                     const base64Data = await fileToBase64(file);
+                    
                     const parts = [
-                        { text: "이 이미지는 배우가 분석을 원하는 대본이다. Master K로서, 이 대본을 처음 받아 든 배우에게, **이 대본이 어떤 상황에 쓰일 것인지(오디션, 작품 등) 묻는 첫 질문**을 던져라. 분석은 배우의 '상황'을 이해하는 것에서 시작되어야 한다." },
+                        { text: "배우가 분석을 원하는 대본 이미지를 올렸다. Master K로서, 이 대본을 처음 받아 든 배우에게, **이 대본이 어떤 상황에 쓰일 것인지(오디션, 작품 등) 묻는 첫 질문**을 던져라. 분석은 배우의 '상황'을 이해하는 것에서 시작되어야 한다." },
                         { inlineData: { mimeType: file.type, data: base64Data } }
                     ];
 
-                    currentScript = ''; // Reset text script
-                    uploadedImageParts = { inlineData: { mimeType: file.type, data: base64Data } }; // Store image data
+                    currentScript = '';
+                    uploadedImageParts = { inlineData: { mimeType: file.type, data: base64Data } };
 
                     const aiResponse = await callGeminiAPI(parts, true);
                     typingIndicator.style.display = 'none';
@@ -587,12 +614,34 @@
                     userInput.placeholder = "대본에 대해 질문해. ('종료' 입력)";
                 };
                 reader.readAsDataURL(file);
+            // Handle Text files
+            } else if (file.type === 'text/plain') {
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    const script = event.target.result;
+                    if (!script) {
+                        addMessage("파일이 비어있다. 내용이 있는 파일을 올려라.", 'ai');
+                        return;
+                    }
+                    addMessage(`'${file.name}' 파일을 올렸다. 분석을 시작한다.`, 'user');
+                    typingIndicator.style.display = 'flex';
+                    
+                    currentScript = script;
+                    uploadedImageParts = null;
+                    
+                    const prompt = `다음은 배우가 분석을 원하는 대본이다. \n\n---대본 시작---\n${script}\n---대본 종료---\n\nMaster K로서, 이 대본을 처음 받아 든 배우에게, **이 대본이 어떤 상황에 쓰일 것인지(오디션, 작품 등) 묻는 첫 질문**을 던져라. 분석은 배우의 '상황'을 이해하는 것에서 시작되어야 한다.`;
+                    const aiResponse = await callGeminiAPI([{ text: prompt }], true);
+                    typingIndicator.style.display = 'none';
+                    addMessage(aiResponse, 'ai');
+                    currentMode = 'scriptAnalysis_ongoing';
+                    userInput.placeholder = "대본에 대해 질문해. ('종료' 입력)";
+                };
+                reader.readAsText(file);
+            // Handle PDF and other unsupported files
             } else {
-                typingIndicator.style.display = 'flex';
-                const promptText = `방금 배우가 '${file.name}'이라는 이름의 파일을 올렸다. 하지만 이 파일은 기술적으로 분석할 수 없는 이미지 이외의 파일(PDF, TXT 등)이다. 이 기술적 한계를 당신의 '마스터 K' 페르소나를 유지하면서, 배우를 질책하는 대신 성장을 위한 과제로 승화시켜 응답하라. 배우에게 왜 '이미지'로 장면을 보는 것이 중요한지 설명하고, 가장 중요하다고 생각하는 장면을 이미지로 캡처해서 다시 올리도록 유도하라. 절대 '파일을 올렸군' 같은 무의미한 말은 하지 마라.`;
-                const aiResponse = await callGeminiAPI([{ text: promptText }]);
-                typingIndicator.style.display = 'none';
-                addMessage(aiResponse, 'ai');
+                const fileType = file.type === 'application/pdf' ? 'PDF' : '지원하지 않는 형식의 파일';
+                const guidanceMessage = `${fileType}? 직접 읽을 순 없다. 안의 텍스트를 복사해서 '대본 토크'에 붙여넣거나, .txt 파일로 변환해서 다시 올려.`;
+                addMessage(guidanceMessage, 'ai');
             }
             e.target.value = null;
         });
@@ -655,4 +704,6 @@
 
 </body>
 </html>
+
+
 
