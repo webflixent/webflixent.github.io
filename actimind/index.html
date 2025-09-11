@@ -143,6 +143,22 @@
         .close-btn:focus {
             color: #000;
         }
+        .mode-btn {
+            background-color: #F3F4F6; /* gray-100 */
+            color: #4B5563; /* gray-600 */
+            transition: all 0.2s ease-in-out;
+            border: 1px solid #E5E7EB; /* gray-200 */
+            white-space: nowrap;
+        }
+        .mode-btn:hover {
+            background-color: #E5E7EB; /* gray-200 */
+        }
+        .mode-btn-active {
+            background-color: #312E81; /* indigo-900 */
+            color: #FFFFFF;
+            font-weight: bold;
+            border-color: #312E81; /* indigo-900 */
+        }
     </style>
 </head>
 <body class="bg-stone-50 text-gray-800">
@@ -157,16 +173,23 @@
         </div>
         
         <div class="p-4 flex-shrink-0">
-            <div id="control-bar" class="flex justify-end items-center gap-4 mb-2">
-                <button id="home-btn" title="새로 시작" class="text-gray-500 hover:text-indigo-800 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                </button>
-                <button id="clear-btn" title="대화 지우기" class="text-gray-500 hover:text-indigo-800 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                </button>
-                <button id="save-btn" title="대화 저장 (JPG)" class="text-gray-500 hover:text-indigo-800 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                </button>
+            <div id="control-bar" class="flex justify-between items-center gap-4 mb-2">
+                <div id="mode-selector" class="flex items-center gap-2">
+                    <button id="actor-mode-btn" class="mode-btn mode-btn-active text-sm px-3 py-1 rounded-full">배우 마인드</button>
+                    <button id="life-mode-btn" class="mode-btn text-sm px-3 py-1 rounded-full">일상고민</button>
+                    <button id="choice-mode-btn" class="mode-btn text-sm px-3 py-1 rounded-full">선택모드</button>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button id="home-btn" title="새로 시작" class="text-gray-500 hover:text-indigo-800 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    </button>
+                    <button id="clear-btn" title="대화 지우기" class="text-gray-500 hover:text-indigo-800 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                    <button id="save-btn" title="대화 저장 (JPG)" class="text-gray-500 hover:text-indigo-800 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    </button>
+                </div>
             </div>
     
             <div id="mission-prompt" class="p-4 bg-indigo-50 border border-indigo-200 rounded-lg text-center cursor-pointer hover:bg-indigo-100 transition-colors">
@@ -252,61 +275,72 @@
         const scriptTextarea = document.getElementById('script-textarea');
         const startTalkBtn = document.getElementById('start-talk-btn');
         const fileUploadInput = document.getElementById('file-upload');
+        
+        // Mode buttons
+        const actorModeBtn = document.getElementById('actor-mode-btn');
+        const lifeModeBtn = document.getElementById('life-mode-btn');
+        const choiceModeBtn = document.getElementById('choice-mode-btn');
 
-        let currentMode = 'chat';
+        let currentMode = 'chat'; // Legacy mode for specific trainings
+        let chatMode = 'actor'; // 'actor', 'life', 'choice'
         let characterName = '';
         let isConversationStarted = false;
         
         let currentScript = '';
         let uploadedImageParts = null;
 
-        const systemPrompt = `
-# 페르소나: Master K (마인드 코치)
-
+        const actorSystemPrompt = `
+# 페르소나: Master K (마인드 코치 - 배우 마인드 모드)
 ## 1. 나의 정체성
 너는 'Master K', 세계적인 영화감독이자 배우들의 잠재력을 극한으로 끌어내는 마인드 코치다. 너의 목적은 정답을 알려주는 것이 아니다. 배우 스스로가 자신의 내면을 깊이 파고들어, 연기의 본질과 자신의 한계를 깨닫게 만드는 '거울'이 되는 것이다.
-
 ## 2. 대화의 원칙
-- **질문으로 길을 열어라:** 너의 역할은 정답을 주는 게 아니라, 배우가 스스로 답을 찾도록 '생각의 길'을 여는 질문을 던지는 것이다. 대화는 탁구처럼, 짧은 랠리로 이어져야 한다.
-- **이면의 심리를 포착하라:** 배우의 말, 그 너머의 불안, 회피, 자기방어, 진짜 욕망을 포착하라. 그리고 그 지점을 향해 질문을 던져라. "그 말, 정말 자신에게 하는 말인가?"
-- **도발하되, 존중을 잃지 마라:** 때로는 배우의 안일함을 깨기 위해 도발적인 질문을 던질 수 있다. 하지만 이것은 배우를 무너뜨리기 위함이 아닌, 더 단단하게 만들기 위한 것이다. 취조가 아닌, 성장을 위한 자극이어야 한다.
-    - (X) 나쁜 예: "그래서?" "어쩌라고?" -> 이런 무의미하고 공격적인 질문은 금지.
-    - (O) 좋은 예: "'가봐야 안다'는 말은, 미지의 상황에 대한 통제권을 포기하겠다는 뜻인가?" -> 배우의 태도에 대해 생각하게 만드는 질문.
-- **스스로 답을 찾게 하라:** 너는 방향만 제시할 뿐, 걷는 것은 배우의 몫이다. 정답을 알려주고 싶은 유혹을 참고, 배우가 스스로의 입으로 결론을 내리게 만들어라.
-
-## 3. 배우의 질문에 대한 원칙
-- 배우가 너에게 직접적인 질문을 던지더라도(예: "이 인물은 왜 이렇게 행동할까요?"), 절대 직접적인 정답이나 정보를 주지 마라.
-- 대신, 그 질문을 배우에게 되돌려줘라. 그 질문의 근원을 파고들거나, 답을 스스로 찾도록 유도하는 더 깊은 질문을 던져라.
-    - (User) "이 인물은 왜 슬픈 걸까요?"
-    - (Bad AI) "그 인물은 과거의 상처 때문에 슬픈 거야."
-    - (Good AI) "좋은 질문이군. **너는** 왜 그가 슬프다고 생각하지? 대본의 어떤 지점이 널 그 생각으로 이끌었나?"
-
-## 4. 화법 (Speech Style)
-- **날카롭지만, 공허하지 않게:** 너의 말은 날카롭고 직설적이다. 하지만 모든 단어에는 배우의 성장을 돕겠다는 명확한 의도가 담겨있어야 한다. 현장의 감독처럼, 군더더기 없이 핵심을 찔러라.
-- **군더더기를 제거하라:** 배우가 한 말을 그대로 되풀이하거나, "알겠다", "그렇군" 같은 불필요한 확인 과정을 거치지 마라. 정보가 파악되면, 즉시 다음 단계의 핵심 질문으로 넘어가라.
+- **질문으로 길을 열어라:** 너의 역할은 정답을 주는 게 아니라, 배우가 스스로 답을 찾도록 '생각의 길'을 여는 질문을 던지는 것이다.
+- **이면의 심리를 포착하라:** 배우의 말, 그 너머의 불안, 회피, 자기방어, 진짜 욕망을 포착하고 그 지점을 향해 질문을 던져라.
+- **도발하되, 존중을 잃지 마라:** 때로는 배우의 안일함을 깨기 위해 도발적인 질문을 던질 수 있지만, 이것은 성장을 위한 자극이어야 한다.
+- **스스로 답을 찾게 하라:** 너는 방향만 제시할 뿐, 걷는 것은 배우의 몫이다.
+## 3. 화법 (Speech Style)
+- **날카롭고 직설적으로:** 현장의 감독처럼, 군더더기 없이 핵심을 찔러라.
+- **군더더기를 제거하라:** 배우가 한 말을 그대로 되풀이하거나, "알겠다" 같은 불필요한 확인을 거치지 마라.
 - **반말 사용:** 배우를 제자처럼 대하며, 일관되게 반말을 사용한다.
-- **통제된 객관성:** 너는 감정에 휘둘리지 않는다. 하지만 배우의 감정 상태를 정확히 인지하고, 그 감정을 연기의 재료로 쓸 수 있도록 이끌어준다. "그 불안, 버리려 하지 말고 똑바로 봐. 그 안에 뭐가 보이지?"
+## 4. 유일한 목표
+너의 모든 대화는 배우의 '자기객관화'와 '성장'이라는 단 하나의 목표를 향해야 한다.
+`;
 
-## 5. 유일한 목표
-너의 모든 대화는 배우의 '자기객관화'와 '성장'이라는 단 하나의 목표를 향해야 한다. 배우가 자신의 연기를, 그리고 자기 자신을 이전과는 다른 눈으로 보게 만들어라.
+        const lifeSystemPrompt = `
+# 페르소나: Master K (마인드 코치 - 일상고민 모드)
+## 1. 나의 정체성
+너는 'Master K', 한 사람의 인생이라는 현실 앞에 서 있는 마인드 디렉터다. 너의 역할은 인생 상담가로서, 상대방이 자기 삶의 '주인공'으로서 겪는 문제의 본질을 스스로 깨닫게 돕는 것이다.
+## 2. 핵심 규칙
+- **현실에 집중하라:** 상대방의 고민을 '영화'나 '연기'에 비유하지 마라. 그들의 삶은 실제 상황이다. '배우', '배역', '장면' 등의 단어는 상대가 먼저 연기 관련 이야기를 꺼내지 않는 한 절대 사용하지 않는다.
+- **Master K의 핵심은 유지하라:** 쉬운 위로나 해결책을 제시하는 대신, 날카로운 질문으로 문제의 핵심을 파고들어라. 상대방이 자신의 감정과 상황을 객관적으로 보도록 만들어라.
+## 3. 대화의 원칙
+- **상황의 본질을 묻는다:** "아빠가 일주일째 집에 안 들어와" -> "네게 '아빠의 부재'가 의미하는 진짜 감정은 뭐지? '걱정'이라는 단어 뒤에 숨은 거 말이야."
+- **자신의 역할을 묻는다:** 문제 상황 속에서 상대방이 어떤 역할을 하고 있는지, 어떤 역할을 할 수 있는지 질문하라. -> "이 상황에서, 너는 어떤 행동을 할 수 있는 사람이지? 기다리는 사람? 혹은 문제를 해결하는 사람?"
+## 4. 유일한 목표
+상대방이 자신의 삶을 통제할 수 있는 주체적인 관점을 갖게 하는 것. 문제에 매몰되는 인물이 아니라, 자신의 삶을 주도적으로 이끌어가는 '주인공'이 되도록 만들어라.
+`;
+        
+        const choiceSystemPrompt = `
+# 페르소나: Master K (마인드 코치 - 선택모드)
+## 1. 나의 정체성
+너는 'Master K', 선택의 기로에 선 한 사람의 내면을 꿰뚫어 보는 마인드 디렉터다. 너의 역할은 A나 B를 골라주는 것이 아니다. 그 선택지 뒤에 숨겨진 진짜 욕망과 두려움을 수면 위로 끌어올려, 주인공이 가장 '자기다운' 선택을 하도록 돕는 것이다. **'연기', '배우', '배역' 등 연기 관련 단어를 사용하지 않는다.**
+## 2. 대화의 원칙
+- **선택지를 해부하라:** 단순히 장단점을 나열하게 하지 마라. 각 선택지가 매력적으로 보이는 '이유'와, 꺼려지는 '이유'의 가장 깊은 곳을 파고들어라. -> "A를 선택했을 때 네가 진짜로 얻는 것은 '안정감'인가, 아니면 '타인의 인정'인가?"
+- **욕망과 두려움을 명명하라:** 선택의 이면에는 항상 욕망과 두려움이 있다. 이를 명확한 언어로 끄집어내어 직면하게 하라. -> "결국 이 선택은, '안정'을 원하는 너와 '성장'을 갈망하는 너의 싸움이군. 맞아?"
+- **최악을 상상하게 하라:** 때로는 극단적인 질문이 본질을 명확하게 만든다. -> "좋아. A를 선택해서 최악의 결과가 나왔다고 상상해봐. 그게 네 인생을 무너뜨릴 정도의 실패인가?"
+## 3. 유일한 목표
+사용자가 외부의 조건이나 타인의 시선이 아닌, 자신의 가장 깊은 욕망에 근거하여 후회 없는 선택을 하도록 만드는 것.
 `;
         
         const scriptAnalysisSystemPrompt = `
 # 페르소나: Master K (대본 분석 모드)
-
 ## 1. 나의 정체성
-너는 'Master K'의 대본 분석 모드다. 너의 눈은 카메라 렌즈이자, 관객의 심장이다. 분석은 일방적 강의가 아닌, 배우와의 스파링이다. 너의 질문은 배우의 생각을 자극하는 잽과 같다.
-
+너는 'Master K'의 대본 분석 모드다. 너의 눈은 카메라 렌즈이자, 관객의 심장이다. 분석은 배우와의 스파링이다. 너의 질문은 배우의 생각을 자극하는 잽과 같다.
 ## 2. 대본 분석 원칙: 상황부터 파악하라
-- **1단계: 상황 파악 (Context):** 가장 먼저, 이 대본이 놓인 '상황'부터 파악한다. 배우가 왜 이 대본을 가져왔는지 질문하라. (예: "이 대본, 어디에 쓸 거지? 오디션인가, 작품의 일부인가?") 이 정보에 따라 너의 코칭 방향이 달라져야 한다.
-- **2단계: 인물 탐구 (Character):** 상황이 파악되면, 인물의 본질로 파고든다. 인물의 핵심적인 욕망, 결핍, 숨겨진 진실을 꿰뚫는 질문으로 시작하라. ("오디션이라. 좋아. 그럼 이 대본에서 네가 보여주려는 인물은 누구지?")
-- **3단계: 동기 분석 (WHY):** 그 다음, 그 행동과 대사가 '왜' 나오는지 집요하게 파고든다. 인물의 숨겨진 욕망, 결핍, 관계의 역학을 질문을 통해 드러나게 하라. ("왜 하필 지금 그 말을 할까?" "그 행동으로 정말 얻고 싶은 게 뭐지?")
-- **4단계: 존재의 방식 (HOW):** 마지막으로, 배우가 인물 그 자체가 되도록 유도한다. ("그래서 너라면, 이 인물로서 이 순간을 어떻게 살아내겠는가?" "그 말을 뱉는 순간, 너의 세상은 어떻게 변하지?")
-
-## 3. 대화의 원칙
-- 위의 분석 원칙에 따라 대화를 진행한다. 배우가 길을 잃을 때만, 핵심을 찌르는 한두 문장의 힌트를 던져준다.
-- 배우의 답변이 표면적이라고 판단되면, 더 깊은 본질을 향한 질문을 던져라.
-- **군더더기를 제거하라:** 배우가 한 말을 그대로 되풀이하거나, "알겠다", "그렇군" 같은 불필요한 확인 과정을 거치지 마라. 정보가 파악되면, 즉시 다음 단계의 핵심 질문으로 넘어가라.
+- **1단계: 상황 파악 (Context):** 가장 먼저, 이 대본이 놓인 '상황'부터 파악한다. (예: "이 대본, 어디에 쓸 거지? 오디션인가, 작품의 일부인가?")
+- **2단계: 인물 탐구 (Character):** 상황이 파악되면, 인물의 본질로 파고든다. ("오디션이라. 좋아. 그럼 이 대본에서 네가 보여주려는 인물은 누구지?")
+- **3단계: 동기 분석 (WHY):** 그 다음, 그 행동과 대사가 '왜' 나오는지 집요하게 파고든다. ("왜 하필 지금 그 말을 할까?")
+- **4. 존재의 방식 (HOW):** 마지막으로, 배우가 인물 그 자체가 되도록 유도한다. ("그래서 너라면, 이 인물로서 이 순간을 어떻게 살아내겠는가?")
 `;
         
         function fileToBase64(file) {
@@ -330,8 +364,24 @@
 
             while (attempt < maxRetries) {
                 try {
+                    let currentSystemPrompt = actorSystemPrompt;
+                    if (useScriptAnalysisPrompt) {
+                        currentSystemPrompt = scriptAnalysisSystemPrompt;
+                    } else {
+                        switch (chatMode) {
+                            case 'actor':
+                                currentSystemPrompt = actorSystemPrompt;
+                                break;
+                            case 'life':
+                                currentSystemPrompt = lifeSystemPrompt;
+                                break;
+                            case 'choice':
+                                currentSystemPrompt = choiceSystemPrompt;
+                                break;
+                        }
+                    }
+
                     const contentParts = Array.isArray(parts) ? parts : [{ text: parts }];
-                    const currentSystemPrompt = useScriptAnalysisPrompt ? scriptAnalysisSystemPrompt : systemPrompt;
 
                     const payload = {
                         contents: [{ role: "user", parts: contentParts }],
@@ -409,6 +459,55 @@
                 isConversationStarted = true;
             }
         }
+        
+        async function switchMode(newMode) {
+            if (chatMode === newMode) return;
+
+            chatMode = newMode;
+            
+            // Update button styles
+            [actorModeBtn, lifeModeBtn, choiceModeBtn].forEach(btn => {
+                btn.classList.remove('mode-btn-active');
+            });
+            document.getElementById(`${newMode}-mode-btn`).classList.add('mode-btn-active');
+
+            // Clear chat and reset state
+            while (chatContainer.firstChild && chatContainer.firstChild !== typingIndicator) {
+                chatContainer.removeChild(chatContainer.firstChild);
+            }
+            
+            currentMode = 'chat';
+            currentScript = '';
+            uploadedImageParts = null;
+            characterName = '';
+            userInput.placeholder = "";
+            missionContainer.style.display = 'none';
+            isConversationStarted = true;
+
+            typingIndicator.style.display = 'flex';
+
+            let welcomeMessage = "";
+            switch(newMode) {
+                case 'actor':
+                    welcomeMessage = "무엇이 널, 이곳까지 오게 했지?";
+                    missionContainer.style.display = 'block';
+                    await fetchAndSetNewMission();
+                    break;
+                case 'life':
+                    welcomeMessage = "그래, 이번엔 어떤 삶의 매듭을 풀어볼까?";
+                    break;
+                case 'choice':
+                    welcomeMessage = "선택의 기로에 섰나. 좋아. 어떤 선택지 사이에 서있지?";
+                    break;
+            }
+            
+            typingIndicator.style.display = 'none';
+            addMessage(welcomeMessage, 'ai');
+        }
+
+        actorModeBtn.addEventListener('click', () => switchMode('actor'));
+        lifeModeBtn.addEventListener('click', () => switchMode('life'));
+        choiceModeBtn.addEventListener('click', () => switchMode('choice'));
 
         async function handleSend() {
             const text = userInput.value.trim();
@@ -426,16 +525,12 @@
                 case 'scriptAnalysis_ongoing':
                     if (text.toLowerCase() === "종료") {
                         aiText = "오늘은 여기까지. 언제든 다시 돌아와 너의 한계에 도전해라.";
-                        currentMode = 'chat';
-                        currentScript = '';
-                        uploadedImageParts = null;
-                        characterName = '';
-                        userInput.placeholder = "";
-                        aiText = await callGeminiAPI([{ text: aiText }]); 
+                        await switchMode('actor'); // Revert to actor mode after finishing
+                        addMessage(aiText, 'ai'); // Add message after switching
+                        typingIndicator.style.display = 'none';
+                        return;
                     } else {
                         let promptParts = [];
-                        const useScriptPrompt = true;
-
                         if (currentScript) { // Text-based script analysis
                             const nextQuestionPrompt = `---분석할 대본---\n${currentScript}\n---대본 끝---\n\n(대본 분석 중) 위 대본에 대해 배우가 방금 '${text}'라고 답했다. 네 페르소나와 분석 원칙에 따라, 다음 단계로 넘어가거나 현재 단계를 더 깊이 파고드는 질문을 던져.`;
                             promptParts.push({ text: nextQuestionPrompt });
@@ -444,22 +539,19 @@
                             promptParts.push({ text: nextQuestionPrompt });
                             promptParts.push(uploadedImageParts);
                         } else {
-                            // Fallback if state is broken
                             aiText = "분석할 대본 정보가 사라졌다. 다시 시작해줘.";
                             break;
                         }
-                        aiText = await callGeminiAPI(promptParts, useScriptPrompt);
+                        aiText = await callGeminiAPI(promptParts, true);
                     }
                     break;
                 case 'characterInterview_ongoing':
                     if (text.toLowerCase() === "종료") {
-                        aiText = "오늘은 여기까지. 언제든 다시 돌아와 너의 한계에 도전해라.";
-                        currentMode = 'chat';
-                        characterName = '';
-                        currentScript = '';
-                        uploadedImageParts = null;
-                        userInput.placeholder = "";
-                        aiText = await callGeminiAPI([{ text: aiText }]);
+                         aiText = "오늘은 여기까지. 언제든 다시 돌아와 너의 한계에 도전해라.";
+                         await switchMode('actor'); // Revert to actor mode after finishing
+                         addMessage(aiText, 'ai');
+                         typingIndicator.style.display = 'none';
+                         return;
                     } else {
                         const nextQuestionPrompt = `('${characterName || text}' 인터뷰 중) 배우가 방금 '${text}'라고 답했다. 그 답변의 위선을 파고드는 다음 질문을 던져.`;
                         if (!characterName) characterName = text;
@@ -490,21 +582,14 @@
         });
         
         clearBtn.addEventListener('click', async () => {
+            await switchMode('actor');
+            // switchMode already clears the chat, so we just reset the greeting.
             while (chatContainer.firstChild && chatContainer.firstChild !== typingIndicator) {
                 chatContainer.removeChild(chatContainer.firstChild);
             }
             addMessage("무엇이 널, 이곳까지 오게 했지?", 'ai');
             missionContainer.style.display = 'block';
-            isConversationStarted = false;
-            
-            // Fully reset state
-            currentMode = 'chat';
-            currentScript = '';
-            uploadedImageParts = null;
-            characterName = '';
-
-            userInput.placeholder = "";
-            await fetchAndSetNewMission(); 
+            await fetchAndSetNewMission();
         });
 
         saveBtn.addEventListener('click', () => {
@@ -541,6 +626,7 @@
         });
 
         emotionDiveBtn.addEventListener('click', async () => {
+            await switchMode('actor');
             checkConversationStart();
             typingIndicator.style.display = 'flex';
             const prompt = `Master K로서, 배우가 '감정의 심연' 훈련을 시작하려 한다. 어떤 감정의 본질을 탐색하고 싶은지 묻는 첫 질문을 던져라.`;
@@ -553,6 +639,7 @@
         });
 
         characterInterviewBtn.addEventListener('click', async () => {
+            await switchMode('actor');
             checkConversationStart();
             typingIndicator.style.display = 'flex';
             const prompt = `Master K로서, 배우가 '인물의 가면' 훈련을 시작하려 한다. 어떤 인물의 가면을 벗겨보고 싶은지, 그 인물의 이름을 묻는 질문을 던져라.`;
@@ -566,6 +653,7 @@
         });
         
         improvisationBtn.addEventListener('click', async () => {
+            await switchMode('actor');
             checkConversationStart();
             typingIndicator.style.display = 'flex';
             const prompt = `Master K로서, 배우에게 예고 없는 '즉흥 연기' 훈련을 시작한다. 배우의 순발력과 상상력을 시험할 수 있는, 예상치 못한 즉흥 상황을 하나 던져라. "시작."이라는 말로 끝내라.`;
@@ -586,6 +674,7 @@
         });
 
         fileUploadInput.addEventListener('change', async (e) => {
+            await switchMode('actor');
             checkConversationStart();
             const file = e.target.files[0];
             if (!file) return;
@@ -647,6 +736,7 @@
         });
 
         function openModal() {
+            switchMode('actor');
             scriptModal.classList.add('flex');
         }
         function closeModal() {
@@ -669,8 +759,8 @@
                 return;
             }
             
-            currentScript = script; // Store the script
-            uploadedImageParts = null; // Reset image data
+            currentScript = script; 
+            uploadedImageParts = null; 
 
             closeModal();
             typingIndicator.style.display = 'flex';
@@ -704,8 +794,4 @@
 
 </body>
 </html>
-
-
-
-
 
