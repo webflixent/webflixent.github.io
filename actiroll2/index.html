@@ -231,6 +231,7 @@
         const closeFinderModalButton = document.getElementById('close-finder-modal');
         const finderButton = document.getElementById('finder-button');
         const findRoleModelsButton = document.getElementById('find-rolemodels-button');
+        const getActingTipsButton = document.getElementById('get-acting-tips-button');
         
         // --- GLOBAL STATE ---
         let currentActor = { name: null, reportHtml: null };
@@ -301,6 +302,7 @@
             const encodedName = encodeURIComponent(actorName || '');
             const placeholderUrl = `https://placehold.co/160x160/E5E0D9/4E443C?text=${encodedName}`;
             try {
+                let fileName;
                 if (qid) {
                     const qidApiUrl = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qid}&format=json&props=claims&origin=*`;
                     const qidResponse = await fetch(qidApiUrl);
@@ -308,27 +310,43 @@
                         const qidData = await qidResponse.json();
                         const imageClaim = qidData.entities[qid].claims?.P18;
                         if (imageClaim?.[0]) {
-                            const fileName = imageClaim[0].mainsnak.datavalue.value;
-                            const imageInfoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=File:${encodeURIComponent(fileName)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
-                            const imageInfoResponse = await fetch(imageInfoUrl);
-                            if (imageInfoResponse.ok) {
-                                const imageInfoData = await imageInfoResponse.json();
-                                const pages = imageInfoData.query.pages;
-                                const pageId = Object.keys(pages)[0];
-                                if (pageId !== "-1") return pages[pageId].imageinfo[0].url;
-                            }
+                            fileName = imageClaim[0].mainsnak.datavalue.value;
                         }
                     }
                 }
-                for (const lang of ['ko', 'en']) {
-                    try {
-                        const wikiUrl = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodedName}`;
-                        const response = await fetch(wikiUrl);
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.originalimage?.source) return data.originalimage.source;
+                
+                if(!fileName && actorName) {
+                    for (const lang of ['ko', 'en']) {
+                         try {
+                            const wikiUrl = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodedName}`;
+                            const response = await fetch(wikiUrl);
+                            if (response.ok) {
+                                const data = await response.json();
+                                if (data.originalimage?.source) {
+                                     const urlParts = data.originalimage.source.split('/');
+                                     const decodedFileName = decodeURIComponent(urlParts[urlParts.length - 1]);
+                                     if(data.originalimage.source.includes('commons')){
+                                         fileName = decodedFileName;
+                                         break;
+                                     }
+                                     return data.originalimage.source;
+                                }
+                            }
+                        } catch (e) {}
+                    }
+                }
+
+                if (fileName) {
+                    const imageInfoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=File:${encodeURIComponent(fileName)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
+                    const imageInfoResponse = await fetch(imageInfoUrl);
+                    if (imageInfoResponse.ok) {
+                        const imageInfoData = await imageInfoResponse.json();
+                        const pages = imageInfoData.query.pages;
+                        const pageId = Object.keys(pages)[0];
+                        if (pageId !== "-1" && pages[pageId].imageinfo) {
+                            return pages[pageId].imageinfo[0].url;
                         }
-                    } catch (e) {}
+                    }
                 }
             } catch (error) { console.error("Image fetch error:", error); }
             return placeholderUrl;
@@ -430,7 +448,7 @@
             elementToCapture.style.maxHeight = 'none';
             try {
                 await new Promise(resolve => setTimeout(resolve, 100));
-                const canvas = await html2canvas(elementToCapture, { scale: 2, useCORS: true, backgroundColor: getComputedStyle(elementToCapture).getPropertyValue('background-color') });
+                const canvas = await html2canvas(elementToCapture, { scale: 3, useCORS: true, backgroundColor: getComputedStyle(elementToCapture).getPropertyValue('background-color') });
                 const link = document.createElement('a');
                 link.download = fileName;
                 link.href = canvas.toDataURL('image/jpeg', 0.95);
@@ -454,7 +472,7 @@
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = reportHtml;
                 const reportText = (tempDiv.textContent || "").replace(/\s\s+/g, ' ').substring(0, 1500);
-                systemPrompt = `당신은 창의적인 시나리오 작가입니다. 배우 지망생을 위해, 특정 배우의 강점을 극대화할 수 있는 **1분~1분 30초 분량의 오디션용 장면**을 작성합니다. 최종 결과물은 실제 대본처럼 서식이 지정된, 순수한 단일 HTML 문자열이어야 합니다. 코드 블록 마커(\`\`\`)를 절대 포함하지 마세요. 다음 규칙을 엄격히 준수하세요: 1. **분량**: 대사량이 충분하여 배우가 1분 이상 연기할 수 있도록 작성해야 합니다. 2. **지문**: 대사 안의 연기 지문은 <em>(괄호 안에)</em> 이탤릭체로 작성하되, **길고 서술적인 설명은 피하고, 행동이나 감정의 핵심만 간결하게** 표현해야 합니다. (예: '<em>(잠시 침묵)</em>', '<em>(목소리가 살짝 떨리며)</em>'). 3. **언어**: 인물 설명과 이름은 오직 한글로만 작성하세요. 4. **대본 형식**: 인물 이름은 <strong> 태그를 사용하여 볼드체로, 대사는 다음 줄에 들여쓰기 된 형식으로 제공해야 합니다. (예: '<p><strong>김영감</strong></p><p style="padding-left: 1.5rem;">...대사...</p>'). 5. **줄바꿈**: 긴 대사는 의미 단위로 <br> 태그를 사용하여 가독성을 높여주세요.`;
+                systemPrompt = `당신은 창의적인 시나리오 작가입니다. 배우 지망생을 위해, 특정 배우의 강점을 극대화할 수 있는 **1분~1분 30초 분량의 오디션용 장면**을 작성합니다. 최종 결과물은 실제 대본처럼 서식이 지정된, 순수한 단일 HTML 문자열이어야 합니다. 코드 블록 마커(\`\`\`)를 절대 포함하지 마세요. 다음 규칙을 엄격히 준수하세요: 1. **창의성**: 매번 이전과는 다른 독창적인 상황을 구상해야 합니다. 배우의 가장 대표적인 이미지만 반복하는 것이 아니라, 그의 다른 작품이나 알려지지 않은 매력을 탐구하여 신선한 캐릭터와 배경을 창조해야 합니다. 2. **분량**: 대사량이 충분하여 배우가 1분 이상 연기할 수 있도록 작성해야 합니다. 3. **지문**: 대사 안의 연기 지문은 <em>(괄호 안에)</em> 이탤릭체로 작성하되, **길고 서술적인 설명은 피하고, 행동이나 감정의 핵심만 간결하게** 표현해야 합니다. (예: '<em>(잠시 침묵)</em>', '<em>(목소리가 살짝 떨리며)</em>'). 4. **언어**: 인물 설명과 이름은 오직 한글로만 작성하세요. 5. **대본 형식**: 인물 이름은 <strong> 태그를 사용하여 볼드체로, 대사는 다음 줄에 들여쓰기 된 형식으로 제공해야 합니다. (예: '<p><strong>김영감</strong></p><p style="padding-left: 1.5rem;">...대사...</p>'). 6. **줄바꿈**: 긴 대사는 의미 단위로 <br> 태그를 사용하여 가독성을 높여주세요.`;
                 userQuery = `다음은 '${actorName}' 배우에 대한 분석입니다. 이 분석을 바탕으로, **'${genre}' 스타일**을 강조하여 그의 연기력을 가장 잘 보여줄 수 있는 **1분~1분 30초 분량**의 오리지널 오디션 장면을 HTML 형식으로 작성해주세요.\n\n분석 내용: "${reportText}"`;
             }
             try {
@@ -546,7 +564,7 @@
             closeQnaModalButton.addEventListener('click', () => qnaModal.classList.add('hidden'));
             
             closeSceneModalButton.addEventListener('click', () => sceneModal.classList.add('hidden'));
-            document.getElementById('get-acting-tips-button').addEventListener('click', () => {
+            getActingTipsButton.addEventListener('click', () => {
                 const sceneHtml = sceneContent.innerHTML;
                 if (currentActor.name && sceneHtml) generateActingTips(currentActor.name, sceneHtml);
             });
@@ -580,11 +598,14 @@
                 if (!question) return;
                 appendMessage('user', question);
                 qnaInput.value = '';
+                qnaForm.querySelector('button').disabled = true;
                 try {
                     const response = await getQnaResponse(question);
                     appendMessage('acti', response);
                 } catch(error) {
                     appendMessage('acti', `오류가 발생했습니다: ${error.message}`);
+                } finally {
+                    qnaForm.querySelector('button').disabled = false;
                 }
             });
             
