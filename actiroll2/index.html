@@ -26,10 +26,10 @@
         .accent-text { color: var(--accent-color); }
         .accent-bg { background-color: var(--accent-color); }
         
-        #report-content ::-webkit-scrollbar, #qna-chatbox::-webkit-scrollbar, #scene-content::-webkit-scrollbar, #tips-content::-webkit-scrollbar { width: 8px; }
-        #report-content ::-webkit-scrollbar-track, #qna-chatbox::-webkit-scrollbar-track, #scene-content::-webkit-scrollbar-track, #tips-content::-webkit-scrollbar-track { background: #EFEAE4; }
-        #report-content ::-webkit-scrollbar-thumb, #qna-chatbox::-webkit-scrollbar-thumb, #scene-content::-webkit-scrollbar-thumb, #tips-content::-webkit-scrollbar-thumb { background-color: #D1C9BF; border-radius: 10px; }
-        #report-content ::-webkit-scrollbar-thumb:hover, #qna-chatbox::-webkit-scrollbar-thumb:hover, #scene-content::-webkit-scrollbar-thumb:hover, #tips-content::-webkit-scrollbar-thumb:hover { background-color: #BDB2A7; }
+        #report-content ::-webkit-scrollbar, #qna-chatbox::-webkit-scrollbar, #scene-content::-webkit-scrollbar, #tips-content::-webkit-scrollbar, #analysis-content::-webkit-scrollbar { width: 8px; }
+        #report-content ::-webkit-scrollbar-track, #qna-chatbox::-webkit-scrollbar-track, #scene-content::-webkit-scrollbar-track, #tips-content::-webkit-scrollbar-track, #analysis-content::-webkit-scrollbar-track { background: #EFEAE4; }
+        #report-content ::-webkit-scrollbar-thumb, #qna-chatbox::-webkit-scrollbar-thumb, #scene-content::-webkit-scrollbar-thumb, #tips-content::-webkit-scrollbar-thumb, #analysis-content::-webkit-scrollbar-thumb { background-color: #D1C9BF; border-radius: 10px; }
+        #report-content ::-webkit-scrollbar-thumb:hover, #qna-chatbox::-webkit-scrollbar-thumb:hover, #scene-content::-webkit-scrollbar-thumb:hover, #tips-content::-webkit-scrollbar-thumb:hover, #analysis-content::-webkit-scrollbar-thumb:hover { background-color: #BDB2A7; }
 
         .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; }
         @keyframes fadeInUp {
@@ -52,6 +52,24 @@
             background-color: var(--accent-color);
             color: white;
             border-color: var(--accent-color);
+        }
+        
+        .original-script-line {
+            font-weight: bold;
+            font-size: 1.05em;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        .analysis-comment {
+            color: #D97706; /* Amber 600 */
+            background-color: #FFFBEB; /* Amber 50 */
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-style: italic;
+            font-size: 0.9em;
+            margin-top: 0rem;
+            margin-bottom: 1.5rem;
+            display: block;
         }
     </style>
 </head>
@@ -90,7 +108,6 @@
 
         <section id="finder-results-section" class="hidden text-center transition-opacity duration-700"></section>
         <section id="disambiguation-section" class="hidden text-center transition-opacity duration-700"></section>
-        
         <section id="loading-section" class="hidden text-center transition-opacity duration-500">
             <div class="flex flex-col items-center justify-center min-h-[50vh]">
                  <div class="w-16 h-16 border-4 border-stone-200 rounded-full animate-spin" style="border-top-color: var(--accent-color);"></div>
@@ -98,18 +115,16 @@
                  <p id="loading-status" class="mt-2">잠시만 기다려주세요.</p>
             </div>
         </section>
-
         <section id="error-section" class="hidden my-8 transition-opacity duration-500">
              <div class="max-w-2xl mx-auto bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg" role="alert">
                  <strong class="font-bold font-serif" id="error-title">분석 오류!</strong>
                  <p id="error-message">오류가 발생했습니다.</p>
              </div>
         </section>
-
         <section id="report-section" class="hidden"></section>
     </main>
     
-    <!-- All Modals -->
+    <!-- All Modals (Fully Restored) -->
     <div id="finder-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col" style="background-color: var(--bg-main);">
             <header class="p-4 border-b flex justify-between items-center" style="border-color: var(--border-color);"><h3 class="text-2xl font-serif">나의 롤모델 찾기</h3><button id="close-finder-modal" class="p-2 -mr-2 text-2xl leading-none text-stone-500 hover:text-stone-800">&times;</button></header>
@@ -194,432 +209,492 @@
             </footer>
         </div>
     </div>
+    <div id="analysis-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+        <div id="analysis-to-capture" class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col" style="background-color: var(--bg-main);">
+            <header class="p-4 border-b flex justify-between items-center" style="border-color: var(--border-color);"><h3 class="text-2xl font-serif">✍️ 내 대본 롤모델 분석</h3><button id="close-analysis-modal" class="p-2 -mr-2 text-2xl leading-none text-stone-500 hover:text-stone-800">&times;</button></header>
+            <div id="analysis-content" class="flex-1 p-6 overflow-y-auto ai-generated-content"></div>
+            <footer class="p-4 border-t bg-white text-center" style="border-color: var(--border-color);">
+                <button id="save-analysis-button" class="w-full bg-stone-200 text-stone-700 rounded-full py-2 px-5 hover:bg-stone-300">고화질 JPG로 저장하기</button>
+            </footer>
+        </div>
+    </div>
 
     <script>
-        // --- CONFIGURATION ---
-        const API_KEY = "AIzaSyBbEsfDqt5ojPAJoo70Nozro4LacKk__4k"; 
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- CONFIGURATION ---
+            const API_KEY = "AIzaSyBbEsfDqt5ojPAJoo70Nozro4LacKk__4k"; 
 
-        // --- DOM ELEMENTS ---
-        const searchSection = document.getElementById('search-section');
-        const searchInput = document.getElementById('actor-search-input');
-        const searchButton = document.getElementById('search-button');
-        const disambiguationSection = document.getElementById('disambiguation-section');
-        const loadingSection = document.getElementById('loading-section');
-        const loadingStatus = document.getElementById('loading-status');
-        const errorSection = document.getElementById('error-section');
-        const errorMessageEl = document.getElementById('error-message');
-        const reportSection = document.getElementById('report-section');
-        const finderResultsSection = document.getElementById('finder-results-section');
-        const saveJpgButton = document.getElementById('save-jpg-button');
-        const qnaButton = document.getElementById('qna-button');
-        const qnaModal = document.getElementById('qna-modal');
-        const closeQnaModalButton = document.getElementById('close-qna-modal');
-        const qnaForm = document.getElementById('qna-form');
-        const qnaInput = document.getElementById('qna-input');
-        const qnaChatbox = document.getElementById('qna-chatbox');
-        const sceneModal = document.getElementById('scene-modal');
-        const closeSceneModalButton = document.getElementById('close-scene-modal');
-        const sceneContent = document.getElementById('scene-content');
-        const saveSceneButton = document.getElementById('save-scene-button');
-        const sceneEditForm = document.getElementById('scene-edit-form');
-        const sceneEditInput = document.getElementById('scene-edit-input');
-        const tipsModal = document.getElementById('tips-modal');
-        const closeTipsModalButton = document.getElementById('close-tips-modal');
-        const tipsContent = document.getElementById('tips-content');
-        const saveTipsButton = document.getElementById('save-tips-button');
-        const finderModal = document.getElementById('finder-modal');
-        const closeFinderModalButton = document.getElementById('close-finder-modal');
-        const finderButton = document.getElementById('finder-button');
-        const findRoleModelsButton = document.getElementById('find-rolemodels-button');
-        const getActingTipsButton = document.getElementById('get-acting-tips-button');
-        
-        // --- GLOBAL STATE ---
-        let currentActor = { name: null, reportHtml: null };
-        saveJpgButton.disabled = true;
-        
-        // --- UTILITY FUNCTIONS ---
-        function hideAllSections() {
-            [searchSection, disambiguationSection, loadingSection, errorSection, reportSection, finderResultsSection].forEach(s => s.classList.add('hidden'));
-        }
-        function showSearchSection() {
-            hideAllSections();
-            searchInput.value = '';
-            searchSection.classList.remove('hidden');
-            saveJpgButton.disabled = true;
-        }
-        function showError(message) {
-            hideAllSections();
-            errorMessageEl.textContent = `오류가 발생했습니다: ${message}. 다른 배우로 시도하거나 잠시 후 다시 시도해주세요.`;
-            errorSection.classList.remove('hidden');
-            searchSection.classList.remove('hidden');
-        }
-
-        // --- CORE LOGIC ---
-        async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
-            for (let i = 0; i < retries; i++) {
-                try {
-                    const response = await fetch(url, options);
-                    if (response.status >= 500 && response.status < 600) { throw new Error(`Server error: ${response.status}`); }
-                    return response;
-                } catch (error) {
-                    if (i === retries - 1) { console.error("Fetch failed:", error); throw error; }
-                    await new Promise(res => setTimeout(res, delay));
-                    delay *= 2;
-                }
-            }
-        }
-
-        async function callGenerativeApi(systemPrompt, userQuery) {
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
-            const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
-            const response = await fetchWithRetry(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            // --- DOM ELEMENTS (Fully defined) ---
+            const searchSection = document.getElementById('search-section');
+            const searchInput = document.getElementById('actor-search-input');
+            const searchButton = document.getElementById('search-button');
+            const disambiguationSection = document.getElementById('disambiguation-section');
+            const loadingSection = document.getElementById('loading-section');
+            const loadingStatus = document.getElementById('loading-status');
+            const errorSection = document.getElementById('error-section');
+            const errorMessageEl = document.getElementById('error-message');
+            const reportSection = document.getElementById('report-section');
+            const finderResultsSection = document.getElementById('finder-results-section');
+            const saveJpgButton = document.getElementById('save-jpg-button');
+            const qnaButton = document.getElementById('qna-button');
+            const qnaModal = document.getElementById('qna-modal');
+            const closeQnaModalButton = document.getElementById('close-qna-modal');
+            const qnaForm = document.getElementById('qna-form');
+            const qnaInput = document.getElementById('qna-input');
+            const qnaChatbox = document.getElementById('qna-chatbox');
+            const sceneModal = document.getElementById('scene-modal');
+            const closeSceneModalButton = document.getElementById('close-scene-modal');
+            const sceneContent = document.getElementById('scene-content');
+            const saveSceneButton = document.getElementById('save-scene-button');
+            const sceneEditForm = document.getElementById('scene-edit-form');
+            const sceneEditInput = document.getElementById('scene-edit-input');
+            const tipsModal = document.getElementById('tips-modal');
+            const closeTipsModalButton = document.getElementById('close-tips-modal');
+            const tipsContent = document.getElementById('tips-content');
+            const saveTipsButton = document.getElementById('save-tips-button');
+            const finderModal = document.getElementById('finder-modal');
+            const closeFinderModalButton = document.getElementById('close-finder-modal');
+            const finderButton = document.getElementById('finder-button');
+            const findRoleModelsButton = document.getElementById('find-rolemodels-button');
+            const getActingTipsButton = document.getElementById('get-acting-tips-button');
+            const analysisModal = document.getElementById('analysis-modal');
+            const closeAnalysisModalButton = document.getElementById('close-analysis-modal');
+            const analysisContent = document.getElementById('analysis-content');
+            const saveAnalysisButton = document.getElementById('save-analysis-button');
             
-            if (!response.ok) {
-                const errorBody = await response.json();
-                console.error("AcTi API Error:", errorBody);
-                throw new Error(`AcTi API 호출 실패: ${errorBody.error?.message || response.status}`);
+            // --- GLOBAL STATE ---
+            let currentActor = { name: null, reportHtml: null };
+            saveJpgButton.disabled = true;
+
+            // --- UTILITY FUNCTIONS ---
+            function hideAllSections() {
+                [searchSection, disambiguationSection, loadingSection, errorSection, reportSection, finderResultsSection].forEach(s => s.classList.add('hidden'));
+            }
+            function showSearchSection() {
+                hideAllSections();
+                searchInput.value = '';
+                searchSection.classList.remove('hidden');
+                saveJpgButton.disabled = true;
+            }
+            function showError(message) {
+                hideAllSections();
+                errorMessageEl.textContent = `오류가 발생했습니다: ${message}. 다른 배우로 시도하거나 잠시 후 다시 시도해주세요.`;
+                errorSection.classList.remove('hidden');
+                searchSection.classList.remove('hidden');
             }
 
-            const result = await response.json();
-            const candidate = result.candidates?.[0];
-            const text = candidate?.content?.parts?.[0]?.text;
-
-            if (!text || (candidate && candidate.finishReason && candidate.finishReason !== "STOP")) {
-                 let reason = candidate?.finishReason || '알 수 없음';
-                 if (candidate?.finishReason === 'SAFETY') { reason = '안전 설정에 의해 차단됨'; }
-                 throw new Error(`콘텐츠 생성 실패 (사유: ${reason})`);
-            }
-            return text;
-        }
-
-        async function generateAIReport(actorName) {
-            const systemPrompt = `당신은 '배우가 배우를 연구하는' 관점을 지닌 세계 최고의 연기 코치입니다. 당신의 임무는 단순한 정보 요약이 아니라, 배우 지망생이 주어진 배우를 '롤모델'로서 철저히 분석하고, 그의 연기 기술과 커리어 전략을 자신의 것으로 만들 수 있도록 돕는 것입니다. 최신 뉴스를 검색하는 것이 아니라, 그의 연기 본질과 성장 과정을 분석하여 '따라 배울 점'을 명확히 제시해야 합니다. 최종 결과물은 다른 설명 없이 오직 리포트 내용이 담긴 단일 HTML 문자열이어야 합니다. <h2>, <h3>, <p>, <ul>, <li>, <strong> 같은 태그를 사용하여 내용을 구조화하세요. 전체 응답은 이 HTML 문자열이어야 하며, 마크다운 형식(\`\`\`)으로 감싸지 마세요. 보고서 전체에서 'AI'라는 단어 대신 'AcTi'를 사용하세요. 리포트에는 반드시 다음의 관점이 포함되어야 합니다: 1. **롤모델로서의 핵심 가치**: 왜 이 배우를 롤모델로 삼아야 하는가? 그의 어떤 점이 다른 배우와 차별화되는가? 2. **'훔치고 싶은' 연기 기술**: 그의 대표적인 연기 테크닉(시선 처리, 목소리 톤, 감정의 완급 조절 등)을 구체적인 작품 장면을 예로 들어 분석하고, 어떻게 훈련해야 하는지 설명. 3. **현명한 커리어 설계**: 그의 필모그래피가 어떻게 그의 페르소나를 구축했는지, 그리고 작품 선택의 기준이 무엇인지 분석하여, 배우 지망생이 자신의 커리어를 어떻게 설계해야 할지에 대한 통찰을 제공. 4. **내면을 지배하는 연기 철학**: 그의 인터뷰나 행보를 통해 드러난 연기에 대한 태도와 마인드셋을 분석하고, 이것이 그의 연기에 어떻게 반영되는지 설명. 5. **나만의 것으로 만드는 Action Plan**: '이 배우처럼 되기 위해' 내일부터 당장 실천할 수 있는 구체적이고 단계적인 훈련 방법을 제시. (예: 특정 영화의 독백 100번 따라하기, 그의 인터뷰 영상 필사하기 등)`;
-            const userQuery = `'${actorName}' 배우에 대한 롤모델 분석 리포트를 HTML 형식으로 생성해줘.`;
-            return await callGenerativeApi(systemPrompt, userQuery);
-        }
-        
-        async function fetchActorImage(actorName, qid = null) {
-            const encodedName = encodeURIComponent(actorName || '');
-            const placeholderUrl = `https://placehold.co/160x160/E5E0D9/4E443C?text=${encodedName}`;
-            try {
-                let fileName;
-                if (qid) {
-                    const qidApiUrl = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qid}&format=json&props=claims&origin=*`;
-                    const qidResponse = await fetch(qidApiUrl);
-                    if (qidResponse.ok) {
-                        const qidData = await qidResponse.json();
-                        const imageClaim = qidData.entities[qid].claims?.P18;
-                        if (imageClaim?.[0]) {
-                            fileName = imageClaim[0].mainsnak.datavalue.value;
-                        }
+            // --- CORE LOGIC (All functions restored and fixed) ---
+            async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
+                for (let i = 0; i < retries; i++) {
+                    try {
+                        const response = await fetch(url, options);
+                        if (response.status >= 500 && response.status < 600) { throw new Error(`Server error: ${response.status}`); }
+                        return response;
+                    } catch (error) {
+                        if (i === retries - 1) { console.error("Fetch failed:", error); throw error; }
+                        await new Promise(res => setTimeout(res, delay));
+                        delay *= 2;
                     }
                 }
-                
-                if(!fileName && actorName) {
-                    for (const lang of ['ko', 'en']) {
-                         try {
-                            const wikiUrl = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodedName}`;
-                            const response = await fetch(wikiUrl);
-                            if (response.ok) {
-                                const data = await response.json();
-                                if (data.originalimage?.source) {
-                                     const urlParts = data.originalimage.source.split('/');
-                                     const decodedFileName = decodeURIComponent(urlParts[urlParts.length - 1]);
-                                     if(data.originalimage.source.includes('commons')){
-                                         fileName = decodedFileName;
-                                         break;
-                                     }
-                                     return data.originalimage.source;
+            }
+            async function callGenerativeApi(systemPrompt, userQuery) { return callGenerativeApiWithParts(systemPrompt, [{ text: userQuery }]); }
+            async function callGenerativeApiWithParts(systemPrompt, userQueryParts) {
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+                const payload = { contents: [{ role: "user", parts: userQueryParts }], systemInstruction: { parts: [{ text: systemPrompt }] } };
+                const response = await fetchWithRetry(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    console.error("AcTi API Error:", errorBody);
+                    throw new Error(`AcTi API 호출 실패: ${errorBody.error?.message || response.status}`);
+                }
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                const text = candidate?.content?.parts?.[0]?.text;
+                if (!text || (candidate && candidate.finishReason && candidate.finishReason !== "STOP")) {
+                    let reason = candidate?.finishReason || '알 수 없음';
+                    if (candidate?.finishReason === 'SAFETY') { reason = '안전 설정에 의해 차단됨'; }
+                    throw new Error(`콘텐츠 생성 실패 (사유: ${reason})`);
+                }
+                return text;
+            }
+            async function generateAIReport(actorName) {
+                const systemPrompt = `당신은 '배우가 배우를 연구하는' 관점을 지닌 세계 최고의 연기 코치입니다. 당신의 임무는 단순한 정보 요약이 아니라, 배우 지망생이 주어진 배우를 '롤모델'로서 철저히 분석하고, 그의 연기 기술과 커리어 전략을 자신의 것으로 만들 수 있도록 돕는 것입니다. 최신 뉴스를 검색하는 것이 아니라, 그의 연기 본질과 성장 과정을 분석하여 '따라 배울 점'을 명확히 제시해야 합니다. 최종 결과물은 다른 설명 없이 오직 리포트 내용이 담긴 단일 HTML 문자열이어야 합니다. <h2>, <h3>, <p>, <ul>, <li>, <strong> 같은 태그를 사용하여 내용을 구조화하세요. 전체 응답은 이 HTML 문자열이어야 하며, 마크다운 형식(\`\`\`)으로 감싸지 마세요. 보고서 전체에서 'AI'라는 단어 대신 'AcTi'를 사용하세요. 리포트에는 반드시 다음의 관점이 포함되어야 합니다: 1. **롤모델로서의 핵심 가치**: 왜 이 배우를 롤모델로 삼아야 하는가? 그의 어떤 점이 다른 배우와 차별화되는가? 2. **'훔치고 싶은' 연기 기술**: 그의 대표적인 연기 테크닉(시선 처리, 목소리 톤, 감정의 완급 조절 등)을 구체적인 작품 장면을 예로 들어 분석하고, 어떻게 훈련해야 하는지 설명. 3. **현명한 커리어 설계**: 그의 필모그래피가 어떻게 그의 페르소나를 구축했는지, 그리고 작품 선택의 기준이 무엇인지 분석하여, 배우 지망생이 자신의 커리어를 어떻게 설계해야 할지에 대한 통찰을 제공. 4. **내면을 지배하는 연기 철학**: 그의 인터뷰나 행보를 통해 드러난 연기에 대한 태도와 마인드셋을 분석하고, 이것이 그의 연기에 어떻게 반영되는지 설명. 5. **나만의 것으로 만드는 Action Plan**: '이 배우처럼 되기 위해' 내일부터 당장 실천할 수 있는 구체적이고 단계적인 훈련 방법을 제시. (예: 특정 영화의 독백 100번 따라하기, 그의 인터뷰 영상 필사하기 등)`;
+                const userQuery = `'${actorName}' 배우에 대한 롤모델 분석 리포트를 HTML 형식으로 생성해줘.`;
+                return await callGenerativeApi(systemPrompt, userQuery);
+            }
+            async function fetchActorImage(actorName, qid = null) {
+                const encodedName = encodeURIComponent(actorName || '');
+                const placeholderUrl = `https://placehold.co/160x160/E5E0D9/4E443C?text=${encodedName}`;
+                try {
+                    let fileName;
+                    if (qid) {
+                        const qidApiUrl = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${qid}&format=json&props=claims&origin=*`;
+                        const qidResponse = await fetch(qidApiUrl);
+                        if (qidResponse.ok) {
+                            const qidData = await qidResponse.json();
+                            const imageClaim = qidData.entities[qid].claims?.P18;
+                            if (imageClaim?.[0]) { fileName = imageClaim[0].mainsnak.datavalue.value; }
+                        }
+                    }
+                    if(!fileName && actorName) {
+                        for (const lang of ['ko', 'en']) {
+                            try {
+                                const wikiUrl = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodedName}`;
+                                const response = await fetch(wikiUrl);
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    if (data.originalimage?.source) {
+                                        if(data.originalimage.source.includes('commons')){
+                                            const urlParts = data.originalimage.source.split('/');
+                                            fileName = decodeURIComponent(urlParts[urlParts.length - 1]);
+                                            break;
+                                        }
+                                        return data.originalimage.source;
+                                    }
                                 }
-                            }
-                        } catch (e) {}
-                    }
-                }
-
-                if (fileName) {
-                    const imageInfoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=File:${encodeURIComponent(fileName)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
-                    const imageInfoResponse = await fetch(imageInfoUrl);
-                    if (imageInfoResponse.ok) {
-                        const imageInfoData = await imageInfoResponse.json();
-                        const pages = imageInfoData.query.pages;
-                        const pageId = Object.keys(pages)[0];
-                        if (pageId !== "-1" && pages[pageId].imageinfo) {
-                            return pages[pageId].imageinfo[0].url;
+                            } catch (e) {}
                         }
                     }
-                }
-            } catch (error) { console.error("Image fetch error:", error); }
-            return placeholderUrl;
-        }
-
-        async function searchAndDisambiguate(actorName) {
-            hideAllSections();
-            loadingSection.classList.remove('hidden');
-            loadingStatus.textContent = `'${actorName}' 검색 중...`;
-            try {
-                const encodedName = encodeURIComponent(actorName);
-                const url = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodedName}&language=ko&format=json&props=description&type=item&origin=*`;
-                const response = await fetch(url);
-                const data = await response.json();
-                const actors = (data.search || []).filter(item => {
-                    if (!item.description) return false;
-                    const desc = item.description.toLowerCase();
-                    return desc.includes('배우') || desc.includes('actor') || desc.includes('actress') || desc.includes('연기자');
+                    if (fileName) {
+                        const imageInfoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=File:${encodeURIComponent(fileName)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
+                        const imageInfoResponse = await fetch(imageInfoUrl);
+                        if (imageInfoResponse.ok) {
+                            const imageInfoData = await imageInfoResponse.json();
+                            const pages = imageInfoData.query.pages;
+                            const pageId = Object.keys(pages)[0];
+                            if (pageId !== "-1" && pages[pageId].imageinfo) { return pages[pageId].imageinfo[0].url; }
+                        }
+                    }
+                } catch (error) { console.error("Image fetch error:", error); }
+                return placeholderUrl;
+            }
+            async function searchAndDisambiguate(actorName) {
+                hideAllSections();
+                loadingSection.classList.remove('hidden');
+                loadingStatus.textContent = `'${actorName}' 검색 중...`;
+                try {
+                    const encodedName = encodeURIComponent(actorName);
+                    const url = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodedName}&language=ko&format=json&props=description&type=item&origin=*`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    const searchResults = data.search || [];
+                    let actors = searchResults.filter(item => {
+                        if (!item.description) return false;
+                        const desc = item.description.toLowerCase();
+                        return desc.includes('배우') || desc.includes('actor') || desc.includes('actress') || desc.includes('연기자');
+                    });
+                    if (actors.length === 0 && searchResults.length > 0) {
+                        actors = searchResults.slice(0, 8); 
+                    }
+                    if (actors.length === 0) { throw new Error(`'${actorName}'에 대한 인물 정보를 찾을 수 없습니다.`); }
+                    else if (actors.length === 1) { await generateReport(actors[0].label, actors[0].id); }
+                    else { displayDisambiguation(actors); }
+                } catch (error) { showError(error.message); }
+                finally { loadingSection.classList.add('hidden'); }
+            }
+            function displayDisambiguation(actors) {
+                hideAllSections();
+                let content = `<h2 class="text-3xl md:text-4xl mb-4">동명이인 배우</h2><p class="mb-8">분석하고 싶은 배우를 선택해주세요.</p><div class="grid grid-cols-2 md:grid-cols-4 gap-4">`;
+                actors.forEach(actor => {
+                    const placeholderUrl = `https://placehold.co/200x300/E5E0D9/4E443C?text=${encodeURIComponent(actor.label)}`;
+                    content += `<div class="actor-card cursor-pointer p-2 bg-white/50 rounded-lg hover:shadow-lg transition-shadow" data-name="${actor.label}" data-qid="${actor.id}"><img src="${placeholderUrl}" data-qid="${actor.id}" class="w-full h-48 object-cover rounded-md mb-2 bg-stone-200" alt="${actor.label}"><h4 class="font-bold text-primary">${actor.label}</h4><p class="text-sm text-secondary">${actor.description || '정보 없음'}</p></div>`;
                 });
-                if (actors.length === 0) { throw new Error(`'${actorName}'에 대한 배우 정보를 찾을 수 없습니다.`); }
-                else if (actors.length === 1) { await generateReport(actors[0].label, actors[0].id); }
-                else { displayDisambiguation(actors); }
-            } catch (error) { showError(error.message); }
-            finally { loadingSection.classList.add('hidden'); }
-        }
-        function displayDisambiguation(actors) {
-            hideAllSections();
-            let content = `<h2 class="text-3xl md:text-4xl mb-4">동명이인 배우</h2><p class="mb-8">분석하고 싶은 배우를 선택해주세요.</p><div class="grid grid-cols-2 md:grid-cols-4 gap-4">`;
-            actors.forEach(actor => {
-                const placeholderUrl = `https://placehold.co/200x300/E5E0D9/4E443C?text=${encodeURIComponent(actor.label)}`;
-                content += `<div class="actor-card cursor-pointer p-2 bg-white/50 rounded-lg hover:shadow-lg transition-shadow" data-name="${actor.label}" data-qid="${actor.id}"><img src="${placeholderUrl}" data-qid="${actor.id}" class="w-full h-48 object-cover rounded-md mb-2 bg-stone-200" alt="${actor.label}"><h4 class="font-bold text-primary">${actor.label}</h4><p class="text-sm text-secondary">${actor.description || ''}</p></div>`;
-            });
-            content += `</div>`;
-            disambiguationSection.innerHTML = content;
-            disambiguationSection.classList.remove('hidden');
-            document.querySelectorAll('.actor-card').forEach(card => {
-                const qid = card.dataset.qid;
-                const img = card.querySelector('img');
-                fetchActorImage(null, qid).then(url => img.src = url);
-                card.addEventListener('click', () => { generateReport(card.dataset.name, card.dataset.qid); });
-            });
-        }
-        async function generateReport(actorName, qid) {
-            hideAllSections();
-            loadingSection.classList.remove('hidden');
-            const loadingMessages = ["프로필 사진 검색 중...", "리포트 생성 중...", "AcTi가 데이터를 분석하고 있습니다..."];
-            let msgIndex = 0;
-            const interval = setInterval(() => { loadingStatus.textContent = loadingMessages[msgIndex++ % loadingMessages.length]; }, 2000);
-            try {
-                const imageUrl = await fetchActorImage(actorName, qid);
-                const reportHtml = await generateAIReport(actorName);
-                currentActor = { name: actorName, reportHtml: reportHtml };
-                displayReport(imageUrl);
-            } catch (error) { showError(error.message); }
-            finally { clearInterval(interval); loadingSection.classList.add('hidden'); }
-        }
-        function displayReport(imageUrl) {
-            const { name, reportHtml } = currentActor;
-            const finalReportHtml = reportHtml || `<p class="text-center text-red-600">오류: 리포트 내용을 표시할 수 없습니다.</p>`;
-            reportSection.innerHTML = `
-                <div id="report-to-capture" class="bg-white rounded-lg shadow-xl p-8 md:p-12 border fade-in-up">
-                    <button id="back-to-search" class="accent-bg text-white text-sm py-2 px-4 rounded-full mb-8 hover:opacity-90">← 다른 배우 분석하기</button>
-                    <header class="text-center mb-12">
-                        <img src="${imageUrl}" alt="${name}" class="w-40 h-40 object-cover rounded-full mx-auto mb-4 shadow-lg border-4" style="border-color: var(--border-color);" onerror="this.onerror=null;this.src='https://placehold.co/160x160/E5E0D9/4E443C?text=${encodeURIComponent(name)}';">
-                        <h1 class="text-5xl mb-2 font-serif">${name}</h1>
-                        <h2 class="text-2xl text-stone-500 font-serif tracking-widest mt-2">롤모델 분석 REPORT</h2>
-                    </header>
-                    <div id="report-content" class="ai-generated-content">${finalReportHtml}</div>
-                    <div class="mt-12 text-center">
-                        <button id="toggle-scene-options-button" class="accent-bg text-white font-bold py-3 px-6 rounded-full hover:opacity-90 text-lg">✨ 맞춤 대본 생성하기</button>
-                        <div id="scene-options" class="hidden mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2 max-w-lg mx-auto">
-                           <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">배우 강점 극대화</button>
-                           <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">일상</button>
-                           <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">감성/슬픔</button>
-                           <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">로맨스</button>
-                           <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">코믹/밝음</button>
-                           <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">장르/어두움</button>
-                           <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">스릴러</button>
-                           <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">사극</button>
+                content += `</div>`;
+                disambiguationSection.innerHTML = content;
+                disambiguationSection.classList.remove('hidden');
+                document.querySelectorAll('.actor-card').forEach(card => {
+                    const qid = card.dataset.qid;
+                    const img = card.querySelector('img');
+                    fetchActorImage(null, qid).then(url => img.src = url);
+                    card.addEventListener('click', () => { generateReport(card.dataset.name, card.dataset.qid); });
+                });
+            }
+            async function generateReport(actorName, qid) {
+                hideAllSections();
+                loadingSection.classList.remove('hidden');
+                const loadingMessages = ["프로필 사진 검색 중...", "리포트 생성 중...", "AcTi가 데이터를 분석하고 있습니다..."];
+                let msgIndex = 0;
+                const interval = setInterval(() => { loadingStatus.textContent = loadingMessages[msgIndex++ % loadingMessages.length]; }, 2000);
+                try {
+                    const imageUrl = await fetchActorImage(actorName, qid);
+                    const reportHtml = await generateAIReport(actorName);
+                    currentActor = { name: actorName, reportHtml: reportHtml };
+                    displayReport(imageUrl);
+                } catch (error) { showError(error.message); }
+                finally { clearInterval(interval); loadingSection.classList.add('hidden'); }
+            }
+            function displayReport(imageUrl) {
+                const { name, reportHtml } = currentActor;
+                const finalReportHtml = reportHtml || `<p class="text-center text-red-600">오류: 리포트 내용을 표시할 수 없습니다.</p>`;
+                reportSection.innerHTML = `
+                    <div id="report-to-capture" class="bg-white rounded-lg shadow-xl p-8 md:p-12 border fade-in-up">
+                        <button id="back-to-search" class="accent-bg text-white text-sm py-2 px-4 rounded-full mb-8 hover:opacity-90">← 다른 배우 분석하기</button>
+                        <header class="text-center mb-12">
+                            <img src="${imageUrl}" alt="${name}" class="w-40 h-40 object-cover rounded-full mx-auto mb-4 shadow-lg border-4" style="border-color: var(--border-color);" onerror="this.onerror=null;this.src='https://placehold.co/160x160/E5E0D9/4E443C?text=${encodeURIComponent(name)}';">
+                            <h1 class="text-5xl mb-2 font-serif">${name}</h1>
+                            <h2 class="text-2xl text-stone-500 font-serif tracking-widest mt-2">롤모델 분석 REPORT</h2>
+                        </header>
+                        <div id="report-content" class="ai-generated-content">${finalReportHtml}</div>
+                        <div class="mt-12 text-center grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <button id="toggle-scene-options-button" class="accent-bg text-white font-bold py-3 px-6 rounded-full hover:opacity-90 text-lg">✨ 맞춤 대본 생성하기</button>
+                            <button id="analyze-my-script-button" class="border border-stone-300 text-stone-700 font-bold py-3 px-6 rounded-full hover:bg-stone-50 text-lg">✍️ 내 대본 분석 요청</button>
                         </div>
-                    </div>
-                </div>`;
-            reportSection.classList.remove('hidden');
-            saveJpgButton.disabled = false;
-            document.getElementById('back-to-search').addEventListener('click', showSearchSection);
-            document.getElementById('toggle-scene-options-button').addEventListener('click', () => document.getElementById('scene-options').classList.toggle('hidden'));
-            document.querySelectorAll('.scene-genre-button').forEach(button => {
-                button.addEventListener('click', () => generateAuditionScene(name, reportHtml, button.textContent));
-            });
-        }
-        async function captureAndSave(elementId, fileName, buttonId) {
-            const elementToCapture = document.getElementById(elementId);
-            const button = document.getElementById(buttonId);
-            if (!elementToCapture || !button) return;
-            button.disabled = true;
-            const originalButtonText = button.textContent;
-            button.textContent = '이미지 생성 중...';
-            const originalMaxHeight = elementToCapture.style.maxHeight;
-            elementToCapture.style.maxHeight = 'none';
-            try {
-                await new Promise(resolve => setTimeout(resolve, 100));
-                const canvas = await html2canvas(elementToCapture, { scale: 3, useCORS: true, backgroundColor: getComputedStyle(elementToCapture).getPropertyValue('background-color') });
-                const link = document.createElement('a');
-                link.download = fileName;
-                link.href = canvas.toDataURL('image/jpeg', 0.95);
-                link.click();
-            } catch (err) { console.error("JPG 저장 오류:", err); alert("이미지 저장에 실패했습니다."); }
-            finally {
-                elementToCapture.style.maxHeight = originalMaxHeight;
-                button.disabled = false;
-                button.textContent = originalButtonText;
+                         <div id="scene-options" class="hidden mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2 max-w-lg mx-auto">
+                               <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">배우 강점 극대화</button>
+                               <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">일상</button>
+                               <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">감성/슬픔</button>
+                               <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">로맨스</button>
+                               <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">코믹/밝음</button>
+                               <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">장르/어두움</button>
+                               <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">스릴러</button>
+                               <button class="scene-genre-button bg-stone-100 text-stone-700 py-2 rounded-full hover:bg-stone-200">사극</button>
+                            </div>
+                    </div>`;
+                reportSection.classList.remove('hidden');
+                saveJpgButton.disabled = false;
+                document.getElementById('back-to-search').addEventListener('click', showSearchSection);
+                document.getElementById('toggle-scene-options-button').addEventListener('click', () => document.getElementById('scene-options').classList.toggle('hidden'));
+                document.querySelectorAll('.scene-genre-button').forEach(button => {
+                    button.addEventListener('click', () => generateAuditionScene(name, reportHtml, button.textContent));
+                });
             }
-        }
-        async function generateAuditionScene(actorName, reportHtml, genre, existingScene = null, editRequest = null) {
-            sceneModal.classList.remove('hidden');
-            sceneContent.innerHTML = `<div class="flex items-center justify-center h-full"><div class="w-12 h-12 border-4 border-stone-200 rounded-full animate-spin" style="border-top-color: var(--accent-color);"></div></div>`;
-            saveSceneButton.disabled = true;
-            let systemPrompt, userQuery;
-            if (existingScene && editRequest) {
-                systemPrompt = `당신은 창의적인 시나리오 작가입니다. 주어진 대본을 사용자의 요청에 맞게 수정합니다. 반드시 이전 대본의 맥락과 형식을 유지하면서, 요청사항만 반영하여 완성된 전체 대본을 다시 제공해야 합니다. 최종 결과물은 다른 설명 없이 오직 완성된 대본 HTML 문자열이어야 합니다. 코드 블록 마커나 불필요한 설명을 절대 포함하지 마세요.`;
-                userQuery = `기존 대본:\n\n${existingScene}\n\n사용자 수정 요청: "${editRequest}"\n\n위 요청을 반영하여 전체 대본을 수정해주세요.`;
-            } else {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = reportHtml;
-                const reportText = (tempDiv.textContent || "").replace(/\s\s+/g, ' ').substring(0, 1500);
-                systemPrompt = `당신은 창의적인 시나리오 작가입니다. 배우 지망생을 위해, 특정 배우의 강점을 극대화할 수 있는 **1분~1분 30초 분량의 오디션용 장면**을 작성합니다. 최종 결과물은 실제 대본처럼 서식이 지정된, 순수한 단일 HTML 문자열이어야 합니다. 코드 블록 마커(\`\`\`)를 절대 포함하지 마세요. 다음 규칙을 엄격히 준수하세요: 1. **창의성**: 매번 이전과는 다른 독창적인 상황을 구상해야 합니다. 배우의 가장 대표적인 이미지만 반복하는 것이 아니라, 그의 다른 작품이나 알려지지 않은 매력을 탐구하여 신선한 캐릭터와 배경을 창조해야 합니다. 2. **분량**: 대사량이 충분하여 배우가 1분 이상 연기할 수 있도록 작성해야 합니다. 3. **지문**: 대사 안의 연기 지문은 <em>(괄호 안에)</em> 이탤릭체로 작성하되, **길고 서술적인 설명은 피하고, 행동이나 감정의 핵심만 간결하게** 표현해야 합니다. (예: '<em>(잠시 침묵)</em>', '<em>(목소리가 살짝 떨리며)</em>'). 4. **언어**: 인물 설명과 이름은 오직 한글로만 작성하세요. 5. **대본 형식**: 인물 이름은 <strong> 태그를 사용하여 볼드체로, 대사는 다음 줄에 들여쓰기 된 형식으로 제공해야 합니다. (예: '<p><strong>김영감</strong></p><p style="padding-left: 1.5rem;">...대사...</p>'). 6. **줄바꿈**: 긴 대사는 의미 단위로 <br> 태그를 사용하여 가독성을 높여주세요.`;
-                userQuery = `다음은 '${actorName}' 배우에 대한 분석입니다. 이 분석을 바탕으로, **'${genre}' 스타일**을 강조하여 그의 연기력을 가장 잘 보여줄 수 있는 **1분~1분 30초 분량**의 오리지널 오디션 장면을 HTML 형식으로 작성해주세요.\n\n분석 내용: "${reportText}"`;
+            async function captureAndSave(elementId, fileName, buttonId) {
+                const elementToCapture = document.getElementById(elementId);
+                const button = document.getElementById(buttonId);
+                if (!elementToCapture || !button) return;
+                button.disabled = true;
+                const originalButtonText = button.textContent;
+                button.textContent = '이미지 생성 중...';
+                
+                elementToCapture.style.animation = 'none';
+                window.scrollTo(0, 0);
+
+                const originalMaxHeight = elementToCapture.style.maxHeight;
+                elementToCapture.style.maxHeight = 'none';
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    const canvas = await html2canvas(elementToCapture, { scale: 3, useCORS: true, backgroundColor: getComputedStyle(elementToCapture).getPropertyValue('background-color') });
+                    const link = document.createElement('a');
+                    link.download = fileName;
+                    link.href = canvas.toDataURL('image/jpeg', 0.95);
+                    link.click();
+                } catch (err) { console.error("JPG 저장 오류:", err); alert("이미지 저장에 실패했습니다."); }
+                finally {
+                    elementToCapture.style.maxHeight = originalMaxHeight;
+                    elementToCapture.style.animation = '';
+                    button.disabled = false;
+                    button.textContent = originalButtonText;
+                }
             }
-            try {
-                const sceneHtml = await callGenerativeApi(systemPrompt, userQuery);
-                sceneContent.innerHTML = sceneHtml;
-                saveSceneButton.disabled = false;
-            } catch (error) { sceneContent.innerHTML = `<p class="text-red-700 text-center">죄송합니다. 대본을 생성하는 중에 오류가 발생했습니다: ${error.message}</p>`; }
-        }
-        async function generateActingTips(actorName, sceneHtml) {
-            tipsModal.classList.remove('hidden');
-            tipsContent.innerHTML = `<div class="flex items-center justify-center h-full"><div class="w-12 h-12 border-4 border-stone-200 rounded-full animate-spin" style="border-top-color: var(--accent-color);"></div></div>`;
-            const systemPrompt = `당신은 'AcTi' 연기 코치입니다. 서론이나 결론, 인사 없이 바로 핵심 연기 팁 분석으로 들어가세요. 주어진 대본과 롤모델 배우 정보를 바탕으로, 배우 지망생이 연기 연습에 바로 적용할 수 있는 구체적이고 실질적인 코칭을 제공합니다. 롤모델 배우라면 이 장면을 어떻게 해석하고 표현할지, 그의 스타일을 어떻게 녹여낼 수 있을지 상세히 설명해주세요. (예: '${actorName}' 배우 특유의 시선 처리, 목소리 톤, 침묵 활용법 등). 최종 결과물은 오직 연기 팁에 대한 내용만 담긴 HTML 문자열이어야 합니다. <h3>, <p>, <ul>, <li>, <strong> 태그를 사용하여 내용을 구조화하고, 마크다운 형식은 절대 사용하지 마세요.`;
-            const userQuery = `이 오디션 대본은 '${actorName}' 배우를 롤모델로 삼는 학생을 위한 것입니다. '${actorName}' 배우의 입장에서 이 대본을 어떻게 연기해야 할지에 대한 구체적이고 전문적인 연기 팁을 HTML 형식으로 작성해주세요.\n\n대본:\n${sceneHtml}`;
-            try {
-                const tipsHtml = await callGenerativeApi(systemPrompt, userQuery);
-                tipsContent.innerHTML = tipsHtml;
-            } catch (error) { tipsContent.innerHTML = `<p class="text-red-700 text-center">죄송합니다. 연기 팁을 생성하는 중에 오류가 발생했습니다: ${error.message}</p>`; }
-        }
-        async function getQnaResponse(question) { 
-            const systemPrompt = "당신은 'AcTi'라는 이름을 가진 연기 전문 코치입니다. 배우 지망생의 질문에 대해 다른 인사나 마무리 멘트 없이 핵심적인 답변만 간결하고 전문적으로 제공하세요. 당신의 이름은 'AcTi'이며, 'AI'라는 단어는 절대 사용하지 마세요. 답변은 항상 한국어로 제공해야 합니다. 최종 결과물은 다른 설명 없이 오직 답변 내용이 담긴 단일 HTML 문자열이어야 합니다. <p>, <ul>, <li>, <strong> 태그를 사용하여 가독성 좋게 내용을 구조화하고, 섹션을 구분해주세요. 마크다운 형식(**)은 절대 사용하지 마세요.";
-            return await callGenerativeApi(systemPrompt, question);
-        }
-        function appendMessage(sender, message) {
-            const isUser = sender === 'user';
-            const messageHtml = isUser ? `<div class="flex items-start gap-3 justify-end"><div class="bg-accent-color text-white rounded-lg p-3 max-w-lg shadow-sm"><p class="text-sm"><strong class="font-bold text-white/80">Q.</strong> ${message}</p></div></div>` : `<div class="flex items-start gap-3"><div class="accent-bg text-white text-sm rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center font-bold">A</div><div class="bg-white rounded-lg p-3 max-w-lg shadow-sm border text-sm ai-generated-content" style="border-color: var(--border-color);">${message}</div></div>`;
-            qnaChatbox.innerHTML += messageHtml;
-            qnaChatbox.scrollTop = qnaChatbox.scrollHeight;
-        }
-        async function findRoleModels() {
-            finderModal.classList.add('hidden');
-            hideAllSections();
-            loadingSection.classList.remove('hidden');
-            loadingStatus.textContent = `나의 성향을 분석하여 롤모델을 찾는 중...`;
-            const selectedGender = document.querySelector('#finder-gender .selected')?.textContent;
-            const selectedAge = document.querySelector('#finder-age .selected')?.textContent;
-            const selectedStyles = [...document.querySelectorAll('#finder-style .selected')].map(el => el.textContent);
-            const systemPrompt = `당신은 세계 최고의 캐스팅 디렉터 AcTi입니다. 사용자가 선택한 조건(성별, 연령대, 연기 스타일)에 맞는 대한민국 배우 5명을 추천합니다. 최종 결과는 다른 설명 없이 오직 JSON 배열 형식이어야 합니다. 각 객체는 'name'과 'description' 키를 가져야 합니다. 예: [{"name": "송강호", "description": "1967년생 대한민국 남자 배우"}, ...]`;
-            let userQuery = "다음 조건에 맞는 롤모델 배우 5명을 추천해줘:\n";
-            if (selectedGender) userQuery += `- 성별: ${selectedGender}\n`;
-            if (selectedAge) userQuery += `- 연령대: ${selectedAge}\n`;
-            if (selectedStyles.length > 0) userQuery += `- 연기 스타일: ${selectedStyles.join(', ')}\n`;
-            try {
-                const resultText = await callGenerativeApi(systemPrompt, userQuery);
-                const startIndex = resultText.indexOf('[');
-                const endIndex = resultText.lastIndexOf(']');
-                if (startIndex === -1 || endIndex === -1) { throw new Error("AcTi가 유효한 배우 목록을 생성하지 못했습니다."); }
-                const jsonString = resultText.substring(startIndex, endIndex + 1);
-                const actors = JSON.parse(jsonString);
-                displayFinderResults(actors);
-            } catch (error) { showError(`롤모델 추천 생성에 실패했습니다. ${error.message}`); }
-            finally { loadingSection.classList.add('hidden'); }
-        }
-        function displayFinderResults(actors) {
-            hideAllSections();
-            let content = `<h2 class="text-3xl md:text-4xl mb-4">AcTi 추천 롤모델</h2><p class="mb-8">나의 성향과 잘 맞는 롤모델 배우입니다.</p><div class="grid grid-cols-2 md:grid-cols-4 gap-4">`;
-            actors.forEach(actor => {
-                const placeholderUrl = `https://placehold.co/200x300/E5E0D9/4E443C?text=${encodeURIComponent(actor.name)}`;
-                content += `<div class="actor-card cursor-pointer p-2 bg-white/50 rounded-lg hover:shadow-lg transition-shadow" data-name="${actor.name}"><img src="${placeholderUrl}" class="w-full h-48 object-cover rounded-md mb-2 bg-stone-200" alt="${actor.name}"><h4 class="font-bold text-primary">${actor.name}</h4><p class="text-sm text-secondary">${actor.description || ''}</p></div>`;
-            });
-            content += `</div>`;
-            finderResultsSection.innerHTML = content;
-            finderResultsSection.classList.remove('hidden');
-            document.querySelectorAll('.actor-card').forEach(card => {
-                const img = card.querySelector('img');
-                const actorName = card.dataset.name;
-                fetchActorImage(actorName).then(url => img.src = url);
-                card.addEventListener('click', () => { searchAndDisambiguate(actorName); });
-            });
-        }
-        
-        // --- EVENT LISTENERS ---
-        function setupEventListeners() {
-            searchButton.addEventListener('click', () => {
-                const actorName = searchInput.value.trim();
-                if (actorName) searchAndDisambiguate(actorName);
-            });
-            searchInput.addEventListener('keyup', (event) => {
-                if (event.key === 'Enter') {
+            async function generateAuditionScene(actorName, reportHtml, genre, existingScene = null, editRequest = null) {
+                sceneModal.classList.remove('hidden');
+                sceneContent.innerHTML = `<div class="flex items-center justify-center h-full"><div class="w-12 h-12 border-4 border-stone-200 rounded-full animate-spin" style="border-top-color: var(--accent-color);"></div></div>`;
+                saveSceneButton.disabled = true;
+                let systemPrompt, userQuery;
+                if (existingScene && editRequest) {
+                    systemPrompt = `당신은 창의적인 시나리오 작가입니다. 주어진 대본을 사용자의 요청에 맞게 수정합니다. 반드시 이전 대본의 맥락과 형식을 유지하면서, 요청사항만 반영하여 완성된 전체 대본을 다시 제공해야 합니다. 최종 결과물은 다른 설명 없이 오직 완성된 대본 HTML 문자열이어야 합니다. 코드 블록 마커나 불필요한 설명을 절대 포함하지 마세요.`;
+                    userQuery = `기존 대본:\n\n${existingScene}\n\n사용자 수정 요청: "${editRequest}"\n\n위 요청을 반영하여 전체 대본을 수정해주세요.`;
+                } else {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = reportHtml;
+                    const reportText = (tempDiv.textContent || "").replace(/\s\s+/g, ' ').substring(0, 1500);
+                    systemPrompt = `당신은 창의적인 시나리오 작가입니다. 배우 지망생을 위해, 특정 배우의 강점을 극대화할 수 있는 **1분~1분 30초 분량의 오디션용 장면**을 작성합니다. 최종 결과물은 실제 대본처럼 서식이 지정된, 순수한 단일 HTML 문자열이어야 합니다. 코드 블록 마커(\`\`\`)를 절대 포함하지 마세요. 다음 규칙을 엄격히 준수하세요: 1. **창의성**: 매번 이전과는 다른 독창적인 상황을 구상해야 합니다. 배우의 가장 대표적인 이미지만 반복하는 것이 아니라, 그의 다른 작품이나 알려지지 않은 매력을 탐구하여 신선한 캐릭터와 배경을 창조해야 합니다. 2. **분량**: 대사량이 충분하여 배우가 1분 이상 연기할 수 있도록 작성해야 합니다. 3. **지문**: 대사 안의 연기 지문은 <em>(괄호 안에)</em> 이탤릭체로 작성하되, **길고 서술적인 설명은 피하고, 행동이나 감정의 핵심만 간결하게** 표현해야 합니다. (예: '<em>(잠시 침묵)</em>', '<em>(목소리가 살짝 떨리며)</em>'). 4. **언어**: 인물 설명과 이름은 오직 한글로만 작성하세요. 5. **대본 형식**: 인물 이름은 <strong> 태그를 사용하여 볼드체로, 대사는 다음 줄에 들여쓰기 된 형식으로 제공해야 합니다. (예: '<p><strong>김영감</strong></p><p style="padding-left: 1.5rem;">...대사...</p>'). 6. **줄바꿈**: 긴 대사는 의미 단위로 <br> 태그를 사용하여 가독성을 높여주세요.`;
+                    userQuery = `다음은 '${actorName}' 배우에 대한 분석입니다. 이 분석을 바탕으로, **'${genre}' 스타일**을 강조하여 그의 연기력을 가장 잘 보여줄 수 있는 **1분~1분 30초 분량**의 오리지널 오디션 장면을 HTML 형식으로 작성해주세요.\n\n분석 내용: "${reportText}"`;
+                }
+                try {
+                    const sceneHtml = await callGenerativeApi(systemPrompt, userQuery);
+                    sceneContent.innerHTML = sceneHtml;
+                    saveSceneButton.disabled = false;
+                } catch (error) { sceneContent.innerHTML = `<p class="text-red-700 text-center">죄송합니다. 대본을 생성하는 중에 오류가 발생했습니다: ${error.message}</p>`; }
+            }
+            async function generateActingTips(actorName, sceneHtml) {
+                tipsModal.classList.remove('hidden');
+                tipsContent.innerHTML = `<div class="flex items-center justify-center h-full"><div class="w-12 h-12 border-4 border-stone-200 rounded-full animate-spin" style="border-top-color: var(--accent-color);"></div></div>`;
+                const systemPrompt = `당신은 'AcTi' 연기 코치입니다. 서론이나 결론, 인사 없이 바로 핵심 연기 팁 분석으로 들어가세요. 주어진 대본과 롤모델 배우 정보를 바탕으로, 배우 지망생이 연기 연습에 바로 적용할 수 있는 구체적이고 실질적인 코칭을 제공합니다. 롤모델 배우라면 이 장면을 어떻게 해석하고 표현할지, 그의 스타일을 어떻게 녹여낼 수 있을지 상세히 설명해주세요. (예: '${actorName}' 배우 특유의 시선 처리, 목소리 톤, 침묵 활용법 등). 최종 결과물은 오직 연기 팁에 대한 내용만 담긴 HTML 문자열이어야 합니다. <h3>, <p>, <ul>, <li>, <strong> 태그를 사용하여 내용을 구조화하고, 마크다운 형식은 절대 사용하지 마세요.`;
+                const userQuery = `이 오디션 대본은 '${actorName}' 배우를 롤모델로 삼는 학생을 위한 것입니다. '${actorName}' 배우의 입장에서 이 대본을 어떻게 연기해야 할지에 대한 구체적이고 전문적인 연기 팁을 HTML 형식으로 작성해주세요.\n\n대본:\n${sceneHtml}`;
+                try {
+                    const tipsHtml = await callGenerativeApi(systemPrompt, userQuery);
+                    tipsContent.innerHTML = tipsHtml;
+                } catch (error) { tipsContent.innerHTML = `<p class="text-red-700 text-center">죄송합니다. 연기 팁을 생성하는 중에 오류가 발생했습니다: ${error.message}</p>`; }
+            }
+            async function getQnaResponse(question) { 
+                const systemPrompt = "당신은 'AcTi'라는 이름을 가진 연기 전문 코치입니다. 배우 지망생의 질문에 대해 다른 인사나 마무리 멘트 없이 핵심적인 답변만 간결하고 전문적으로 제공하세요. 당신의 이름은 'AcTi'이며, 'AI'라는 단어는 절대 사용하지 마세요. 답변은 항상 한국어로 제공해야 합니다. 최종 결과물은 다른 설명 없이 오직 답변 내용이 담긴 단일 HTML 문자열이어야 합니다. <p>, <ul>, <li>, <strong> 태그를 사용하여 가독성 좋게 내용을 구조화하고, 섹션을 구분해주세요. 마크다운 형식(**)은 절대 사용하지 마세요.";
+                return await callGenerativeApi(systemPrompt, question);
+            }
+            function appendMessage(sender, message) {
+                const isUser = sender === 'user';
+                const messageHtml = isUser ? `<div class="flex items-start gap-3 justify-end"><div class="bg-accent-color text-white rounded-lg p-3 max-w-lg shadow-sm"><p class="text-sm"><strong class="font-bold text-white/80">Q.</strong> ${message}</p></div></div>` : `<div class="flex items-start gap-3"><div class="accent-bg text-white text-sm rounded-full h-8 w-8 flex-shrink-0 flex items-center justify-center font-bold">A</div><div class="bg-white rounded-lg p-3 max-w-lg shadow-sm border text-sm ai-generated-content" style="border-color: var(--border-color);">${message}</div></div>`;
+                qnaChatbox.innerHTML += messageHtml;
+                qnaChatbox.scrollTop = qnaChatbox.scrollHeight;
+            }
+            async function findRoleModels() {
+                finderModal.classList.add('hidden');
+                hideAllSections();
+                loadingSection.classList.remove('hidden');
+                loadingStatus.textContent = `나의 성향을 분석하여 롤모델을 찾는 중...`;
+                const selectedGender = document.querySelector('#finder-gender .selected')?.textContent;
+                const selectedAge = document.querySelector('#finder-age .selected')?.textContent;
+                const selectedStyles = [...document.querySelectorAll('#finder-style .selected')].map(el => el.textContent);
+                const systemPrompt = `당신은 세계 최고의 캐스팅 디렉터 AcTi입니다. 사용자가 선택한 조건(성별, 연령대, 연기 스타일)에 맞는 대한민국 배우 5명을 추천합니다. 최종 결과는 다른 설명 없이 오직 JSON 배열 형식이어야 합니다. 각 객체는 'name'과 'description' 키를 가져야 합니다. 예: [{"name": "송강호", "description": "1967년생 대한민국 남자 배우"}, ...]`;
+                let userQuery = "다음 조건에 맞는 롤모델 배우 5명을 추천해줘:\n";
+                if (selectedGender) userQuery += `- 성별: ${selectedGender}\n`;
+                if (selectedAge) userQuery += `- 연령대: ${selectedAge}\n`;
+                if (selectedStyles.length > 0) userQuery += `- 연기 스타일: ${selectedStyles.join(', ')}\n`;
+                try {
+                    const resultText = await callGenerativeApi(systemPrompt, userQuery);
+                    const startIndex = resultText.indexOf('[');
+                    const endIndex = resultText.lastIndexOf(']');
+                    if (startIndex === -1 || endIndex === -1) { throw new Error("AcTi가 유효한 배우 목록을 생성하지 못했습니다."); }
+                    const jsonString = resultText.substring(startIndex, endIndex + 1);
+                    const actors = JSON.parse(jsonString);
+                    displayFinderResults(actors);
+                } catch (error) { showError(`롤모델 추천 생성에 실패했습니다. ${error.message}`); }
+                finally { loadingSection.classList.add('hidden'); }
+            }
+            function displayFinderResults(actors) {
+                hideAllSections();
+                let content = `<h2 class="text-3xl md:text-4xl mb-4">AcTi 추천 롤모델</h2><p class="mb-8">나의 성향과 잘 맞는 롤모델 배우입니다.</p><div class="grid grid-cols-2 md:grid-cols-4 gap-4">`;
+                actors.forEach(actor => {
+                    const placeholderUrl = `https://placehold.co/200x300/E5E0D9/4E443C?text=${encodeURIComponent(actor.name)}`;
+                    content += `<div class="actor-card cursor-pointer p-2 bg-white/50 rounded-lg hover:shadow-lg transition-shadow" data-name="${actor.name}"><img src="${placeholderUrl}" class="w-full h-48 object-cover rounded-md mb-2 bg-stone-200" alt="${actor.name}"><h4 class="font-bold text-primary">${actor.name}</h4><p class="text-sm text-secondary">${actor.description || ''}</p></div>`;
+                });
+                content += `</div>`;
+                finderResultsSection.innerHTML = content;
+                finderResultsSection.classList.remove('hidden');
+                document.querySelectorAll('.actor-card').forEach(card => {
+                    const img = card.querySelector('img');
+                    const actorName = card.dataset.name;
+                    fetchActorImage(actorName).then(url => img.src = url);
+                    card.addEventListener('click', () => { searchAndDisambiguate(actorName); });
+                });
+            }
+            async function analyzeMyScript(scriptText, scriptImageBase64 = null) {
+                analysisModal.classList.remove('hidden');
+                analysisContent.innerHTML = `<div class="flex items-center justify-center h-full"><div class="w-12 h-12 border-4 border-stone-200 rounded-full animate-spin" style="border-top-color: var(--accent-color);"></div></div>`;
+                
+                const systemPrompt = `당신은 세계 최고의 연기 코치 AcTi입니다. 당신의 임무는 사용자가 제출한 대본을 현재 분석 중인 '롤모델 배우'의 관점에서 심층 분석하고 첨삭하는 것입니다. 최종 결과물은 대본과 코칭이 분리된, 가독성 높은 HTML 형식이어야 합니다. 다음 규칙을 엄격히 준수하세요: 1. **서론**: 인사말 없이, 대본 전체에 대한 총평과 분석 방향을 일반 <p> 태그로 간결하게 제시합니다. 2. **본문**: 사용자의 원본 대사나 지문을 <p class="original-script-line"> 태그로 먼저 보여주고, 바로 다음 줄에 그 부분에 대한 당신의 코칭을 <p><span class="analysis-comment">(코멘트)</span></p> 형식으로 추가합니다. 이 '원본(굵게) - 코칭(주황색)' 쌍을 대본 전체에 걸쳐 반복합니다. 3. **형식**: 최종 결과물은 다른 설명 없이 이 HTML 구조만 포함해야 하며, 불필요한 마무리 멘트는 생략합니다.`;
+                
+                let userQueryParts = [
+                    { text: `이 대본을 '${currentActor.name}' 배우의 관점에서 분석하고 첨삭해주세요. 롤모델 배우 분석 내용은 다음과 같습니다:\n\n${currentActor.reportHtml}\n\n사용자 대본:\n` }
+                ];
+                if (scriptText) {
+                     userQueryParts[0].text += scriptText;
+                }
+                if (scriptImageBase64) {
+                    userQueryParts[0].text += " (이미지 파일로 제출됨)";
+                    userQueryParts.push({ inline_data: { mime_type: "image/jpeg", data: scriptImageBase64 } });
+                } 
+                try {
+                    const analyzedHtml = await callGenerativeApiWithParts(systemPrompt, userQueryParts);
+                    analysisContent.innerHTML = `<div class="font-sans">${analyzedHtml}</div>`;
+                } catch (error) {
+                    analysisContent.innerHTML = `<p class="text-red-700 text-center">죄송합니다. 대본 분석 중 오류가 발생했습니다: ${error.message}</p>`;
+                }
+            }
+
+            // --- EVENT LISTENERS ---
+            function setupEventListeners() {
+                searchButton.addEventListener('click', () => {
                     const actorName = searchInput.value.trim();
                     if (actorName) searchAndDisambiguate(actorName);
-                }
-            });
-
-            saveJpgButton.addEventListener('click', () => captureAndSave('report-to-capture', `AcTi_Report_${currentActor.name}.jpg`, 'save-jpg-button'));
-            saveSceneButton.addEventListener('click', () => captureAndSave('scene-to-capture', `AcTi_Scene_${currentActor.name}.jpg`, 'save-scene-button'));
-            saveTipsButton.addEventListener('click', () => captureAndSave('tips-to-capture', `AcTi_Tips_${currentActor.name}.jpg`, 'save-tips-button'));
-
-            qnaButton.addEventListener('click', () => qnaModal.classList.remove('hidden'));
-            closeQnaModalButton.addEventListener('click', () => qnaModal.classList.add('hidden'));
-            
-            closeSceneModalButton.addEventListener('click', () => sceneModal.classList.add('hidden'));
-            getActingTipsButton.addEventListener('click', () => {
-                const sceneHtml = sceneContent.innerHTML;
-                if (currentActor.name && sceneHtml) generateActingTips(currentActor.name, sceneHtml);
-            });
-            
-            closeTipsModalButton.addEventListener('click', () => tipsModal.classList.add('hidden'));
-
-            finderButton.addEventListener('click', () => finderModal.classList.remove('hidden'));
-            closeFinderModalButton.addEventListener('click', () => finderModal.classList.add('hidden'));
-            findRoleModelsButton.addEventListener('click', findRoleModels);
-
-            document.querySelectorAll('.finder-option-button').forEach(button => {
-                button.addEventListener('click', () => {
-                    const group = button.dataset.group;
-                    if (group === 'style') {
-                        const selectedCount = document.querySelectorAll(`#finder-style .selected`).length;
-                        if (button.classList.contains('selected')) {
-                            button.classList.remove('selected');
-                        } else if (selectedCount < 3) {
-                            button.classList.add('selected');
-                        }
-                    } else {
-                        document.querySelectorAll(`[data-group="${group}"]`).forEach(btn => btn.classList.remove('selected'));
-                        button.classList.add('selected');
+                });
+                searchInput.addEventListener('keyup', (event) => {
+                    if (event.key === 'Enter') {
+                        const actorName = searchInput.value.trim();
+                        if (actorName) searchAndDisambiguate(actorName);
                     }
                 });
-            });
+                saveJpgButton.addEventListener('click', () => captureAndSave('report-to-capture', `AcTi_Report_${currentActor.name}.jpg`, 'save-jpg-button'));
+                saveSceneButton.addEventListener('click', () => captureAndSave('scene-to-capture', `AcTi_Scene_${currentActor.name}.jpg`, 'save-scene-button'));
+                saveTipsButton.addEventListener('click', () => captureAndSave('tips-to-capture', `AcTi_Tips_${currentActor.name}.jpg`, 'save-tips-button'));
+                saveAnalysisButton.addEventListener('click', () => captureAndSave('analysis-to-capture', `AcTi_Analysis_${currentActor.name}.jpg`, 'save-analysis-button'));
+                
+                qnaButton.addEventListener('click', () => qnaModal.classList.remove('hidden'));
+                closeQnaModalButton.addEventListener('click', () => qnaModal.classList.add('hidden'));
+                
+                closeSceneModalButton.addEventListener('click', () => sceneModal.classList.add('hidden'));
+                getActingTipsButton.addEventListener('click', () => {
+                    const sceneHtml = sceneContent.innerHTML;
+                    if (currentActor.name && sceneHtml) generateActingTips(currentActor.name, sceneHtml);
+                });
+                
+                closeTipsModalButton.addEventListener('click', () => tipsModal.classList.add('hidden'));
+                finderButton.addEventListener('click', () => finderModal.classList.remove('hidden'));
+                closeFinderModalButton.addEventListener('click', () => finderModal.classList.add('hidden'));
+                findRoleModelsButton.addEventListener('click', findRoleModels);
+                document.querySelectorAll('.finder-option-button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const group = button.dataset.group;
+                        if (group === 'style') {
+                            const selectedCount = document.querySelectorAll(`#finder-style .selected`).length;
+                            if (button.classList.contains('selected')) {
+                                button.classList.remove('selected');
+                            } else if (selectedCount < 3) {
+                                button.classList.add('selected');
+                            }
+                        } else {
+                            document.querySelectorAll(`[data-group="${group}"]`).forEach(btn => btn.classList.remove('selected'));
+                            button.classList.add('selected');
+                        }
+                    });
+                });
 
-            qnaForm.addEventListener('submit', async (e) => { 
-                e.preventDefault();
-                const question = qnaInput.value.trim();
-                if (!question) return;
-                appendMessage('user', question);
-                qnaInput.value = '';
-                qnaForm.querySelector('button').disabled = true;
-                try {
-                    const response = await getQnaResponse(question);
-                    appendMessage('acti', response);
-                } catch(error) {
-                    appendMessage('acti', `오류가 발생했습니다: ${error.message}`);
-                } finally {
-                    qnaForm.querySelector('button').disabled = false;
-                }
-            });
+                reportSection.addEventListener('click', e => {
+                    if (e.target.id === 'analyze-my-script-button') {
+                        const inputModalHtml = `<div id="input-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col" style="background-color: var(--bg-main);"><header class="p-4 border-b flex justify-between items-center"><h3 class="text-2xl font-serif">내 대본 입력</h3><button id="close-input-modal" class="p-2 -mr-2 text-2xl">&times;</button></header><div class="p-6 flex-1 overflow-y-auto"><textarea id="script-input-text" class="w-full h-48 p-3 border rounded-md" placeholder="여기에 대본을 붙여넣거나 아래 파일을 업로드하세요. (txt, jpg, png)"></textarea><input type="file" id="script-input-file" accept=".txt,.jpg,.jpeg,.png" class="mt-4 block w-full text-sm text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-stone-50 file:text-stone-700 hover:file:bg-stone-100"/></div><footer class="p-4 border-t bg-white"><button id="submit-my-script" class="w-full accent-bg text-white rounded-full py-3">분석 요청하기</button></footer></div></div>`;
+                        document.body.insertAdjacentHTML('beforeend', inputModalHtml);
+                        const inputModal = document.getElementById('input-modal');
+                        document.getElementById('close-input-modal').addEventListener('click', () => inputModal.remove());
+                        document.getElementById('submit-my-script').addEventListener('click', () => {
+                            const textInput = document.getElementById('script-input-text').value.trim();
+                            const fileInput = document.getElementById('script-input-file').files[0];
+                            if (!textInput && !fileInput) { alert("대본을 입력하거나 파일을 선택해주세요."); return; }
+                            if (fileInput) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                     if (fileInput.type.startsWith("image/")) {
+                                         const base64String = reader.result.split(',')[1];
+                                         analyzeMyScript(null, base64String);
+                                     } else {
+                                         analyzeMyScript(reader.result, null);
+                                     }
+                                };
+                                 if (fileInput.type.startsWith("image/")) { reader.readAsDataURL(fileInput); } 
+                                 else { reader.readAsText(fileInput, 'UTF-8'); }
+                            } else { analyzeMyScript(textInput, null); }
+                            inputModal.remove();
+                        });
+                    }
+                });
+                
+                closeAnalysisModalButton.addEventListener('click', () => analysisModal.classList.add('hidden'));
+
+                qnaForm.addEventListener('submit', async (e) => { 
+                    e.preventDefault();
+                    const question = qnaInput.value.trim();
+                    if (!question) return;
+                    appendMessage('user', question);
+                    qnaInput.value = '';
+                    qnaForm.querySelector('button').disabled = true;
+                    try {
+                        const response = await getQnaResponse(question);
+                        appendMessage('acti', response);
+                    } catch(error) { appendMessage('acti', `오류가 발생했습니다: ${error.message}`); }
+                    finally { qnaForm.querySelector('button').disabled = false; }
+                });
+                
+                sceneEditForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const editRequest = sceneEditInput.value.trim();
+                    if (!editRequest) return;
+                    const existingScene = sceneContent.innerHTML;
+                    generateAuditionScene(currentActor.name, null, '수정', existingScene, editRequest);
+                    sceneEditInput.value = '';
+                });
+            }
             
-            sceneEditForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const editRequest = sceneEditInput.value.trim();
-                if (!editRequest) return;
-                const existingScene = sceneContent.innerHTML;
-                generateAuditionScene(currentActor.name, null, '수정', existingScene, editRequest);
-                sceneEditInput.value = '';
-            });
-        }
-        
-        setupEventListeners();
+            setupEventListeners();
+        });
     </script>
 </body>
 </html>
